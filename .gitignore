@@ -1,0 +1,21 @@
+# Build outputs
+bin/
+obj/
+
+# User-specific files
+.vs/
+.vscode/
+
+# Local configuration
+appsettings.Development.json
+appsettings.Local.json
+
+# Local bootstrap scripts
+*.bat
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
