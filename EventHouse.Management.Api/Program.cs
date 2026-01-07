@@ -1,7 +1,9 @@
 using EventHouse.Management.Api.Middlewares;
+using EventHouse.Management.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -64,6 +66,13 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+
+//
+// DbContext
+//
+builder.Services.AddDbContext<ManagementDbContext>(options =>
+    options.UseSqlite(
+        builder.Configuration.GetConnectionString("ManagementConnection")));
 
 //
 // Swagger
