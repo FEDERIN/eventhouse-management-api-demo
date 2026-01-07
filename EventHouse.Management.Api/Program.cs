@@ -1,5 +1,7 @@
 using EventHouse.Management.Api.Middlewares;
+using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Infrastructure.Persistence;
+using EventHouse.Management.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -28,6 +30,14 @@ builder.Services.AddControllers(options =>
     // Enums como string en JSON
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
+
+// Repositories
+//
+builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+builder.Services.AddScoped<IArtistRepository, ArtistRepository>();
+builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<IVenueRepository, VenueRepository>();
+
 
 //
 // Auth JWT (env var: Auth__DevSecret)
