@@ -1,4 +1,5 @@
 using EventHouse.Management.Api.Middlewares;
+using EventHouse.Management.Api.Swagger;
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Infrastructure.Persistence;
 using EventHouse.Management.Infrastructure.Repositories;
@@ -125,6 +126,20 @@ builder.Services.AddSwaggerGen(c =>
     c.AddServer(new OpenApiServer { Url = "http://localhost:5186", Description = "Local" });
     c.AddServer(new OpenApiServer { Url = "https://staging.api.tu-dominio.com", Description = "Staging" });
     c.AddServer(new OpenApiServer { Url = "https://api.tu-dominio.com", Description = "Production" });
+
+    c.EnableAnnotations();
+
+    // XML docs - API
+    var basePath = AppContext.BaseDirectory;
+    var apiXml = Path.Combine(basePath, "EventHouse.Management.Api.xml");
+    if (File.Exists(apiXml))
+    {
+        c.IncludeXmlComments(apiXml, includeControllerXmlComments: true);
+    }
+
+    // Document filter para agregar header Location en respuestas 201
+    c.DocumentFilter<CreatedWithLocationDocumentFilter>();
+
 });
 
 var app = builder.Build();
@@ -150,6 +165,7 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
