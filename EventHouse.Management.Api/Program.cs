@@ -83,9 +83,19 @@ builder.Services.AddAuthorization();
 //
 // DbContext
 //
+
 builder.Services.AddDbContext<ManagementDbContext>(options =>
-    options.UseSqlite(
-        builder.Configuration.GetConnectionString("ManagementConnection")));
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("ManagementConnection"));
+
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableDetailedErrors();
+        options.EnableSensitiveDataLogging();
+        options.LogTo(Console.WriteLine);
+    }
+});
+
 
 builder.Services.AddApplication();
 
@@ -128,7 +138,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 
     // Servers placeholders
-    c.AddServer(new OpenApiServer { Url = "http://localhost:5186", Description = "Local" });
+    c.AddServer(new OpenApiServer { Url = "http://localhost:5185", Description = "Local" });
     c.AddServer(new OpenApiServer { Url = "https://staging.api.tu-dominio.com", Description = "Staging" });
     c.AddServer(new OpenApiServer { Url = "https://api.tu-dominio.com", Description = "Production" });
 
