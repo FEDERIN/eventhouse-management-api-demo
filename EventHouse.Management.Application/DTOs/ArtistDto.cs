@@ -16,8 +16,5 @@ namespace EventHouse.Management.Application.DTOs
 
         /// <summary>Category of the artist (Singer, Band, DJ, etc.).</summary>
         public ArtistCategory Category { get; init; }
-
-        /// <summary>Genres associated with the artist.</summary>
-        public IReadOnlyList<ArtistGenreDto> Genres { get; init; } = [];
     }
 }
