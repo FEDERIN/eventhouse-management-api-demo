@@ -5,7 +5,8 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Auth__DevSecret": "EVENTHOUSE_LOCAL_DEV_SECRET_32_CHARS_MINIMUM!!"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5185"
