@@ -24,6 +24,7 @@ public class ArtistConfiguration : IEntityTypeConfiguration<Artist>
                .IsRequired();
 
         builder.HasIndex(e => e.Name)
-               .HasDatabaseName("IX_Artists_Name");
+            .IsUnique()
+            .HasDatabaseName("IX_Artists_Name");
     }
 }
