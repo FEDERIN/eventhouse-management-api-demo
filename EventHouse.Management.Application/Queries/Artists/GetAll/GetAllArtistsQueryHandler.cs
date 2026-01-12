@@ -31,7 +31,8 @@ internal sealed class GetAllArtistsQueryHandler(IArtistRepository artistReposito
         var dtoList = result.Items.Select(e => new ArtistDto
         {
             Id = e.Id,
-            Name = e.Name
+            Name = e.Name,
+            Category = ArtistCategoryMapper.ToApplication(e.Category)
         }).ToList();
 
         return new PagedResultDto<ArtistDto>
