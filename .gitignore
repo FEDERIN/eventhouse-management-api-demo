@@ -23,3 +23,7 @@ Thumbs.db
 *.db
 *.db-shm
 *.db-wal
+
+## coverage
+coverage/
+coverage-report/

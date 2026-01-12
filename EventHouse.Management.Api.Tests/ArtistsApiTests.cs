@@ -7,14 +7,9 @@ using System.Net.Http.Json;
 
 namespace EventHouse.Management.Api.Tests;
 
-public sealed class ArtistsApiTests : IClassFixture<CustomWebApplicationFactory>
+public sealed class ArtistsApiTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
 {
-    private readonly HttpClient _client;
-
-    public ArtistsApiTests(CustomWebApplicationFactory factory)
-    {
-        _client = factory.CreateClient();
-    }
+    private readonly HttpClient _client = factory.CreateClient();
 
     [Fact]
     public async Task GetAll_WithoutToken_Returns401()
