@@ -30,3 +30,16 @@ reportgenerator -reports:"EventHouse.Management.Api.Tests\coverage\coverage.cobe
 
 start coverage-report/index.html
 
+
+## Observability
+
+### Correlation ID
+All responses include the `X-Correlation-Id` header to enable end-to-end request tracing.
+
+You can also provide your own correlation id in the request header:
+
+```bash
+curl -i -H "X-Correlation-Id: demo123" http://localhost:5185/api/v1/artists
+curl http://localhost:5185/health
+curl http://localhost:5185/ready
+

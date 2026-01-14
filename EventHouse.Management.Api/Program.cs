@@ -11,8 +11,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
+// para HealthCheckOptions + HealthReport
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,13 +38,13 @@ builder.Services.AddControllers(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
+//
 // Repositories
 //
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IArtistRepository, ArtistRepository>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IVenueRepository, VenueRepository>();
-
 
 //
 // Auth JWT (env var: Auth__DevSecret)
@@ -83,7 +87,6 @@ builder.Services.AddAuthorization();
 //
 // DbContext
 //
-
 builder.Services.AddDbContext<ManagementDbContext>(options =>
 {
     options.UseSqlite(builder.Configuration.GetConnectionString("ManagementConnection"));
@@ -96,9 +99,13 @@ builder.Services.AddDbContext<ManagementDbContext>(options =>
     }
 });
 
+//
+// Health checks (cloud readiness)
+//
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ManagementDbContext>("db");
 
 builder.Services.AddApplication();
-
 
 //
 // Swagger
@@ -154,12 +161,34 @@ builder.Services.AddSwaggerGen(c =>
 
     // Document filter para agregar header Location en respuestas 201
     c.DocumentFilter<CreatedWithLocationDocumentFilter>();
-
 });
 
 builder.Services.AddTransient<CorrelationIdMiddleware>();
 
 var app = builder.Build();
+
+//
+// Health response writer (JSON)
+//
+static Task WriteHealthResponse(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json; charset=utf-8";
+
+    var payload = new
+    {
+        status = report.Status.ToString(),
+        totalDurationMs = report.TotalDuration.TotalMilliseconds,
+        checks = report.Entries.Select(e => new
+        {
+            name = e.Key,
+            status = e.Value.Status.ToString(),
+            durationMs = e.Value.Duration.TotalMilliseconds,
+            description = e.Value.Description
+        })
+    };
+
+    return context.Response.WriteAsync(JsonSerializer.Serialize(payload));
+}
 
 //
 // Pipeline
@@ -188,6 +217,19 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Health endpoints (liveness / readiness)
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => true,
+    ResponseWriter = WriteHealthResponse
+});
+
+app.MapHealthChecks("/ready", new HealthCheckOptions
+{
+    Predicate = _ => true,
+    ResponseWriter = WriteHealthResponse
+});
 
 app.MapControllers();
 
