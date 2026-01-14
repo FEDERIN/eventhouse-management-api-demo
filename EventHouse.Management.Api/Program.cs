@@ -221,15 +221,20 @@ app.UseAuthorization();
 // Health endpoints (liveness / readiness)
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
-    Predicate = _ => true,
-    ResponseWriter = WriteHealthResponse
+    Predicate = _ => false, // no checks, solo "Alive"
+    ResponseWriter = async (ctx, _) =>
+    {
+        ctx.Response.ContentType = "application/json; charset=utf-8";
+        await ctx.Response.WriteAsync("""{"status":"Healthy"}""");
+    }
 });
 
 app.MapHealthChecks("/ready", new HealthCheckOptions
 {
-    Predicate = _ => true,
+    Predicate = _ => true, // incluye db
     ResponseWriter = WriteHealthResponse
 });
+
 
 app.MapControllers();
 
