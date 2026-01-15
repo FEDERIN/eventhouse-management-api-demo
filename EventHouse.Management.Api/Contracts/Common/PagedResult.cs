@@ -1,5 +1,4 @@
-﻿using EventHouse.Management.Application.Common.Pagination;
-
+﻿
 namespace EventHouse.Management.Api.Contracts.Common;
 
 public sealed class PagedResult<T>

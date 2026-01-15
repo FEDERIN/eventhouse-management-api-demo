@@ -1,5 +1,4 @@
-﻿
-namespace EventHouse.Management.Application.Common.Pagination;
+﻿namespace EventHouse.Management.Api.Contracts.Common;
 
 public sealed class PaginationLinks
 {
@@ -9,4 +8,3 @@ public sealed class PaginationLinks
     public string? Next { get; init; }
     public string? Last { get; init; }
 }
-
