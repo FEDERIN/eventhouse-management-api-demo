@@ -6,17 +6,19 @@ using EventHouse.Management.Infrastructure.Persistence;
 using EventHouse.Management.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+// para HealthCheckOptions + HealthReport
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Swagger;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
-// para HealthCheckOptions + HealthReport
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -197,18 +199,27 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger(c =>
     {
-        c.RouteTemplate = "swagger/{documentName}/swagger.json";
+        c.RouteTemplate = "swagger-original/{documentName}/swagger.json";
     });
+
+    app.MapGet("/swagger/v1/swagger.json", async (ISwaggerProvider swaggerProvider, HttpContext http) =>
+    {
+        var doc = swaggerProvider.GetSwagger("v1");
+
+        var json = doc.SerializeAsJson(OpenApiSpecVersion.OpenApi3_0);
+        var patched = SwaggerJsonRefPatcher.Patch(json);
+
+        http.Response.ContentType = "application/json";
+        await http.Response.WriteAsync(patched);
+    }).ExcludeFromDescription();
 
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "EventHouse.Management.Api v1");
         c.RoutePrefix = "swagger";
     });
-}
 
-if (!app.Environment.IsDevelopment())
-{
+
     app.UseHttpsRedirection();
 }
 
