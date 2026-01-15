@@ -1,12 +1,12 @@
 using EventHouse.Management.Api.Middlewares;
 using EventHouse.Management.Api.Swagger;
+using EventHouse.Management.Api.Swagger.Filters;
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.DependencyInjection;
 using EventHouse.Management.Infrastructure.Persistence;
 using EventHouse.Management.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-// para HealthCheckOptions + HealthReport
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.Swagger;
 using System.Text;
 using System.Text.Json;
@@ -161,8 +162,10 @@ builder.Services.AddSwaggerGen(c =>
         c.IncludeXmlComments(apiXml, includeControllerXmlComments: true);
     }
 
+    c.ExampleFilters();
+
     // Document filter para agregar header Location en respuestas 201
-    c.DocumentFilter<CreatedWithLocationDocumentFilter>();
+    c.DocumentFilter<CreatedWithLocationDocumentFilter>();    
 });
 
 builder.Services.AddTransient<CorrelationIdMiddleware>();
