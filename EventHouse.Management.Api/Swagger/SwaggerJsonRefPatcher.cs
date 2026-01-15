@@ -23,19 +23,102 @@ public static class SwaggerJsonRefPatcher
         var responses = components["responses"] as JsonObject ?? [];
         components["responses"] = responses;
 
-        // si ya existen, no los pisan
-        responses.TryAdd("Unauthorized", ProblemResponse("Unauthorized", "EventHouseProblemDetails"));
-        responses.TryAdd("Forbidden", ProblemResponse("Forbidden", "EventHouseProblemDetails"));
-        responses.TryAdd("InternalError", ProblemResponse("Internal Server Error", "EventHouseProblemDetails"));
+        responses.TryAdd("Unauthorized", ProblemResponse(
+            "Unauthorized", 
+            "EventHouseProblemDetails",
+            ProblemExample(
+                "urn:eventhouse:error:UNAUTHORIZED",
+                "Unauthorized",
+                401,
+                "A valid JWT access token is required.",
+                "UNAUTHORIZED")));
 
-        // opcional (si querés extender):
-        responses.TryAdd("NotFound", ProblemResponse("Not Found", "EventHouseProblemDetails"));
-        responses.TryAdd("Conflict", ProblemResponse("Conflict", "EventHouseProblemDetails"));
-        responses.TryAdd("ValidationError", ProblemResponse("Validation error", "ValidationProblemDetails"));
-        responses.TryAdd("TooManyRequests", TooManyRequestsResponse("EventHouseProblemDetails"));
+
+        responses.TryAdd("Forbidden", ProblemResponse(
+            "Forbidden", 
+            "EventHouseProblemDetails",
+            ProblemExample(
+                "urn:eventhouse:error:FORBIDDEN",
+                "Forbidden",
+                403,
+                "You do not have permission to access this resource.",
+                "FORBIDDEN")));
+
+        responses.TryAdd("InternalError", ProblemResponse(
+            "Internal Server Error",
+            "EventHouseProblemDetails",
+            ProblemExample(
+                "urn:eventhouse:error:INTERNAL_ERROR",
+                "Internal Server Error",
+                500,
+                "An unexpected error occurred.",
+                "INTERNAL_ERROR")));
+
+        responses.TryAdd("NotFound", ProblemResponse(
+            "Not Found",
+            "EventHouseProblemDetails",
+            ProblemExample(
+                "urn:eventhouse:error:NOT_FOUND",
+                "Not Found",
+                404,
+                "The requested resource was not found.",
+                "NOT_FOUND")));
+
+        responses.TryAdd("Conflict", ProblemResponse(
+            "Conflict",
+            "EventHouseProblemDetails",
+            ProblemExample(
+                "urn:eventhouse:error:CONFLICT",
+                "Conflict",
+                409,
+                "The request conflicts with the current state of the resource.",
+                "CONFLICT")));
+
+
+        responses.TryAdd("ValidationError", new JsonObject
+        {
+            ["description"] = "Validation error",
+            ["content"] = new JsonObject
+            {
+                ["application/problem+json"] = new JsonObject
+                {
+                    ["schema"] = new JsonObject
+                    {
+                        ["$ref"] = "#/components/schemas/ValidationProblemDetails"
+                    },
+                    ["example"] = new JsonObject
+                    {
+                        ["type"] = "urn:eventhouse:error:VALIDATION_ERROR",
+                        ["title"] = "Validation error",
+                        ["status"] = 400,
+                        ["detail"] = "One or more validation errors occurred.",
+                        ["errors"] = new JsonObject
+                        {
+                            ["name"] = new JsonArray { "The Name field is required." }
+                        },
+                        ["traceId"] = "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01"
+                    }
+                }
+            }
+        });
+
+        responses.TryAdd(
+            "TooManyRequests",
+            TooManyRequestsResponse(
+                "EventHouseProblemDetails",
+                ProblemExample(
+                    "urn:eventhouse:error:TOO_MANY_REQUESTS",
+                    "Too Many Requests",
+                    429,
+                    "Rate limit exceeded. Please retry later.",
+                    "TOO_MANY_REQUESTS"
+                )
+            )
+        );
+
     }
 
-    private static JsonObject ProblemResponse(string description, string schemaId)
+    private static JsonObject ProblemResponse(string description, string schemaId, JsonObject? example = null)
         => new()
         {
             ["description"] = description,
@@ -46,7 +129,8 @@ public static class SwaggerJsonRefPatcher
                     ["schema"] = new JsonObject
                     {
                         ["$ref"] = $"#/components/schemas/{schemaId}"
-                    }
+                    },
+                    ["example"] = example
                 }
             }
         };
@@ -88,7 +172,7 @@ public static class SwaggerJsonRefPatcher
         };
     }
 
-    private static JsonObject TooManyRequestsResponse(string schemaId)
+    private static JsonObject TooManyRequestsResponse(string schemaId, JsonObject? example = null)
     => new()
     {
         ["description"] = "Too Many Requests",
@@ -107,7 +191,8 @@ public static class SwaggerJsonRefPatcher
                 ["schema"] = new JsonObject
                 {
                     ["$ref"] = $"#/components/schemas/{schemaId}"
-                }
+                },
+                ["example"] = example
             }
         }
     };
@@ -128,14 +213,14 @@ public static class SwaggerJsonRefPatcher
             return;
         }
 
-        // ✅ Caso 1: ya viene como problem+json
+        // Caso 1: ya viene como problem+json
         if (content.ContainsKey("application/problem+json"))
         {
             responses["400"] = new JsonObject { ["$ref"] = $"#/components/responses/{componentId}" };
             return;
         }
 
-        // ✅ Caso 2: Swashbuckle lo pone como application/json pero con ValidationProblemDetails
+        // Caso 2: Swashbuckle lo pone como application/json pero con ValidationProblemDetails
         if (content.TryGetPropertyValue("application/json", out var appJsonNode) &&
             appJsonNode is JsonObject appJson &&
             appJson.TryGetPropertyValue("schema", out var schemaNode) &&
@@ -147,4 +232,15 @@ public static class SwaggerJsonRefPatcher
             responses["400"] = new JsonObject { ["$ref"] = $"#/components/responses/{componentId}" };
         }
     }
+
+    private static JsonObject ProblemExample(string type, string title, int status, string detail, string errorCode)
+        => new()
+        {
+            ["type"] = type,
+            ["title"] = title,
+            ["status"] = status,
+            ["detail"] = detail,
+            ["errorCode"] = errorCode,
+            ["traceId"] = "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01"
+        };
 }
