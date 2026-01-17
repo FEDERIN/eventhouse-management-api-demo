@@ -2,7 +2,6 @@ using EventHouse.Management.Api.Common;
 using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.Events;
-using EventHouse.Management.Api.Mappers;
 using EventHouse.Management.Api.Mappers.Enums;
 using EventHouse.Management.Api.Mappers.Events;
 using EventHouse.Management.Api.Swagger;
@@ -12,7 +11,6 @@ using EventHouse.Management.Application.Commands.Events.Create;
 using EventHouse.Management.Application.Commands.Events.Delete;
 using EventHouse.Management.Application.Commands.Events.Update;
 using EventHouse.Management.Application.Common;
-using EventHouse.Management.Application.Queries.Events.GetAll;
 using EventHouse.Management.Application.Queries.Events.GetById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -44,16 +42,10 @@ public sealed class EventsController(IMediator mediator) : BaseApiController
         [FromQuery] GetEventsRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new GetAllEventsQuery
-        {
-            Name = request.Name,
-            Description = request.Description,
-            Scope = EventScopeMapper.ToApplicationOptional(request.Scope),
-            Page = request.Page,
-            PageSize = request.PageSize,
-            SortBy = EventSortMapper.ToApplication(request.SortBy),
-            SortDirection = SortDirectionMapper.ToApplication(request.SortDirection)
-        }, cancellationToken);
+        var result = await _mediator.Send(
+            GetAllEventsQueryMapper.FromContract(request),
+            cancellationToken
+        );
 
         return Ok(EventMapper.ToContract(result, Request));
     }
