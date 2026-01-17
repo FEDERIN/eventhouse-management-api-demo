@@ -7,7 +7,17 @@ public static class SwaggerJsonRefPatcher
 {
     public static string Patch(string swaggerJson)
     {
-        if (JsonNode.Parse(swaggerJson) is not JsonObject root) return swaggerJson;
+        JsonNode? parsed;
+        try
+        {
+            parsed = JsonNode.Parse(swaggerJson);
+        }
+        catch (JsonException)
+        {
+            return swaggerJson; // no rompe si viene basura
+        }
+
+        if (parsed is not JsonObject root) return swaggerJson;
 
         EnsureCommonResponses(root);
         ReplaceResponsesWithRefs(root);
