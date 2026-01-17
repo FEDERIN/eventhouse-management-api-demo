@@ -9,23 +9,27 @@ namespace EventHouse.Management.Api.Tests;
 
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly string _dbPath;
+    private static readonly string DbPath;
+    private static bool _initialized;
+    private static readonly object InitLock = new();
 
-    public CustomWebApplicationFactory()
+    static CustomWebApplicationFactory()
     {
-        // Environment
+        // Auth env for tests
         Environment.SetEnvironmentVariable("Auth__DevSecret", "EVENTHOUSE_TEST_SECRET_12345678901234567890");
         Environment.SetEnvironmentVariable("Auth__Issuer", "eventhouse.local");
         Environment.SetEnvironmentVariable("Auth__Audience", "eventhouse.management");
 
-        // Ensure deterministic absolute path for SQLite
+        // One deterministic DB per test run
         var dataDir = Path.Combine(AppContext.BaseDirectory, "Data");
         Directory.CreateDirectory(dataDir);
 
-        _dbPath = Path.Combine(dataDir, $"management.tests.{Guid.NewGuid():N}.db");
+        DbPath = Path.Combine(dataDir, "management.tests.run.db");
+
+        // Pooling off helps avoid file-lock weirdness in some environments
         Environment.SetEnvironmentVariable(
             "ConnectionStrings__ManagementConnection",
-            $"Data Source={_dbPath}"
+            $"Data Source={DbPath};Pooling=False"
         );
     }
 
@@ -38,27 +42,22 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         var host = base.CreateHost(builder);
 
-        // Apply migrations for test database
-        using var scope = host.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ManagementDbContext>();
-        db.Database.Migrate();
+        // ✅ Clean DB once per run + migrate once (thread-safe)
+        lock (InitLock)
+        {
+            if (!_initialized)
+            {
+                using var scope = host.Services.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<ManagementDbContext>();
+
+                // Start clean every run
+                db.Database.EnsureDeleted();
+                db.Database.Migrate();
+
+                _initialized = true;
+            }
+        }
 
         return host;
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-
-        // Cleanup test database file
-        try
-        {
-            if (File.Exists(_dbPath))
-                File.Delete(_dbPath);
-        }
-        catch
-        {
-            // ignore cleanup errors
-        }
     }
 }
