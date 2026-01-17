@@ -11,6 +11,8 @@ namespace EventHouse.Management.Api.Common;
 [ProducesResponseType(typeof(EventHouseProblemDetails), StatusCodes.Status500InternalServerError)]
 public abstract class BaseApiController : ControllerBase
 {
+    private const string CorrelationHeader = "X-Correlation-Id";
+
     protected ObjectResult NotFoundProblem(string code, string title, string detail, IDictionary<string, object?>? ext = null)
         => CreateProblem(StatusCodes.Status404NotFound, code, title, detail, ext);
 
@@ -39,6 +41,8 @@ public abstract class BaseApiController : ControllerBase
 
         problem.Extensions["errorCode"] = code;
         problem.Extensions["traceId"] = GetTraceId();
+        problem.Extensions["correlationId"] = GetCorrelationId();
+
 
         if (ext is not null)
         {
@@ -78,11 +82,22 @@ public abstract class BaseApiController : ControllerBase
                 problem.Extensions[kv.Key] = kv.Value;
         }
 
+        problem.Extensions["correlationId"] = GetCorrelationId();
+
         return new ObjectResult(problem)
         {
             StatusCode = status,
             ContentTypes = { "application/problem+json" }
         };
+    }
+
+    protected string? GetCorrelationId()
+    {
+        // si el middleware lo puso en Items, úsalo; si no, intenta headers; si no, null
+        if (HttpContext?.Items.TryGetValue(CorrelationHeader, out var v) == true)
+            return v?.ToString();
+
+        return HttpContext?.Request?.Headers[CorrelationHeader].ToString();
     }
 
 }

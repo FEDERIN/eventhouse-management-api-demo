@@ -6,13 +6,20 @@ using EventHouse.Management.Infrastructure.Persistence;
 using EventHouse.Management.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+// para HealthCheckOptions + HealthReport
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.Swagger;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,13 +41,13 @@ builder.Services.AddControllers(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
+//
 // Repositories
 //
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IArtistRepository, ArtistRepository>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IVenueRepository, VenueRepository>();
-
 
 //
 // Auth JWT (env var: Auth__DevSecret)
@@ -83,7 +90,6 @@ builder.Services.AddAuthorization();
 //
 // DbContext
 //
-
 builder.Services.AddDbContext<ManagementDbContext>(options =>
 {
     options.UseSqlite(builder.Configuration.GetConnectionString("ManagementConnection"));
@@ -96,9 +102,13 @@ builder.Services.AddDbContext<ManagementDbContext>(options =>
     }
 });
 
+//
+// Health checks (cloud readiness)
+//
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ManagementDbContext>("db");
 
 builder.Services.AddApplication();
-
 
 //
 // Swagger
@@ -152,12 +162,40 @@ builder.Services.AddSwaggerGen(c =>
         c.IncludeXmlComments(apiXml, includeControllerXmlComments: true);
     }
 
+    c.ExampleFilters();
+
     // Document filter para agregar header Location en respuestas 201
     c.DocumentFilter<CreatedWithLocationDocumentFilter>();
-
 });
 
+builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
+
+builder.Services.AddTransient<CorrelationIdMiddleware>();
+
 var app = builder.Build();
+
+//
+// Health response writer (JSON)
+//
+static Task WriteHealthResponse(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json; charset=utf-8";
+
+    var payload = new
+    {
+        status = report.Status.ToString(),
+        totalDurationMs = report.TotalDuration.TotalMilliseconds,
+        checks = report.Entries.Select(e => new
+        {
+            name = e.Key,
+            status = e.Value.Status.ToString(),
+            durationMs = e.Value.Duration.TotalMilliseconds,
+            description = e.Value.Description
+        })
+    };
+
+    return context.Response.WriteAsync(JsonSerializer.Serialize(payload));
+}
 
 //
 // Pipeline
@@ -166,26 +204,53 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger(c =>
     {
-        c.RouteTemplate = "swagger/{documentName}/swagger.json";
+        c.RouteTemplate = "swagger-original/{documentName}/swagger.json";
     });
+
+    app.MapGet("/swagger/v1/swagger.json", async (ISwaggerProvider swaggerProvider, HttpContext http) =>
+    {
+        var doc = swaggerProvider.GetSwagger("v1");
+
+        var json = doc.SerializeAsJson(OpenApiSpecVersion.OpenApi3_0);
+        var patched = SwaggerJsonRefPatcher.Patch(json);
+
+        http.Response.ContentType = "application/json";
+        await http.Response.WriteAsync(patched);
+    }).ExcludeFromDescription();
 
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "EventHouse.Management.Api v1");
         c.RoutePrefix = "swagger";
     });
-}
 
-if (!app.Environment.IsDevelopment())
-{
+
     app.UseHttpsRedirection();
 }
 
-
+app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Health endpoints (liveness / readiness)
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => false, // no checks, solo "Alive"
+    ResponseWriter = async (ctx, _) =>
+    {
+        ctx.Response.ContentType = "application/json; charset=utf-8";
+        await ctx.Response.WriteAsync("""{"status":"Healthy"}""");
+    }
+});
+
+app.MapHealthChecks("/ready", new HealthCheckOptions
+{
+    Predicate = _ => true, // incluye db
+    ResponseWriter = WriteHealthResponse
+});
+
 
 app.MapControllers();
 

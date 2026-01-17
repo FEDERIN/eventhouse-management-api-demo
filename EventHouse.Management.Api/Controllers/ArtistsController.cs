@@ -6,6 +6,8 @@ using EventHouse.Management.Api.Mappers;
 using EventHouse.Management.Api.Mappers.Artists;
 using EventHouse.Management.Api.Mappers.Enums;
 using EventHouse.Management.Api.Swagger;
+using EventHouse.Management.Api.Swagger.Examples.Contracts.Artists;
+using EventHouse.Management.Api.Swagger.Examples.Requests.Artists;
 using EventHouse.Management.Application.Commands.Artists.Create;
 using EventHouse.Management.Application.Commands.Artists.Delete;
 using EventHouse.Management.Application.Commands.Artists.Update;
@@ -15,6 +17,7 @@ using EventHouse.Management.Application.Queries.Artists.GetById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace EventHouse.Management.Api.Controllers;
 
@@ -32,6 +35,8 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
         OperationId = "ListArtists",
         Summary = "List artists with optional filtering, sorting, and pagination."
         )]
+    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(ArtistPagedResultExample))]
+    [SwaggerRequestExample(typeof(GetArtistsRequest), typeof(GetArtistsRequestExample))]
     [ProducesOkAttribute<PagedResult<Artist>>]
     [ProducesValidationProblemAttribute]
     [ProducesTooManyRequestsProblemAttribute]
@@ -57,6 +62,7 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
         OperationId = "GetArtistById",
         Summary = "Retrieve a specific artist by their unique identifier."
         )]
+    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(ArtistResponseExample))]
     [ProducesOkAttribute<Artist>]
     [ProducesNotFoundProblem]
     public async Task<ActionResult<Artist>> GetById(Guid artistId, CancellationToken cancellationToken)
@@ -74,6 +80,8 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
         OperationId = "CreateArtist",
         Summary = "Create a new artist in the system."
         )]
+    [SwaggerRequestExample(typeof(CreateArtistRequest), typeof(CreateArtistRequestExample))]
+    [SwaggerResponseExample(StatusCodes.Status201Created, typeof(ArtistResponseExample))]
     [ProducesCreated<Artist>]
     [ProducesValidationProblemAttribute]
     [ProducesConflictProblem]
@@ -94,6 +102,7 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
         OperationId = "UpdateArtist",
         Summary = "Update an existing artist's details."
         )]
+    [SwaggerRequestExample(typeof(UpdateArtistRequest), typeof(UpdateArtistRequestExample))]
     [ProducesNoContentAttribute]
     [ProducesValidationProblemAttribute]
     [ProducesNotFoundProblem]

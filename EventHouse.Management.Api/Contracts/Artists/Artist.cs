@@ -5,12 +5,13 @@ namespace EventHouse.Management.Api.Contracts.Artists;
 public sealed record Artist
 {
     /// <summary>Unique identifier of the artist.</summary>
-    public Guid Id { get; init; }
+    public required Guid Id { get; init; }
 
-    /// <summary>Display name of the artist.</summary>
+    /// <summary>Public display name of the artist.</summary>
     [SwaggerSchema(
-        Description = "Public display name of the artist.")]
-    public string Name { get; init; } = string.Empty;
+        Description = "Public display name of the artist.",
+        Nullable = false)]
+    public required string Name { get; init; }
 
     /// <summary>Category of the artist.</summary>
     [SwaggerSchema(
