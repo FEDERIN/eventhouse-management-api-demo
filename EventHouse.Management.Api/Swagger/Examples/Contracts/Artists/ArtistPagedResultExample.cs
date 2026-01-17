@@ -20,12 +20,11 @@ public sealed class ArtistPagedResultExample : IExamplesProvider<PagedResult<Art
         Page = 1,
         PageSize = 20,
 
-        // Include in another branch for improved clarity 
-        //Links = new PaginationLinks
-        //{
-        //    Self = "/api/v1/artists?page=1&pageSize=20",
-        //    First = "/api/v1/artists?page=1&pageSize=20",
-        //    Last = "/api/v1/artists?page=1&pageSize=20"
-        //}
+        Links = new PaginationLinks
+        {
+            Self = "/api/v1/artists?page=1&pageSize=20",
+            First = "/api/v1/artists?page=1&pageSize=20",
+            Last = "/api/v1/artists?page=1&pageSize=20"
+        }
     };
 }
