@@ -30,14 +30,4 @@ public static class PagedResultExtensions
             Last = result.TotalPages > 0 ? BuildUrl(result.TotalPages) : null
         };
     }
-
-    public static PagedResultDto<T> WithLinks<T>(this PagedResultDto<T> result, HttpRequest request)
-        => new()
-        {
-            Items = result.Items,
-            TotalCount = result.TotalCount,
-            Page = result.Page,
-            PageSize = result.PageSize,
-            Links = result.BuildLinks(request)
-        };
 }

@@ -12,6 +12,4 @@ public class PagedResultDto<T>
     public bool HasNextPage => Page < TotalPages;
 
     public bool HasPreviousPage => Page > 1;
-
-    public PaginationLinks? Links { get; init; }
 }
