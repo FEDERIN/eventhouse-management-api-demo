@@ -5,6 +5,9 @@ namespace EventHouse.Management.Api.Contracts.Events;
 
 public class Event
 {
+    /// <summary>Unique identifier of the event.</summary>
+    public Guid Id { get; init; }
+
     /// <summary>Event name.</summary>
     /// <example>Summer Fest 2026</example>
     [SwaggerSchema(
