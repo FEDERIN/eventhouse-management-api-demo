@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Json;
 using EventHouse.Management.Api.Contracts.Auth;
 
-namespace EventHouse.Management.Api.Tests;
+namespace EventHouse.Management.Api.Tests.Controllers;
 
 public static class AuthTestExtensions
 {

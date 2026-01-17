@@ -1,20 +1,20 @@
-﻿using EventHouse.Management.Api.Contracts.Common;
-using EventHouse.Management.Api.Contracts.Events;
+﻿using EventHouse.Management.Api.Contracts.Artists;
+using EventHouse.Management.Api.Contracts.Common;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
-namespace EventHouse.Management.Api.Tests;
+namespace EventHouse.Management.Api.Tests.Controllers;
 
-public sealed class EventsApiTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client = factory.CreateClient();
 
     [Fact]
     public async Task GetAll_WithoutToken_Returns401()
     {
-        var res = await _client.GetAsync("/api/v1/events");
+        var res = await _client.GetAsync("/api/v1/artists");
         res.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
@@ -25,45 +25,42 @@ public sealed class EventsApiTests(CustomWebApplicationFactory factory) : IClass
         var bearer = await _client.GetBearerTokenAsync();
         _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
 
-        var request = new CreateEventRequest
+        var request = new CreateArtistRequest
         {
-            Name = "Summer Fest 2026",
-            Description = "Annual open-air music festival.",
-            Scope = EventScope.Local
+            Name = "The Rolling Stones",
+            Category = ArtistCategory.Band
         };
 
         // Act
-        var post = await _client.PostAsJsonAsync("/api/v1/events", request);
+        var post = await _client.PostAsJsonAsync("/api/v1/artists", request);
 
         // Assert: 201
         post.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Assert: body
-        var created = await post.Content.ReadFromJsonAsync<Event>(JsonTestOptions.Default);
+        var created = await post.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
 
         created.Should().NotBeNull();
         created!.Id.Should().NotBeEmpty();
-        created.Name.Should().Be("Summer Fest 2026");
-        created.Description.Should().Be("Annual open-air music festival.");
-        created.Scope.Should().Be(EventScope.Local);
+        created.Name.Should().Be("The Rolling Stones");
+        created.Category.Should().Be(ArtistCategory.Band);
 
         // Assert: Location header matches CreatedAtAction(GetById)
         post.Headers.Location.Should().NotBeNull();
         var location = post.Headers.Location!.ToString();
 
-        location.Should().Contain("/api/v1/events/");
+        location.Should().Contain("/api/v1/artists/");
         location.Should().EndWith(created.Id.ToString());
 
         // Roundtrip: GET by id returns 200 and same resource
-        var get = await _client.GetAsync($"/api/v1/events/{created.Id}");
+        var get = await _client.GetAsync($"/api/v1/artists/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var fetched = await get.Content.ReadFromJsonAsync<Event>(JsonTestOptions.Default);
+        var fetched = await get.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
         fetched.Should().NotBeNull();
         fetched!.Id.Should().Be(created.Id);
         fetched.Name.Should().Be(created.Name);
-        fetched.Description.Should().Be(created.Description);
-        fetched.Scope.Should().Be(created.Scope);
+        fetched.Category.Should().Be(created.Category);
     }
 
     [Fact]
@@ -72,7 +69,7 @@ public sealed class EventsApiTests(CustomWebApplicationFactory factory) : IClass
         var bearer = await _client.GetBearerTokenAsync();
         _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
 
-        var res = await _client.GetAsync($"/api/v1/events/{Guid.NewGuid()}");
+        var res = await _client.GetAsync($"/api/v1/artists/{Guid.NewGuid()}");
         res.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -83,36 +80,32 @@ public sealed class EventsApiTests(CustomWebApplicationFactory factory) : IClass
         _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
 
         // create
-        var create = await _client.PostAsJsonAsync("/api/v1/events", new CreateEventRequest
+        var create = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
         {
-            Name = "Event A",
-            Description = "Initial description",
-            Scope = EventScope.Local
+            Name = "Artist A",
+            Category = ArtistCategory.Band
         });
         create.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var created = await create.Content.ReadFromJsonAsync<Event>(JsonTestOptions.Default);
+        var created = await create.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
         created!.Id.Should().NotBeEmpty();
 
         // update
-        var put = await _client.PutAsJsonAsync($"/api/v1/events/{created.Id}", new UpdateEventRequest
+        var put = await _client.PutAsJsonAsync($"/api/v1/artists/{created.Id}", new UpdateArtistRequest
         {
-            Name = "Event A Updated",
-            Description = "Updated description",
-            Scope = EventScope.International
+            Name = "Artist A Updated",
+            Category = ArtistCategory.Singer
         });
 
         put.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // roundtrip
-        var get = await _client.GetAsync($"/api/v1/events/{created.Id}");
+        var get = await _client.GetAsync($"/api/v1/artists/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var updated = await get.Content.ReadFromJsonAsync<Event>(JsonTestOptions.Default);
-        updated.Should().NotBeNull();
-        updated!.Name.Should().Be("Event A Updated");
-        updated.Description.Should().Be("Updated description");
-        updated.Scope.Should().Be(EventScope.International);
+        var updated = await get.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+        updated!.Name.Should().Be("Artist A Updated");
+        updated.Category.Should().Be(ArtistCategory.Singer);
     }
 
     [Fact]
@@ -122,11 +115,10 @@ public sealed class EventsApiTests(CustomWebApplicationFactory factory) : IClass
         _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
 
         var id = Guid.NewGuid();
-        var res = await _client.PutAsJsonAsync($"/api/v1/events/{id}", new UpdateEventRequest
+        var res = await _client.PutAsJsonAsync($"/api/v1/artists/{id}", new UpdateArtistRequest
         {
             Name = "Does not matter",
-            Description = "Does not matter",
-            Scope = EventScope.Local
+            Category = ArtistCategory.Band
         });
 
         res.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -140,22 +132,21 @@ public sealed class EventsApiTests(CustomWebApplicationFactory factory) : IClass
         _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
 
         // create
-        var create = await _client.PostAsJsonAsync("/api/v1/events", new CreateEventRequest
+        var create = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
         {
-            Name = "Event To Delete",
-            Description = "To be deleted",
-            Scope = EventScope.Local
+            Name = "Artist To Delete",
+            Category = ArtistCategory.Band
         });
         create.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var created = await create.Content.ReadFromJsonAsync<Event>(JsonTestOptions.Default);
+        var created = await create.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
 
         // delete
-        var del = await _client.DeleteAsync($"/api/v1/events/{created!.Id}");
+        var del = await _client.DeleteAsync($"/api/v1/artists/{created!.Id}");
         del.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // get -> 404
-        var get = await _client.GetAsync($"/api/v1/events/{created.Id}");
+        var get = await _client.GetAsync($"/api/v1/artists/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.NotFound);
         AssertProblemMediaType(get);
     }
@@ -166,11 +157,10 @@ public sealed class EventsApiTests(CustomWebApplicationFactory factory) : IClass
         var bearer = await _client.GetBearerTokenAsync();
         _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
 
-        var res = await _client.PostAsJsonAsync("/api/v1/events", new CreateEventRequest
+        var res = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
         {
-            Name = "A", // too short (min 2)
-            Description = null,
-            Scope = EventScope.Local
+            Name = "A",
+            Category = ArtistCategory.Band
         });
 
         res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -183,23 +173,22 @@ public sealed class EventsApiTests(CustomWebApplicationFactory factory) : IClass
         var bearer = await _client.GetBearerTokenAsync();
         _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
 
-        // Arrange: create 3 events
-        foreach (var name in new[] { "E1", "E2", "E3" })
+        // Arrange: create 3 artists
+        foreach (var name in new[] { "A1", "A2", "A3" })
         {
-            var create = await _client.PostAsJsonAsync("/api/v1/events", new CreateEventRequest
+            var create = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
             {
                 Name = name,
-                Description = "Demo",
-                Scope = EventScope.Local
+                Category = ArtistCategory.Band
             });
             create.StatusCode.Should().Be(HttpStatusCode.Created);
         }
 
         // Act
-        var res = await _client.GetAsync("/api/v1/events?page=1&pageSize=2");
+        var res = await _client.GetAsync("/api/v1/artists?page=1&pageSize=2");
         res.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var page = await res.Content.ReadFromJsonAsync<PagedResult<Event>>(JsonTestOptions.Default);
+        var page = await res.Content.ReadFromJsonAsync<PagedResult<Artist>>(JsonTestOptions.Default);
         page.Should().NotBeNull();
 
         page!.Items.Should().NotBeNull();
@@ -217,6 +206,7 @@ public sealed class EventsApiTests(CustomWebApplicationFactory factory) : IClass
             page.Links.Next.Should().NotBeNull();
     }
 
+
     private static void AssertProblemMediaType(HttpResponseMessage res)
     {
         res.Content.Headers.ContentType.Should().NotBeNull();
@@ -224,4 +214,6 @@ public sealed class EventsApiTests(CustomWebApplicationFactory factory) : IClass
 
         mediaType.Should().BeOneOf("application/problem+json", "application/json");
     }
+
+
 }
