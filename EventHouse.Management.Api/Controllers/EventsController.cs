@@ -21,7 +21,6 @@ namespace EventHouse.Management.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/events")]
-[Produces("application/json")]
 public sealed class EventsController(IMediator mediator) : BaseApiController
 {
     private readonly IMediator _mediator = mediator;

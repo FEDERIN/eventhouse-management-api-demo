@@ -23,7 +23,6 @@ namespace EventHouse.Management.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/artists")]
-[Produces("application/json")]
 public sealed class ArtistsController(IMediator mediator) : BaseApiController
 {
     private readonly IMediator _mediator = mediator;
