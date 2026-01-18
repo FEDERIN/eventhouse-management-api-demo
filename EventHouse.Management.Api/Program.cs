@@ -1,3 +1,4 @@
+using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Middlewares;
 using EventHouse.Management.Api.Swagger;
 using EventHouse.Management.Application.Common.Interfaces;
@@ -6,7 +7,6 @@ using EventHouse.Management.Infrastructure.Persistence;
 using EventHouse.Management.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-// para HealthCheckOptions + HealthReport
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +20,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -172,6 +173,58 @@ builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
 
 builder.Services.AddTransient<CorrelationIdMiddleware>();
 
+var rlSection = builder.Configuration.GetSection("RateLimiting");
+var permitLimit = rlSection.GetValue<int>("PermitLimit", 60);
+var windowSeconds = rlSection.GetValue<int>("WindowSeconds", 60);
+var queueLimit = rlSection.GetValue<int>("QueueLimit", 0);
+
+builder.Services.AddRateLimiter(options =>
+{
+    // Respuesta 429 con ProblemDetails
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.ContentType = "application/problem+json";
+
+        // Retry-After en segundos (simple)
+        context.HttpContext.Response.Headers.RetryAfter = windowSeconds.ToString();
+
+        var problem = new EventHouseProblemDetails
+        {
+            Type = "urn:eventhouse:error:RATE_LIMIT_EXCEEDED",
+            Title = "Too Many Requests",
+            Status = StatusCodes.Status429TooManyRequests,
+            Detail = "Rate limit exceeded. Please retry later.",
+            Instance = context.HttpContext.Request.Path,
+            ErrorCode = "RATE_LIMIT_EXCEEDED",
+            TraceId = System.Diagnostics.Activity.Current?.Id ?? context.HttpContext.TraceIdentifier
+        };
+
+        await context.HttpContext.Response.WriteAsJsonAsync(problem, cancellationToken: token);
+    };
+
+    // Política global por IP (demo)
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var key =
+            httpContext.User?.Identity?.IsAuthenticated == true
+                ? $"user:{httpContext.User.Identity!.Name ?? "auth"}"
+                : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: key,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromSeconds(windowSeconds),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = queueLimit
+            });
+    });
+});
+
+
 var app = builder.Build();
 
 //
@@ -231,6 +284,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
