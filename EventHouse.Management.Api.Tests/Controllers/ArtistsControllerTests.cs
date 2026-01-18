@@ -122,7 +122,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         });
 
         res.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        AssertProblemMediaType(res);
+        Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         // get -> 404
         var get = await _client.GetAsync($"/api/v1/artists/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        AssertProblemMediaType(get);
+        Assert.Equal("application/problem+json", get.Content.Headers.ContentType?.MediaType);
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         });
 
         res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        AssertProblemMediaType(res);
+        Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
     }
 
     [Fact]
@@ -205,15 +205,4 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         if (page.TotalCount > 2)
             page.Links.Next.Should().NotBeNull();
     }
-
-
-    private static void AssertProblemMediaType(HttpResponseMessage res)
-    {
-        res.Content.Headers.ContentType.Should().NotBeNull();
-        var mediaType = res.Content.Headers.ContentType!.MediaType;
-
-        mediaType.Should().BeOneOf("application/problem+json", "application/json");
-    }
-
-
 }
