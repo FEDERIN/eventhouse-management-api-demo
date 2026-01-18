@@ -25,7 +25,7 @@ public sealed class EventHouseValidationProblemDetailsTests
     {
         var errors = new Dictionary<string, string[]>
         {
-            ["name"] = new[] { "The Name field is required." }
+            ["name"] = ["The Name field is required."]
         };
 
         var problem = new EventHouseValidationProblemDetails(errors)
