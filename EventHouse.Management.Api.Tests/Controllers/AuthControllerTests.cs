@@ -114,12 +114,13 @@ public sealed class AuthControllerTests
 
     private static AuthController CreateController(IConfiguration config, string path)
     {
-        var controller = new AuthController(config);
-
-        // Setear HttpContext para TraceIdentifier y Request.Path
-        controller.ControllerContext = new ControllerContext
+        var controller = new AuthController(config)
         {
-            HttpContext = new DefaultHttpContext()
+            // Setear HttpContext para TraceIdentifier y Request.Path
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            }
         };
 
         controller.HttpContext.TraceIdentifier = "trace-123";

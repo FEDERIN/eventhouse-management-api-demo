@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Api.Common;
 using EventHouse.Management.Api.Common.Errors;
+using EventHouse.Management.Api.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -73,7 +74,7 @@ public sealed class BaseApiControllerTests
 
         var errors = new Dictionary<string, string[]>
         {
-            ["name"] = new[] { "The Name field is required." }
+            ["name"] = ["The Name field is required."]
         };
 
         var ext = new Dictionary<string, object?>
@@ -128,11 +129,12 @@ public sealed class BaseApiControllerTests
 
     private static TestController CreateController(string path)
     {
-        var controller = new TestController();
-
-        controller.ControllerContext = new ControllerContext
+        var controller = new TestController
         {
-            HttpContext = new DefaultHttpContext()
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            }
         };
 
         controller.HttpContext.TraceIdentifier = "trace-123";
