@@ -1,6 +1,7 @@
 using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Middlewares;
 using EventHouse.Management.Api.Swagger;
+using EventHouse.Management.Api.Swagger.Filters;
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.DependencyInjection;
 using EventHouse.Management.Infrastructure.Persistence;
@@ -168,6 +169,7 @@ builder.Services.AddSwaggerGen(c =>
 
     // Document filter para agregar header Location en respuestas 201
     c.DocumentFilter<CreatedWithLocationDocumentFilter>();
+    c.OperationFilter<JsonOnlyResponsesOperationFilter>();
 });
 
 builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
