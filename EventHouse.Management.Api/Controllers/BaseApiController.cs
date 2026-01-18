@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
-namespace EventHouse.Management.Api.Common;
+namespace EventHouse.Management.Api.Controllers;
 
 [Authorize]
 [ProducesResponseType(typeof(EventHouseProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -50,7 +50,11 @@ public abstract class BaseApiController : ControllerBase
                 problem.Extensions[kv.Key] = kv.Value;
         }
 
-        return new ObjectResult(problem) { StatusCode = problem.Status };
+        return 
+            new ObjectResult(problem) { 
+                StatusCode = problem.Status, 
+                ContentTypes = { "application/problem+json" }
+        };
     }
 
     protected string? GetTraceId()
