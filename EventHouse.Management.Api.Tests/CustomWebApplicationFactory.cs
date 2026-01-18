@@ -15,10 +15,15 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     static CustomWebApplicationFactory()
     {
+
         // Auth env for tests
         Environment.SetEnvironmentVariable("Auth__DevSecret", "EVENTHOUSE_TEST_SECRET_12345678901234567890");
         Environment.SetEnvironmentVariable("Auth__Issuer", "eventhouse.local");
         Environment.SetEnvironmentVariable("Auth__Audience", "eventhouse.management");
+        Environment.SetEnvironmentVariable("RateLimiting__PermitLimit", "3");
+        Environment.SetEnvironmentVariable("RateLimiting__WindowSeconds", "60");
+        Environment.SetEnvironmentVariable("RateLimiting__QueueLimit", "0");
+
 
         // One deterministic DB per test run
         var dataDir = Path.Combine(AppContext.BaseDirectory, "Data");

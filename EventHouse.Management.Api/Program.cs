@@ -17,6 +17,7 @@ using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.Swagger;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -209,7 +210,7 @@ builder.Services.AddRateLimiter(options =>
     {
         var key =
             httpContext.User?.Identity?.IsAuthenticated == true
-                ? $"user:{httpContext.User.Identity!.Name ?? "auth"}"
+                ? $"user:{httpContext.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? "auth"}"
                 : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
 
         return RateLimitPartition.GetFixedWindowLimiter(
@@ -286,8 +287,8 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-app.UseRateLimiter();
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 // Health endpoints (liveness / readiness)
