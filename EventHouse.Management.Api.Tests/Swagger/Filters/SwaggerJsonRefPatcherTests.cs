@@ -2,7 +2,7 @@
 using System.Text.Json.Nodes;
 using EventHouse.Management.Api.Swagger;
 
-namespace EventHouse.Management.Api.Tests;
+namespace EventHouse.Management.Api.Tests.Swagger.Filters;
 
 public sealed class SwaggerJsonRefPatcherTests
 {
