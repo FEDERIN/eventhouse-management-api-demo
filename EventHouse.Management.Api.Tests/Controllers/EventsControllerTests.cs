@@ -130,7 +130,8 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         });
 
         res.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        AssertProblemMediaType(res);
+        Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
+        //AssertProblemMediaType(res);
     }
 
     [Fact]
@@ -157,7 +158,8 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         // get -> 404
         var get = await _client.GetAsync($"/api/v1/events/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        AssertProblemMediaType(get);
+        //AssertProblemMediaType(get);
+        Assert.Equal("application/problem+json", get.Content.Headers.ContentType?.MediaType);
     }
 
     [Fact]
@@ -174,7 +176,8 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         });
 
         res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        AssertProblemMediaType(res);
+        //AssertProblemMediaType(res);
+        Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
     }
 
     [Fact]
