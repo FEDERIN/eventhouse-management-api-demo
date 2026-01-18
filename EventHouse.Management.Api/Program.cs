@@ -269,7 +269,9 @@ if (app.Environment.IsDevelopment())
 
         http.Response.ContentType = "application/json";
         await http.Response.WriteAsync(patched);
-    }).ExcludeFromDescription();
+    })
+    .DisableRateLimiting()
+    .ExcludeFromDescription();
 
     app.UseSwaggerUI(c =>
     {
@@ -297,13 +299,13 @@ app.MapHealthChecks("/health", new HealthCheckOptions
         ctx.Response.ContentType = "application/json; charset=utf-8";
         await ctx.Response.WriteAsync("""{"status":"Healthy"}""");
     }
-});
+}).DisableRateLimiting();
 
 app.MapHealthChecks("/ready", new HealthCheckOptions
 {
     Predicate = _ => true, // incluye db
     ResponseWriter = WriteHealthResponse
-});
+}).DisableRateLimiting();
 
 
 app.MapControllers();
