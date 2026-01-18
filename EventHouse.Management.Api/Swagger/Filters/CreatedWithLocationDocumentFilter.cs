@@ -1,7 +1,7 @@
 ﻿using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace EventHouse.Management.Api.Swagger;
+namespace EventHouse.Management.Api.Swagger.Filters;
 
 public sealed class CreatedWithLocationDocumentFilter : IDocumentFilter
 {
