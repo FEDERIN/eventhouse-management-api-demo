@@ -1,22 +1,22 @@
-﻿using System.Net;
+﻿using EventHouse.Management.Api.Common.Errors;
+using EventHouse.Management.Api.Contracts.Auth;
+using FluentAssertions;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using EventHouse.Management.Api.Common.Errors;
-using EventHouse.Management.Api.Contracts.Auth;
-using Microsoft.Extensions.Configuration;
 
 namespace EventHouse.Management.Api.Tests.RateLimiting;
 
-public sealed class RateLimitingIntegrationTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+[Collection("NonParallel")]
+public sealed class RateLimitingIntegrationTests(RateLimitingOnlyWebApplicationFactory factory) : IClassFixture<RateLimitingOnlyWebApplicationFactory>
 {
-    private readonly CustomWebApplicationFactory _factory = factory;
+    private readonly HttpClient _client = factory.CreateClient();
 
     [Fact]
     public async Task When_exceeding_rate_limit_returns_429_problem_json_and_retry_after()
     {
-        using var client = factory.CreateClient();
 
-        var tokenResult = await client.PostAsJsonAsync("/auth/token", new TokenRequest
+        var tokenResult = await _client.PostAsJsonAsync("/auth/token", new TokenRequest
         {
             Username = "demo",
             Password = "demo"
@@ -28,7 +28,7 @@ public sealed class RateLimitingIntegrationTests(CustomWebApplicationFactory fac
         Assert.NotNull(token);
         Assert.False(string.IsNullOrWhiteSpace(token!.AccessToken));
 
-        client.DefaultRequestHeaders.Authorization =
+        _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token.AccessToken);
 
         // Act
@@ -36,10 +36,10 @@ public sealed class RateLimitingIntegrationTests(CustomWebApplicationFactory fac
 
         for (var i = 0; i < 6; i++)
         {
-            if (last!.StatusCode.Equals(HttpStatusCode.TooManyRequests))
+            if (last != null && last!.StatusCode.Equals(HttpStatusCode.TooManyRequests))
                 break;
 
-            last = await client.GetAsync("/api/v1/artists?page=1&pageSize=1");
+            last = await _client.GetAsync("/api/v1/artists?page=1&pageSize=1");
         }
 
         // Assert
@@ -48,16 +48,21 @@ public sealed class RateLimitingIntegrationTests(CustomWebApplicationFactory fac
 
         Assert.True(last.Headers.Contains("Retry-After"));
 
-        //Note: It's a possible improvement, because my aplication only return  application/json.
-        /*
-        Assert.Equal("application/problem+json", last.Content.Headers.ContentType?.MediaType);
-
+        AssertProblemMediaType(last);
         var problem = await last.Content.ReadFromJsonAsync<EventHouseProblemDetails>();
         Assert.NotNull(problem);
 
         Assert.Equal("RATE_LIMIT_EXCEEDED", problem!.ErrorCode);
         Assert.Equal("urn:eventhouse:error:RATE_LIMIT_EXCEEDED", problem.Type);
         Assert.Equal(429, problem.Status);
-        */
+        
+    }
+
+    private static void AssertProblemMediaType(HttpResponseMessage res)
+    {
+        res.Content.Headers.ContentType.Should().NotBeNull();
+        var mediaType = res.Content.Headers.ContentType!.MediaType;
+
+        mediaType.Should().BeOneOf("application/problem+json", "application/json");
     }
 }
