@@ -1,4 +1,3 @@
-using EventHouse.Management.Api.Common;
 using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.Events;
@@ -24,8 +23,6 @@ namespace EventHouse.Management.Api.Controllers;
 public sealed class EventsController(IMediator mediator) : BaseApiController
 {
     private readonly IMediator _mediator = mediator;
-
-    private static readonly string[] BlockingAssociations = ["eventVenueCalendars"];
 
     [HttpGet]
     [SwaggerOperation(
@@ -130,19 +127,6 @@ public sealed class EventsController(IMediator mediator) : BaseApiController
 
         if (result.NotFound)
             return EventNotFound(eventId);
-
-        if (result.HasAssociations)
-        {
-            return ConflictProblem(
-                code: "EVENT_CANNOT_BE_DELETED",
-                title: "Event cannot be deleted",
-                detail: "This event cannot be deleted because it has associated entities.",
-                ext: new Dictionary<string, object?>
-                {
-                    ["blockingAssociations"] = BlockingAssociations
-                }
-            );
-        }
 
         return NoContent();
     }
