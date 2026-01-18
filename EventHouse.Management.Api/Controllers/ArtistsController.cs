@@ -1,4 +1,3 @@
-using EventHouse.Management.Api.Common;
 using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Contracts.Artists;
 using EventHouse.Management.Api.Contracts.Common;
@@ -26,8 +25,6 @@ namespace EventHouse.Management.Api.Controllers;
 public sealed class ArtistsController(IMediator mediator) : BaseApiController
 {
     private readonly IMediator _mediator = mediator;
-
-    private static readonly string[] BlockingAssociations = ["artistPerformances"];
 
     [HttpGet]
     [SwaggerOperation(
@@ -142,19 +139,6 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
 
         if (result.NotFound)
             return ArtistNotFound(artistId);
-
-        if (result.HasAssociations)
-        {
-            return ConflictProblem(
-                code: "ARTIST_HAS_ASSOCIATIONS",
-                title: "Artist cannot be deleted",
-                detail: "This artist cannot be deleted because it has associated entities.",
-                ext: new Dictionary<string, object?>
-                {
-                    ["blockingAssociations"] = BlockingAssociations
-                }
-            );
-        }
 
         return NoContent();
     }
