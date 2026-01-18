@@ -117,15 +117,14 @@ public static class SwaggerJsonRefPatcher
             TooManyRequestsResponse(
                 "EventHouseProblemDetails",
                 ProblemExample(
-                    "urn:eventhouse:error:TOO_MANY_REQUESTS",
+                    "urn:eventhouse:error:RATE_LIMIT_EXCEEDED",
                     "Too Many Requests",
                     429,
                     "Rate limit exceeded. Please retry later.",
-                    "TOO_MANY_REQUESTS"
+                    "RATE_LIMIT_EXCEEDED"
                 )
             )
         );
-
     }
 
     private static JsonObject ProblemResponse(string description, string schemaId, JsonObject? example = null)
@@ -166,8 +165,9 @@ public static class SwaggerJsonRefPatcher
                 ReplaceIfExists(responses, "404", "NotFound");
                 ReplaceIfExists(responses, "409", "Conflict");
                 Replace400IfProblemDetails(responses, "ValidationError");
-                ReplaceIfExists(responses, "429", "TooManyRequests");
 
+                ReplaceIfExists(responses, "429", "TooManyRequests");
+                EnsureResponseRef(responses, "429", "TooManyRequests");
             }
         }
     }
@@ -253,4 +253,10 @@ public static class SwaggerJsonRefPatcher
             ["errorCode"] = errorCode,
             ["traceId"] = "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01"
         };
+
+    private static void EnsureResponseRef(JsonObject responses, string statusCode, string componentId)
+    {
+        if (responses.ContainsKey(statusCode)) return;
+        responses[statusCode] = new JsonObject { ["$ref"] = $"#/components/responses/{componentId}" };
+    }
 }
