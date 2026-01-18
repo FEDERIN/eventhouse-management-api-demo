@@ -5,7 +5,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using System.Text.Json.Nodes;
 
-namespace EventHouse.Management.Api.Tests;
+namespace EventHouse.Management.Api.Tests.Middlewares;
 
 public sealed class ExceptionHandlingMiddlewareTests
 {

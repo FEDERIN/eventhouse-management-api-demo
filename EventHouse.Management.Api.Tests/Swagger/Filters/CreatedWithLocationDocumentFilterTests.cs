@@ -1,7 +1,7 @@
-﻿using EventHouse.Management.Api.Swagger;
+﻿using EventHouse.Management.Api.Swagger.Filters;
 using Microsoft.OpenApi.Models;
 
-namespace EventHouse.Management.Api.Tests;
+namespace EventHouse.Management.Api.Tests.Swagger.Filters;
 
 public sealed class CreatedWithLocationDocumentFilterTests
 {
