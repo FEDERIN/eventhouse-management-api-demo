@@ -10,21 +10,14 @@ internal sealed class UpdateGenreCommandHandler(IGenreRepository genreRepository
 
     public async Task<UpdateResult> Handle(UpdateGenreCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
-            var entity = await _genreRepository.GetByIdAsync(request.Id, cancellationToken);
+        var entity = await _genreRepository.GetByIdAsync(request.Id, cancellationToken);
 
-            if (entity is null)
-                return UpdateResult.NotFound;
+        if (entity is null)
+            return UpdateResult.NotFound;
 
-            entity.Update(request.Name);
+        entity.Update(request.Name);
 
-            await _genreRepository.UpdateAsync(entity, cancellationToken);
-            return UpdateResult.Success;
-        }
-        catch (Exception)
-        {
-            return UpdateResult.InvalidState;
-        }
+        await _genreRepository.UpdateAsync(entity, cancellationToken);
+        return UpdateResult.Success;
     }
 }

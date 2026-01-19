@@ -13,22 +13,15 @@ internal sealed class UpdateEventCommandHandler(IEventRepository eventRepository
 
     public async Task<UpdateResult> Handle(UpdateEventCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
-            var entity = await _eventRepository.GetByIdAsync(request.Id, cancellationToken);
+        var entity = await _eventRepository.GetByIdAsync(request.Id, cancellationToken);
 
-            if (entity is null)
-                return UpdateResult.NotFound;
+        if (entity is null)
+            return UpdateResult.NotFound;
 
-            entity.Update(request.Name, request.Description, EventScopeMapper.ToDomainRequired(request.Scope));
+        entity.Update(request.Name, request.Description, EventScopeMapper.ToDomainRequired(request.Scope));
 
-            await _eventRepository.UpdateAsync(entity, cancellationToken);
+        await _eventRepository.UpdateAsync(entity, cancellationToken);
 
-            return UpdateResult.Success;
-        }
-        catch(Exception)
-        {
-            return UpdateResult.InvalidState;
-        }
+        return UpdateResult.Success;
     }
 }
