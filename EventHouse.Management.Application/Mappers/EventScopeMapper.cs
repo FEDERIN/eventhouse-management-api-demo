@@ -5,7 +5,6 @@ namespace EventHouse.Management.Application.Mappers;
 
 public static class EventScopeMapper
 {
-    // Requerido (Commands: Create / Update)
     public static DomainScope ToDomainRequired(AppScope scope) => scope switch
     {
         AppScope.Local => DomainScope.Local,
@@ -18,7 +17,6 @@ public static class EventScopeMapper
         )
     };
 
-    // Opcional (Queries / Filters)
     public static DomainScope? ToDomainOptional(AppScope? scope) => scope switch
     {
         null => null,

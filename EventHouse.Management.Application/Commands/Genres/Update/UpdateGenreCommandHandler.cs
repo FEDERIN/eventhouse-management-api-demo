@@ -15,17 +15,9 @@ internal sealed class UpdateGenreCommandHandler(IGenreRepository genreRepository
         if (entity is null)
             return UpdateResult.NotFound;
 
-        try
-        {
-            entity.Update(request.Name);
-        }
-        catch (InvalidOperationException)
-        {
-            return UpdateResult.InvalidState;
-        }
+        entity.Update(request.Name);
 
         await _genreRepository.UpdateAsync(entity, cancellationToken);
         return UpdateResult.Success;
     }
-
 }

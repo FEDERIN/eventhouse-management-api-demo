@@ -8,9 +8,9 @@ public sealed class CreateGenreCommandValidator
     public CreateGenreCommandValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Name es requerido.")
+            .NotEmpty().WithMessage("Name is require.")
             .Must(name => !string.IsNullOrWhiteSpace(name))
-            .WithMessage("Name no puede ser solo espacios.")
+            .WithMessage("Name cannot contain only whitespace.")
             .MaximumLength(200);
     }
 

@@ -1,14 +1,17 @@
 ﻿using EventHouse.Management.Application.Common.RegularExpressions;
 using FluentValidation;
-using System.Text.RegularExpressions;
 using TimeZoneConverter;
 
-namespace EventHouse.Management.Application.Commands.Venues.Create;
+namespace EventHouse.Management.Application.Commands.Venues.Update;
 
-public sealed class CreateVenueCommandValidator : AbstractValidator<CreateVenueCommand>
+public sealed class UpdateVenueCommandValidator : AbstractValidator<UpdateVenueCommand>
 {
-    public CreateVenueCommandValidator()
+    public UpdateVenueCommandValidator()
     {
+        RuleFor(x => x.Id)
+            .NotEqual(Guid.Empty)
+            .WithMessage("Id must be a non-empty GUID.");
+
         RuleFor(x => x.Name)
             .NotEmpty()
             .Must(n => !string.IsNullOrWhiteSpace(n))
@@ -16,21 +19,25 @@ public sealed class CreateVenueCommandValidator : AbstractValidator<CreateVenueC
             .MaximumLength(200);
 
         RuleFor(x => x.Address)
-            .Must(a => a is null || !string.IsNullOrWhiteSpace(a))
-            .WithMessage("Address cannot contain only whitespace.")
+            .NotEmpty()
+            .Must(a => !string.IsNullOrWhiteSpace(a))
+            .WithMessage("Address is required and cannot contain only whitespace.")
             .MaximumLength(300);
 
         RuleFor(x => x.City)
-            .Must(c => c is null || !string.IsNullOrWhiteSpace(c))
-            .WithMessage("City cannot contain only whitespace.")
+            .NotEmpty()
+            .Must(c => !string.IsNullOrWhiteSpace(c))
+            .WithMessage("City is required and cannot contain only whitespace.")
             .MaximumLength(120);
 
         RuleFor(x => x.Region)
-            .Must(r => r is null || !string.IsNullOrWhiteSpace(r))
-            .WithMessage("Region cannot contain only whitespace.")
+            .NotEmpty()
+            .Must(r => !string.IsNullOrWhiteSpace(r))
+            .WithMessage("Region is required and cannot contain only whitespace.")
             .MaximumLength(120);
 
         RuleFor(x => x.CountryCode)
+            .NotEmpty()
             .Must(cc => VenueRegex.CountryCode().IsMatch(cc.Trim().ToUpperInvariant()))
             .WithMessage("CountryCode must be a valid ISO-3166-1 alpha-2 code (e.g. 'ES').");
 
@@ -43,7 +50,7 @@ public sealed class CreateVenueCommandValidator : AbstractValidator<CreateVenueC
             .When(x => x.Longitude.HasValue);
 
         RuleFor(x => x.TimeZoneId)
-            .Must(tz => tz is null || TZConvert.KnownIanaTimeZoneNames.Contains(tz))
+            .Must(tz => tz is null || TZConvert.KnownIanaTimeZoneNames.Contains(tz.Trim()))
             .WithMessage("TimeZoneId must be a valid IANA time zone (e.g. 'Europe/Malta').");
 
         RuleFor(x => x.Capacity)

@@ -8,7 +8,7 @@ public sealed class UpdateEventCommandValidator
     public UpdateEventCommandValidator()
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Id no puede ser Guid.Empty.");
+            .NotEmpty().WithMessage("Id must be a non-empty GUID.");
 
         ApplyEventRules(
             x => x.Name,

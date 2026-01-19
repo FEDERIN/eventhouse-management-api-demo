@@ -16,14 +16,14 @@ public abstract class EventCommandValidatorBase<TCommand> : AbstractValidator<TC
         Func<TCommand, EventScope> scope)
     {
         RuleFor(x => name(x))
-            .NotEmpty().WithMessage("Name es requerido.")
+            .NotEmpty().WithMessage("Name is require.")
             .Must(n => !string.IsNullOrWhiteSpace(n))
-            .WithMessage("Name no puede ser solo espacios.")
+            .WithMessage("Name cannot contain only whitespace.")
             .MaximumLength(200);
 
         RuleFor(x => description(x))
             .Must(d => d is null || d.Trim().Length > 0)
-            .WithMessage("Description no puede ser solo espacios.")
+            .WithMessage("Description cannot contain only whitespace.")
             .MaximumLength(200);
 
         RuleFor(x => scope(x))
