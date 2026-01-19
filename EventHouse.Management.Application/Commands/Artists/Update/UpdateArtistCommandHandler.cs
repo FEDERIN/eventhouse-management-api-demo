@@ -16,21 +16,10 @@ internal sealed class UpdateArtistCommandHandler(IArtistRepository artistReposit
         if (entity is null)
             return UpdateResult.NotFound;
 
-        try
-        {
-            entity.Update(request.Name, ArtistCategoryMapper.ToDomainRequired(request.Category));
+        entity.Update(request.Name, ArtistCategoryMapper.ToDomainRequired(request.Category));
 
-            await _artistRepository.UpdateAsync(entity, cancellationToken);
+        await _artistRepository.UpdateAsync(entity, cancellationToken);
 
-            return UpdateResult.Success;
-        }
-        catch (ArgumentException)
-        {
-            return UpdateResult.ValidationFailed;
-        }
-        catch (InvalidOperationException)
-        {
-            return UpdateResult.Conflict;
-        }
+        return UpdateResult.Success;
     }
 }
