@@ -15,9 +15,9 @@ public abstract class ArtistCommandValidatorBase<TCommand> : AbstractValidator<T
         Func<TCommand, ArtistCategory> category)
     {
         RuleFor(x => name(x))
-            .NotEmpty().WithMessage("Name es requerido.")
+            .NotEmpty().WithMessage("Name is require.")
             .Must(n => !string.IsNullOrWhiteSpace(n))
-            .WithMessage("Name no puede ser solo espacios.")
+            .WithMessage("Name cannot contain only whitespace.")
             .MaximumLength(200);
 
         RuleFor(x => category(x))
