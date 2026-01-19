@@ -8,7 +8,7 @@ public sealed class UpdateArtistCommandValidator
     public UpdateArtistCommandValidator()
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Id no puede ser Guid.Empty.");
+            .NotEmpty().WithMessage("Id must be a non-empty GUID.");
 
         ApplyArtistRules(
             x => x.Name,
