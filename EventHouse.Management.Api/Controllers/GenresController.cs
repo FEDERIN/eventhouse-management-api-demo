@@ -23,8 +23,6 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
 {
     private readonly IMediator _mediator = mediator;
 
-    private static readonly string[] BlockingAssociations = ["artistGenres"];
-
     [HttpGet]
     [SwaggerOperation(
         OperationId = "ListGenres",
@@ -49,13 +47,16 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
     [SwaggerOperation(
         OperationId = "GetGenreById",
         Summary = "Retrieve a specific event by its unique identifier.")]
-    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GenreResponseExample))]
     [ProducesOkAttribute<Genre>]
     [ProducesNotFoundProblem]
     public async Task<ActionResult<Genre>> GetById(Guid genreId, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new GetGenreByIdQuery(genreId), cancellationToken);
-        return result is null ? GenreNotFound(genreId) : Ok(result);
+        var resultDto = await _mediator.Send(new GetGenreByIdQuery(genreId), cancellationToken);
+
+        if (resultDto is null)
+            return GenreNotFound(genreId);
+
+        return Ok(GenreMapper.ToContract(resultDto));
     }
 
     [HttpPost]
@@ -120,19 +121,6 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
 
         if (result.NotFound)
             return GenreNotFound(genreId);
-
-        if (result.HasAssociations)
-        {
-            return ConflictProblem(
-                code: "GENRE_HAS_ASSOCIATIONS",
-                title: "Genre cannot be deleted",
-                detail: "This genre cannot be deleted because it has associated entities.",
-                ext: new Dictionary<string, object?>
-                {
-                    ["blockingAssociations"] = BlockingAssociations
-                }
-            );
-        }
 
         return NoContent();
     }
