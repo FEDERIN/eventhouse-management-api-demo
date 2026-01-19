@@ -19,7 +19,6 @@ namespace EventHouse.Management.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/genres")]
-[Produces("application/json")]
 public sealed class GenresController(IMediator mediator) : BaseApiController
 {
     private readonly IMediator _mediator = mediator;
