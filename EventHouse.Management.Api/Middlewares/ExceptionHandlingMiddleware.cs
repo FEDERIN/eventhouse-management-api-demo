@@ -1,5 +1,10 @@
 ﻿using EventHouse.Management.Api.Common.Errors;
+using EventHouse.Management.Application.Exceptions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.Options;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace EventHouse.Management.Api.Middlewares;
 
@@ -15,37 +20,36 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next)
         }
         catch (Exception ex)
         {
+            if (context.Response.HasStarted)
+                throw;
+
+            context.Response.Clear();
+
             var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
 
             var (statusCode, errorCode, title, detail) = ex switch
             {
                 ArgumentException ae => (
-                    StatusCodes.Status400BadRequest,
-                    "BAD_REQUEST",
-                    "Bad request",
-                    ae.Message
-                ),
+                    StatusCodes.Status400BadRequest, "BAD_REQUEST", "Bad request", ae.Message),
+
+                NotFoundException nf => (
+                StatusCodes.Status404NotFound, nf.Code, nf.Title, nf.Message),
 
                 KeyNotFoundException knf => (
-                    StatusCodes.Status404NotFound,
-                    "NOT_FOUND",
-                    "Not found",
-                    knf.Message
-                ),
+                    StatusCodes.Status404NotFound, "NOT_FOUND", "Not found", knf.Message),
 
                 InvalidOperationException ioe => (
-                    StatusCodes.Status409Conflict,
-                    "CONFLICT",
-                    "Conflict",
-                    ioe.Message
-                ),
+                    StatusCodes.Status409Conflict, "CONFLICT", "Conflict", ioe.Message),
 
+                ConflictException ce => (
+                    StatusCodes.Status409Conflict,
+                    ce.Code,
+                    ce.Title,
+                    ce.Message
+                ),
                 _ => (
-                    StatusCodes.Status500InternalServerError,
-                    "UNEXPECTED_ERROR",
-                    "Unexpected error",
-                    "An unexpected error occurred."
-                )
+                    StatusCodes.Status500InternalServerError, "UNEXPECTED_ERROR", "Unexpected error",
+                    "An unexpected error occurred.")
             };
 
             var problem = new EventHouseProblemDetails
@@ -59,7 +63,6 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next)
                 TraceId = traceId
             };
 
-            // Dev-only extras (sin filtrar detalles en producción)
             if (context.RequestServices.GetService<IHostEnvironment>()?.IsDevelopment() == true)
             {
                 problem.Extensions["exceptionType"] = ex.GetType().Name;
@@ -67,8 +70,16 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next)
             }
 
             context.Response.StatusCode = statusCode;
-            context.Response.ContentType = "application/problem+json";
-            await context.Response.WriteAsJsonAsync(problem);
+            context.Response.ContentType = "application/problem+json; charset=utf-8";
+
+            // usar las mismas opciones JSON de ASP.NET (camelCase, etc.)
+            var jsonOptions = context.RequestServices
+                .GetRequiredService<IOptions<JsonOptions>>()
+                .Value
+                .SerializerOptions;
+
+            var payload = JsonSerializer.Serialize(problem, jsonOptions);
+            await context.Response.WriteAsync(payload);
         }
     }
 }
