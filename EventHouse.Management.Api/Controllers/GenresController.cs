@@ -8,7 +8,6 @@ using EventHouse.Management.Api.Swagger.Examples.Requests.Genres;
 using EventHouse.Management.Application.Commands.Genres.Create;
 using EventHouse.Management.Application.Commands.Genres.Delete;
 using EventHouse.Management.Application.Commands.Genres.Update;
-using EventHouse.Management.Application.Common;
 using EventHouse.Management.Application.Queries.Genres.GetById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -52,8 +51,9 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
     [ProducesNotFoundProblem]
     public async Task<ActionResult<Genre>> GetById(Guid genreId, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new GetGenreByIdQuery(genreId), cancellationToken);
-        return result is null ? GenreNotFound(genreId) : Ok(result);
+        var resultDto = await _mediator.Send(new GetGenreByIdQuery(genreId), cancellationToken);
+
+        return Ok(GenreMapper.ToContract(resultDto));
     }
 
     [HttpPost]
@@ -89,10 +89,7 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
         [FromBody] UpdateGenreRequest body,
         CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new UpdateGenreCommand(genreId, body.Name), cancellationToken);
-
-        if (result == UpdateResult.NotFound)
-            return GenreNotFound(genreId);
+        await _mediator.Send(new UpdateGenreCommand(genreId, body.Name), cancellationToken);
 
         return NoContent();
     }
@@ -106,18 +103,8 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
     [ProducesConflictProblem]
     public async Task<IActionResult> Delete(Guid genreId, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new DeleteGenreCommand(genreId), cancellationToken);
-
-        if (result.NotFound)
-            return GenreNotFound(genreId);
+        await _mediator.Send(new DeleteGenreCommand(genreId), cancellationToken);
 
         return NoContent();
     }
-
-    private ObjectResult GenreNotFound(Guid genreId) =>
-        NotFoundProblem(
-            code: "GENRE_NOT_FOUND",
-            title: "Genre not found",
-            detail: $"Genre with id '{genreId}' was not found."
-        );
 }
