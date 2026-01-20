@@ -1,9 +1,11 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.Common.Sorting;
+using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Queries.Genres.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
+using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -45,7 +47,19 @@ namespace EventHouse.Management.Infrastructure.Repositories
         public async Task UpdateAsync(Genre entity, CancellationToken cancellationToken = default)
         {
             _context.Genres.Update(entity);
-            await _context.SaveChangesAsync(cancellationToken);
+
+            try
+            {
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException ex) when (ex.IsUniqueViolation())
+            {
+                throw new ConflictException(
+                    code: "GENRE_NAME_ALREADY_EXISTS",
+                    title: "Unique constraint violated",
+                    detail: $"Genre with name '{entity.Name}' already exists."
+                );
+            }
         }
 
         public async Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken = default)

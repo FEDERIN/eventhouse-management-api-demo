@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Api.Middlewares;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
@@ -119,7 +120,9 @@ public sealed class ExceptionHandlingMiddlewareTests
     {
         var services = new ServiceCollection();
 
-        // IHostEnvironment para que tu middleware lo lea desde RequestServices
+        services.AddOptions();
+        services.Configure<JsonOptions>(_ => { });
+
         services.AddSingleton<IHostEnvironment>(new FakeHostEnvironment { EnvironmentName = env });
 
         var provider = services.BuildServiceProvider();
@@ -133,6 +136,7 @@ public sealed class ExceptionHandlingMiddlewareTests
         context.Response.Body = new MemoryStream();
         return context;
     }
+
 
     private static async Task<JsonObject> ReadBodyAsJson(HttpContext context)
     {
