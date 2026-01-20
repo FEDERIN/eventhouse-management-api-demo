@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Application.Common;
 using EventHouse.Management.Application.Common.Interfaces;
+using EventHouse.Management.Application.Exceptions;
 using MediatR;
 
 namespace EventHouse.Management.Application.Commands.Genres.Update;
@@ -10,10 +11,8 @@ internal sealed class UpdateGenreCommandHandler(IGenreRepository genreRepository
 
     public async Task<UpdateResult> Handle(UpdateGenreCommand request, CancellationToken cancellationToken)
     {
-        var entity = await _genreRepository.GetByIdAsync(request.Id, cancellationToken);
-
-        if (entity is null)
-            return UpdateResult.NotFound;
+        var entity = await _genreRepository.GetByIdAsync(request.Id, cancellationToken)
+            ?? throw new NotFoundException("Genre", request.Id);
 
         entity.Update(request.Name);
 
