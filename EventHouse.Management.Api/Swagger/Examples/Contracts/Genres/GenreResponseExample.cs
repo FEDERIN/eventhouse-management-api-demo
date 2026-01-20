@@ -1,0 +1,13 @@
+﻿using EventHouse.Management.Api.Contracts.Genres;
+using Swashbuckle.AspNetCore.Filters;
+
+namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Genres;
+
+public class GenreResponseExample : IExamplesProvider<Genre>
+{
+    public Genre GetExamples() => new()
+    {
+        Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+        Name = "Rock"
+    };
+}

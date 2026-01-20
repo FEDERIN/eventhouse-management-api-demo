@@ -3,6 +3,8 @@ using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.Genres;
 using EventHouse.Management.Api.Mappers.Genres;
 using EventHouse.Management.Api.Swagger;
+using EventHouse.Management.Api.Swagger.Examples.Contracts.Genres;
+using EventHouse.Management.Api.Swagger.Examples.Requests.Genres;
 using EventHouse.Management.Application.Commands.Genres.Create;
 using EventHouse.Management.Application.Commands.Genres.Delete;
 using EventHouse.Management.Application.Commands.Genres.Update;
@@ -11,6 +13,7 @@ using EventHouse.Management.Application.Queries.Genres.GetById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace EventHouse.Management.Api.Controllers;
 
@@ -21,7 +24,11 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
     private readonly IMediator _mediator = mediator;
 
     [HttpGet]
-    [SwaggerOperation(OperationId = "ListGenres")]
+    [SwaggerOperation(
+        OperationId = "ListGenres",
+        Summary = "List genres with optional filtering, sorting, and pagination.")]
+    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GenrePagedResultExample))]
+    [SwaggerRequestExample(typeof(GetGenresRequest), typeof(GetGenresRequestExample))]
     [ProducesOkAttribute<PagedResult<Genre>>]
     [ProducesValidationProblemAttribute]
     [ProducesTooManyRequestsProblemAttribute]
@@ -30,14 +37,17 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
-            GetAllGenresQueryMapper.FromContract(request), 
+            GetAllGenresQueryMapper.FromContract(request),
             cancellationToken);
 
         return Ok(GenreMapper.ToContract(result, Request));
     }
 
     [HttpGet("{genreId:guid}")]
-    [SwaggerOperation(OperationId = "GetGenreById")]
+    [SwaggerOperation(
+        OperationId = "GetGenreById",
+        Summary = "Retrieve a specific event by its unique identifier.")]
+    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GenreResponseExample))]
     [ProducesOkAttribute<Genre>]
     [ProducesNotFoundProblem]
     public async Task<ActionResult<Genre>> GetById(Guid genreId, CancellationToken cancellationToken)
@@ -47,7 +57,11 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
     }
 
     [HttpPost]
-    [SwaggerOperation(OperationId = "CreateGenre")]
+    [SwaggerOperation(
+        OperationId = "CreateGenre",
+        Summary = "Create a new event in the system.")]
+    [SwaggerRequestExample(typeof(CreateGenreRequest), typeof(CreateGenreRequestExample))]
+    [SwaggerResponseExample(StatusCodes.Status201Created, typeof(GenreResponseExample))]
     [ProducesCreated<Genre>]
     [ProducesValidationProblemAttribute]
     [ProducesConflictProblem]
@@ -62,7 +76,10 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
     }
 
     [HttpPut("{genreId:guid}")]
-    [SwaggerOperation(OperationId = "UpdateGenre")]
+    [SwaggerOperation(
+        OperationId = "UpdateGenre",
+        Summary = "Update an existing genre in the system.")]
+    [SwaggerRequestExample(typeof(UpdateGenreRequest), typeof(UpdateGenreRequestExample))]
     [ProducesNoContentAttribute]
     [ProducesValidationProblemAttribute]
     [ProducesNotFoundProblem]
@@ -81,7 +98,9 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
     }
 
     [HttpDelete("{genreId:guid}")]
-    [SwaggerOperation(OperationId = "DeleteGenre")]
+    [SwaggerOperation(
+        OperationId = "DeleteGenre",
+        Summary = "Delete an existing genre from the system.")]
     [ProducesNoContentAttribute]
     [ProducesNotFoundProblem]
     [ProducesConflictProblem]
