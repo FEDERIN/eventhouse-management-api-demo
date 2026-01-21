@@ -19,14 +19,14 @@ public class EventRepository(ManagementDbContext context) : IEventRepository
     {
         await _context.Events.AddAsync(entity, cancellationToken);
 
-        await SaveChangesWithUniqueChecksAsync(entity, cancellationToken);
+        await SaveChangesAsync(entity, cancellationToken);
     }
 
     public async Task UpdateAsync(Event entity, CancellationToken cancellationToken = default)
     {
         _context.Events.Update(entity);
 
-        await SaveChangesWithUniqueChecksAsync(entity, cancellationToken);
+        await SaveChangesAsync(entity, cancellationToken);
     }
 
     public async Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -88,7 +88,7 @@ public class EventRepository(ManagementDbContext context) : IEventRepository
         return true;
     }
 
-    private async Task SaveChangesWithUniqueChecksAsync(Event entity, CancellationToken cancellationToken)
+    private async Task SaveChangesAsync(Event entity, CancellationToken cancellationToken)
     {
         try
         {
