@@ -45,7 +45,7 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
     [HttpGet("{genreId:guid}")]
     [SwaggerOperation(
         OperationId = "GetGenreById",
-        Summary = "Retrieve a specific event by its unique identifier.")]
+        Summary = "Retrieve a specific genre by its unique identifier.")]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GenreResponseExample))]
     [ProducesOkAttribute<Genre>]
     [ProducesNotFoundProblem]
@@ -59,7 +59,7 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
     [HttpPost]
     [SwaggerOperation(
         OperationId = "CreateGenre",
-        Summary = "Create a new event in the system.")]
+        Summary = "Create a new genre in the system.")]
     [SwaggerRequestExample(typeof(CreateGenreRequest), typeof(CreateGenreRequestExample))]
     [SwaggerResponseExample(StatusCodes.Status201Created, typeof(GenreResponseExample))]
     [ProducesCreated<Genre>]
