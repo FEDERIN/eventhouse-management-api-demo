@@ -9,11 +9,12 @@ namespace EventHouse.Management.Application.Common.Interfaces
     {
         Task AddAsync(Artist entity, CancellationToken cancellationToken = default);
         Task UpdateAsync(Artist entity, CancellationToken cancellationToken = default);
+        Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
         Task<Artist?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<Artist?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default);
         Task<PagedResultDto<Artist>> GetPagedAsync(
             ArtistQueryCriteria criteria,
             CancellationToken cancellationToken = default);
         Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
-        Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
     }
 }

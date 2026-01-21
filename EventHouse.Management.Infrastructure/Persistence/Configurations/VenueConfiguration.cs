@@ -47,7 +47,10 @@ public class VenueConfiguration : IEntityTypeConfiguration<Venue>
         builder.Property(v => v.IsActive)
             .HasDefaultValue(true);
 
-        builder.HasIndex(v => v.Name);
+        builder.HasIndex(v => v.Name)
+               .IsUnique()
+               .HasDatabaseName("UX_Venues_Name");
+
         builder.HasIndex(v => new { v.CountryCode, v.City });
     }
 }

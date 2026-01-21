@@ -219,12 +219,4 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         if (page.TotalCount > 2)
             page.Links.Next.Should().NotBeNull();
     }
-
-    private static void AssertProblemMediaType(HttpResponseMessage res)
-    {
-        res.Content.Headers.ContentType.Should().NotBeNull();
-        var mediaType = res.Content.Headers.ContentType!.MediaType;
-
-        mediaType.Should().BeOneOf("application/problem+json", "application/json");
-    }
 }

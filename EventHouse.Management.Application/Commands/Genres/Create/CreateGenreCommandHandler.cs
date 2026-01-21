@@ -17,12 +17,6 @@ internal sealed class CreateGenreCommandHandler(IGenreRepository genreRepository
             request.Name
         );
 
-        if (await _genreRepository.ExistsByNameAsync(request.Name, cancellationToken))
-            throw new EntityAlreadyExistsException(
-                entityName: "Genre",
-                fieldName: "Name",
-                fieldValue: request.Name);
-
         await _genreRepository.AddAsync(entity, cancellationToken);
         return new GenreDto
         {

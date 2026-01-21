@@ -11,11 +11,6 @@ namespace EventHouse.Management.Application.Commands.Venues.Delete
 
         public async Task<DeleteResult> Handle(DeleteVenueCommand request, CancellationToken cancellationToken)
         {
-            var VenueEntity = await _repository.GetByIdAsync(request.Id, cancellationToken);
-
-            if (VenueEntity is null)
-                return DeleteResult.NotFoundResult();
-
             var result = await _repository.DeleteAsync(request.Id, cancellationToken);
 
             if (result is false)

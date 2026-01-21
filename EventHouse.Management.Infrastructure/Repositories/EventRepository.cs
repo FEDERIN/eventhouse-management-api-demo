@@ -9,6 +9,7 @@ using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace EventHouse.Management.Infrastructure.Repositories;
 
 public class EventRepository(ManagementDbContext context) : IEventRepository
@@ -28,6 +29,20 @@ public class EventRepository(ManagementDbContext context) : IEventRepository
             throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
         await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+    }
+
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var entity = await GetTrackedByIdAsync(id, cancellationToken);
+
+        if (entity is null)
+            return false;
+
+        _context.Events.Remove(entity);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return true;
     }
 
     public async Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -80,25 +95,6 @@ public class EventRepository(ManagementDbContext context) : IEventRepository
         };
 
         return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
-    }
-    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Events
-            .AnyAsync(e => e.Id == id, cancellationToken);
-    }
-
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var entity = await GetTrackedByIdAsync(id, cancellationToken);
-
-        if (entity is null)
-            return false;
-
-        _context.Events.Remove(entity);
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return true;
     }
 
     private async Task SaveChangesWithUniqueCheckAsync(Event entity, CancellationToken cancellationToken)

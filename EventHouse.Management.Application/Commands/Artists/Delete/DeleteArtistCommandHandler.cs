@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Application.Common;
 using EventHouse.Management.Application.Common.Interfaces;
+using EventHouse.Management.Application.Exceptions;
 using MediatR;
 
 namespace EventHouse.Management.Application.Commands.Artists.Delete;
@@ -13,16 +14,10 @@ internal sealed class DeleteArtistCommandHandler(IArtistRepository repository)
         DeleteArtistCommand request,
         CancellationToken cancellationToken)
     {
-
-        var eventEntity = await _repository.GetByIdAsync(request.Id, cancellationToken);
-
-        if (eventEntity is null)
-            return DeleteResult.NotFoundResult();
-
         var result = await _repository.DeleteAsync(request.Id, cancellationToken);
 
         if (result is false)
-            return DeleteResult.NotFoundResult();
+            throw new NotFoundException("Artist", request.Id);
 
         return DeleteResult.Ok();
     }

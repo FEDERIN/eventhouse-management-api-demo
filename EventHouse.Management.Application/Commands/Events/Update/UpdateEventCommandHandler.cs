@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Application.Common;
 using EventHouse.Management.Application.Common.Interfaces;
+using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Mappers;
 using MediatR;
 
@@ -16,7 +17,7 @@ internal sealed class UpdateEventCommandHandler(IEventRepository eventRepository
         var entity = await _eventRepository.GetTrackedByIdAsync(request.Id, cancellationToken);
 
         if (entity is null)
-            return UpdateResult.NotFound;
+            throw new NotFoundException("Event", request.Id);
 
         entity.Update(request.Name, request.Description, EventScopeMapper.ToDomainRequired(request.Scope));
 

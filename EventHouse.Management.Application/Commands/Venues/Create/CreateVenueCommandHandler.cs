@@ -13,14 +13,6 @@ internal sealed class CreateVenueCommandHandler(IVenueRepository venueRepository
 
     public async Task<VenueDto> Handle(CreateVenueCommand request, CancellationToken cancellationToken)
     {
-        if (await _venueRepository.ExistsByNameAsync(request.Name, cancellationToken))
-        {
-            throw new EntityAlreadyExistsException(
-                entityName: "Venue",
-                fieldName: "Name",
-                fieldValue: request.Name);
-        }
-
         var entity = new Venue(
             id: Guid.NewGuid(),
             name: request.Name,
