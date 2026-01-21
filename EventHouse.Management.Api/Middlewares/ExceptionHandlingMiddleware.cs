@@ -1,6 +1,5 @@
 ﻿using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Application.Exceptions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;

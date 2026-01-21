@@ -11,7 +11,7 @@ internal sealed class UpdateGenreCommandHandler(IGenreRepository genreRepository
 
     public async Task<UpdateResult> Handle(UpdateGenreCommand request, CancellationToken cancellationToken)
     {
-        var entity = await _genreRepository.GetByIdAsync(request.Id, cancellationToken)
+        var entity = await _genreRepository.GetTrackedByIdAsync(request.Id, cancellationToken)
             ?? throw new NotFoundException("Genre", request.Id);
 
         entity.Update(request.Name);

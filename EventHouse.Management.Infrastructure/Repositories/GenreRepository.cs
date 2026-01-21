@@ -18,24 +18,21 @@ namespace EventHouse.Management.Infrastructure.Repositories
         public async Task AddAsync(Genre entity, CancellationToken cancellationToken = default)
         {
             await _context.Genres.AddAsync(entity, cancellationToken);
-            await _context.SaveChangesAsync(cancellationToken);
+            await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
         }
 
-        public async Task<Genre?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(Genre entity, CancellationToken cancellationToken = default)
         {
-            return await _context.Genres.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-        }
+            _context.Genres.Update(entity);
 
-        public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
-        {
-            return await _context.Genres.AnyAsync(e => e.Id == id, cancellationToken);
+            await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
         }
 
         public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var entity = await _context.Genres.FindAsync([id], cancellationToken);
+            var entity = await GetTrackedByIdAsync(id, cancellationToken);
 
-            if(entity is null)
+            if (entity is null)
                 return false;
 
             _context.Genres.Remove(entity);
@@ -44,29 +41,14 @@ namespace EventHouse.Management.Infrastructure.Repositories
             return true;
         }
 
-        public async Task UpdateAsync(Genre entity, CancellationToken cancellationToken = default)
+        public async Task<Genre?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            _context.Genres.Update(entity);
-
-            try
-            {
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-            catch (DbUpdateException ex) when (ex.IsUniqueViolation())
-            {
-                throw new ConflictException(
-                    code: "GENRE_NAME_ALREADY_EXISTS",
-                    title: "Unique constraint violated",
-                    detail: $"Genre with name '{entity.Name}' already exists."
-                );
-            }
+            return await _context.Genres.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
         }
 
-        public async Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken = default)
+        public async Task<Genre?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var normalized = name.Trim();
-            return await _context.Genres
-                .AnyAsync(g => g.Name == normalized, cancellationToken);
+            return await _context.Genres.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
         }
 
         public async Task<PagedResultDto<Genre>> GetPagedAsync(GenreQueryCriteria criteria, CancellationToken cancellationToken = default)
@@ -74,7 +56,7 @@ namespace EventHouse.Management.Infrastructure.Repositories
             IQueryable<Genre> query = _context.Genres.AsNoTracking();
 
             if (!string.IsNullOrWhiteSpace(criteria.Name))
-                query = query.Where(ev => ev.Name == criteria.Name);
+                query = query.Where(g => EF.Functions.Like(g.Name, $"%{criteria.Name}%"));
 
             var sortBy = criteria.SortBy ?? GenreSortField.Name;
             bool asc = criteria.SortDirection == SortDirection.Asc;
@@ -89,5 +71,22 @@ namespace EventHouse.Management.Infrastructure.Repositories
 
             return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
         }
+
+        private async Task SaveChangesWithUniqueCheckAsync(Genre entity, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException ex) when (ex.IsUniqueViolation())
+            {
+                throw new ConflictException(
+                    code: "GENRE_NAME_ALREADY_EXISTS",
+                    title: "Unique constraint violated",
+                    detail: $"Genre with name '{entity.Name}' already exists."
+                );
+            }
+        }
+
     }
 }

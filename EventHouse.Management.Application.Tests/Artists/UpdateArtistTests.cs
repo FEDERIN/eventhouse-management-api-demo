@@ -18,7 +18,7 @@ public sealed class UpdateArtistTests
 
         var entity = new Artist(id, "Old", ArtistCategory.Band);
 
-        repo.GetByIdAsync(id, Arg.Any<CancellationToken>())
+        repo.GetTrackedByIdAsync(id, Arg.Any<CancellationToken>())
             .Returns(entity);
 
         repo.UpdateAsync(Arg.Any<Artist>(), Arg.Any<CancellationToken>())
@@ -46,7 +46,7 @@ public sealed class UpdateArtistTests
         var repo = Substitute.For<IArtistRepository>();
         var id = Guid.NewGuid();
 
-        repo.GetByIdAsync(id, Arg.Any<CancellationToken>())
+        repo.GetTrackedByIdAsync(id, Arg.Any<CancellationToken>())
             .Returns((Artist?)null);
 
         var handler = new UpdateArtistCommandHandler(repo);

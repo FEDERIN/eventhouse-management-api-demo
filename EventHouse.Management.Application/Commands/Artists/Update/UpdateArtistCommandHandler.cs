@@ -12,7 +12,7 @@ internal sealed class UpdateArtistCommandHandler(IArtistRepository artistReposit
 
     public async Task<UpdateResult> Handle(UpdateArtistCommand request, CancellationToken cancellationToken)
     {
-        var entity = await _artistRepository.GetByIdAsync(request.Id, cancellationToken);
+        var entity = await _artistRepository.GetTrackedByIdAsync(request.Id, cancellationToken);
         if (entity is null)
             return UpdateResult.NotFound;
 
