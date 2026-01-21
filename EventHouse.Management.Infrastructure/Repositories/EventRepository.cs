@@ -19,17 +19,25 @@ public class EventRepository(ManagementDbContext context) : IEventRepository
     {
         await _context.Events.AddAsync(entity, cancellationToken);
 
-        await SaveChangesAsync(entity, cancellationToken);
+        await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
     }
 
     public async Task UpdateAsync(Event entity, CancellationToken cancellationToken = default)
     {
-        _context.Events.Update(entity);
+        if (_context.Entry(entity).State == EntityState.Detached)
+            throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
-        await SaveChangesAsync(entity, cancellationToken);
+        await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
     }
 
     public async Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Events
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+    }
+
+    public async Task<Event?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Events
             .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
@@ -42,13 +50,14 @@ public class EventRepository(ManagementDbContext context) : IEventRepository
         IQueryable<Event> query = _context.Events.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(criteria.Name))
-            query = query.Where(v => v.Name == criteria.Name);
+            query = query.Where(e => EF.Functions.Like(e.Name, $"%{criteria.Name}%"));
 
         if (!string.IsNullOrWhiteSpace(criteria.Description))
-            query = query.Where(v => v.Description == criteria.Description);
+            query = query.Where(e => e.Description != null &&
+                                     EF.Functions.Like(e.Description, $"%{criteria.Description}%"));
 
         if (criteria.Scope.HasValue)
-            query = query.Where(v => v.Scope == criteria.Scope.Value);
+            query = query.Where(e => e.Scope == criteria.Scope.Value);
 
 
         var sortBy = criteria.SortBy ?? EventSortField.Name;
@@ -60,7 +69,9 @@ public class EventRepository(ManagementDbContext context) : IEventRepository
                 asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name),
 
             EventSortField.Description =>
-                asc ? query.OrderBy(x => x.Description) : query.OrderByDescending(x => x.Description),
+                asc
+                  ? query.OrderBy(e => e.Description == null).ThenBy(e => e.Description)
+                  : query.OrderBy(e => e.Description == null).ThenByDescending(e => e.Description),
 
             EventSortField.Scope =>
                 asc ? query.OrderBy(x => x.Scope) : query.OrderByDescending(x => x.Scope),
@@ -78,17 +89,19 @@ public class EventRepository(ManagementDbContext context) : IEventRepository
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await GetByIdAsync(id, cancellationToken);
-        if (entity is null) 
+        var entity = await GetTrackedByIdAsync(id, cancellationToken);
+
+        if (entity is null)
             return false;
 
         _context.Events.Remove(entity);
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
     }
 
-    private async Task SaveChangesAsync(Event entity, CancellationToken cancellationToken)
+    private async Task SaveChangesWithUniqueCheckAsync(Event entity, CancellationToken cancellationToken)
     {
         try
         {
@@ -103,5 +116,4 @@ public class EventRepository(ManagementDbContext context) : IEventRepository
             );
         }
     }
-
 }
