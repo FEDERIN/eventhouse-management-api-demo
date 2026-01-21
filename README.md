@@ -14,6 +14,10 @@ $Env:Auth__DevSecret="EVENTHOUSE_LOCAL_DEV_SECRET_32_CHARS_MINIMUM!!"
 Run API
 dotnet run --project EventHouse.Management.Api
 
+### Update BD
+dotnet ef migrations add AddNameUniqueEvent `--project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api --output-dir Persistences
+dotnet ef database update ` --project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api
+
 
 ## Tests and code coverage (local)
 dotnet test /p:CollectCoverage=true /p:CoverletOutput=./coverage/coverage /p:CoverletOutputFormat=cobertura /p:ExcludeByFile="**/Swagger/Examples/**/*.cs" 

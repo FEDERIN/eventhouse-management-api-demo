@@ -10,7 +10,7 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
     {
         builder.ToTable("Events", t =>
         {
-            t.HasCheckConstraint("CK_Event_EventName_NotEmpty", "TRIM(Name) <> ''");
+            t.HasCheckConstraint("CK_Event_Name_NotEmpty", "TRIM(Name) <> ''");
             t.HasCheckConstraint("CK_Event_Scope_Range", "Scope IN (0,1,2)");
         });
 
@@ -27,5 +27,9 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.Property(e => e.Scope)
                .HasConversion<byte>()
                .IsRequired(true);
+
+        builder.HasIndex(e => e.Name)
+       .IsUnique()
+       .HasDatabaseName("UX_Event_Name");
     }
 }
