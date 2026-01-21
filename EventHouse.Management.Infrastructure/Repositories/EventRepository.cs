@@ -1,9 +1,11 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.Common.Sorting;
+using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Queries.Events.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
+using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,14 +18,15 @@ public class EventRepository(ManagementDbContext context) : IEventRepository
     public async Task AddAsync(Event entity, CancellationToken cancellationToken = default)
     {
         await _context.Events.AddAsync(entity, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
 
+        await SaveChangesWithUniqueChecksAsync(entity, cancellationToken);
     }
 
     public async Task UpdateAsync(Event entity, CancellationToken cancellationToken = default)
     {
         _context.Events.Update(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+
+        await SaveChangesWithUniqueChecksAsync(entity, cancellationToken);
     }
 
     public async Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -84,4 +87,21 @@ public class EventRepository(ManagementDbContext context) : IEventRepository
 
         return true;
     }
+
+    private async Task SaveChangesWithUniqueChecksAsync(Event entity, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (ex.IsUniqueViolation())
+        {
+            throw new ConflictException(
+                code: "EVENT_NAME_ALREADY_EXISTS",
+                title: "Unique constraint violated",
+                detail: $"Event with name '{entity.Name}' already exists."
+            );
+        }
+    }
+
 }
