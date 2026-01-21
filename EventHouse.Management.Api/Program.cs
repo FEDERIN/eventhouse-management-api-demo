@@ -155,6 +155,9 @@ builder.Services.AddSwaggerGen(c =>
     c.AddServer(new OpenApiServer { Url = "https://staging.api.tu-dominio.com", Description = "Staging" });
     c.AddServer(new OpenApiServer { Url = "https://api.tu-dominio.com", Description = "Production" });
 
+    // Respeta nullability de C#
+    c.SupportNonNullableReferenceTypes();
+
     c.EnableAnnotations();
 
     // XML docs - API
