@@ -19,7 +19,7 @@ public sealed class UpdateEventTests
 
         var entity = new Event(id, "Summer Fest 2026", "Annual open-air music festival.", EventScope.Local);
 
-        repo.GetByIdAsync(id, ct).Returns(entity);
+        repo.GetTrackedByIdAsync(id, ct).Returns(entity);
         repo.UpdateAsync(Arg.Any<Event>(), ct).Returns(Task.CompletedTask);
 
         var handler = new UpdateEventCommandHandler(repo);
