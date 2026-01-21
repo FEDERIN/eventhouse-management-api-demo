@@ -13,7 +13,7 @@ internal sealed class UpdateEventCommandHandler(IEventRepository eventRepository
 
     public async Task<UpdateResult> Handle(UpdateEventCommand request, CancellationToken cancellationToken)
     {
-        var entity = await _eventRepository.GetByIdAsync(request.Id, cancellationToken);
+        var entity = await _eventRepository.GetTrackedByIdAsync(request.Id, cancellationToken);
 
         if (entity is null)
             return UpdateResult.NotFound;
