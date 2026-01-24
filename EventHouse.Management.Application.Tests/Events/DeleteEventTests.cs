@@ -9,41 +9,44 @@ namespace EventHouse.Management.Application.Tests.Events;
 public sealed class DeleteEventTests
 {
     [Fact]
-    public async Task Handle_WhenEventExists_ShouldDelete_AndReturnOk()
+    public async Task Handle_WhenEventExists_ShouldDeleteAndReturnOk()
     {
+        // Arrange
         var repo = Substitute.For<IEventRepository>();
         var id = Guid.NewGuid();
+        var ct = new CancellationTokenSource().Token;
 
-        // DeleteAsync devuelve bool en tu handler
-        repo.DeleteAsync(id, Arg.Any<CancellationToken>())
-            .Returns(true);
+        repo.DeleteAsync(id, ct).Returns(true);
 
         var handler = new DeleteEventCommandHandler(repo);
         var cmd = new DeleteEventCommand(id);
 
-        var result = await handler.Handle(cmd, CancellationToken.None);
+        // Act
+        var result = await handler.Handle(cmd, ct);
 
+        // Assert
+        Assert.NotNull(result);
         Assert.Equal(DeleteStatus.Ok, result.Status);
 
-        await repo.Received(1).DeleteAsync(id, Arg.Any<CancellationToken>());
+        await repo.Received(1).DeleteAsync(id, ct);
     }
 
     [Fact]
-    public async Task Handle_WhenDeleteReturnsFalse_ShouldThrowNotFoundException()
+    public async Task Handle_WhenEventDoesNotExist_ShouldThrowNotFoundException()
     {
+        // Arrange
         var repo = Substitute.For<IEventRepository>();
         var id = Guid.NewGuid();
+        var ct = new CancellationTokenSource().Token;
 
-        repo.DeleteAsync(id, Arg.Any<CancellationToken>())
-            .Returns(false);
+        repo.DeleteAsync(id, ct).Returns(false);
 
         var handler = new DeleteEventCommandHandler(repo);
         var cmd = new DeleteEventCommand(id);
 
-        await Assert.ThrowsAsync<NotFoundException>(() =>
-            handler.Handle(cmd, CancellationToken.None));
+        // Act + Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => handler.Handle(cmd, ct));
 
-        await repo.Received(1).DeleteAsync(id, Arg.Any<CancellationToken>());
+        await repo.Received(1).DeleteAsync(id, ct);
     }
-
 }

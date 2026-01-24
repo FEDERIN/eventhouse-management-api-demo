@@ -50,6 +50,7 @@ public sealed class EventsController(IMediator mediator) : BaseApiController
         OperationId = "GetEventById",
         Summary = "Retrieve a specific event by its unique identifier."
         )]
+    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(EventResponseExample))]
     [ProducesOkAttribute<Event>]
     [ProducesNotFoundProblem]
     public async Task<ActionResult<Event>> GetById(Guid eventId, CancellationToken cancellationToken)
@@ -99,7 +100,6 @@ public sealed class EventsController(IMediator mediator) : BaseApiController
         return NoContent();
     }
 
-    /// <summary>Deletes an event by ID.</summary>
     [HttpDelete("{eventId:guid}")]
     [SwaggerOperation(
         OperationId = "DeleteEvent",

@@ -1,7 +1,6 @@
 using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Contracts.Artists;
 using EventHouse.Management.Api.Contracts.Common;
-using EventHouse.Management.Api.Mappers;
 using EventHouse.Management.Api.Mappers.Artists;
 using EventHouse.Management.Api.Mappers.Enums;
 using EventHouse.Management.Api.Swagger;
@@ -10,8 +9,6 @@ using EventHouse.Management.Api.Swagger.Examples.Requests.Artists;
 using EventHouse.Management.Application.Commands.Artists.Create;
 using EventHouse.Management.Application.Commands.Artists.Delete;
 using EventHouse.Management.Application.Commands.Artists.Update;
-using EventHouse.Management.Application.Common;
-using EventHouse.Management.Application.Queries.Artists.GetAll;
 using EventHouse.Management.Application.Queries.Artists.GetById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -40,15 +37,8 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
         [FromQuery] GetArtistsRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new GetAllArtistsQuery
-        {
-            Name = request.Name,
-            Category = ArtistCategoryMapper.ToApplicationOptional(request.Category),
-            Page = request.Page,
-            PageSize = request.PageSize,
-            SortBy = ArtistSortMapper.ToApplication(request.SortBy),
-            SortDirection = SortDirectionMapper.ToApplication(request.SortDirection)
-        }, cancellationToken);
+        var result = await _mediator.Send(GetAllArtistsQueryMapper.FromContract
+            (request), cancellationToken);
 
         return Ok(ArtistMapper.ToContract(result, Request));
     }
@@ -64,9 +54,6 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
     public async Task<ActionResult<Artist>> GetById(Guid artistId, CancellationToken cancellationToken)
     {
         var resultDto = await _mediator.Send(new GetArtistByIdQuery(artistId), cancellationToken);
-
-        if (resultDto is null)
-            return ArtistNotFound(artistId);
 
         return Ok(ArtistMapper.ToContract(resultDto));
     }
@@ -105,7 +92,7 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
     [ProducesConflictProblem]
     public async Task<IActionResult> Update(Guid artistId, [FromBody] UpdateArtistRequest body, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(
+        await _mediator.Send(
             new UpdateArtistCommand(
                 artistId,
                 body.Name,
@@ -113,16 +100,7 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
             ),
             cancellationToken);
 
-        return result switch
-        {
-            UpdateResult.NotFound => ArtistNotFound(artistId),
-            UpdateResult.InvalidState => ConflictProblem(
-                code: "ARTIST_INVALID_STATE",
-                title: "Invalid artist state",
-                detail: "The artist cannot be updated in its current state."
-            ),
-            _ => NoContent()
-        };
+        return NoContent();
     }
 
     [HttpDelete("{artistId:guid}")]
@@ -135,18 +113,8 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
     [ProducesConflictProblem]
     public async Task<IActionResult> Delete(Guid artistId, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new DeleteArtistCommand(artistId), cancellationToken);
-
-        if (result.NotFound)
-            return ArtistNotFound(artistId);
+        await _mediator.Send(new DeleteArtistCommand(artistId), cancellationToken);
 
         return NoContent();
     }
-
-    private ObjectResult ArtistNotFound(Guid artistId) =>
-        NotFoundProblem(
-            code: "ARTIST_NOT_FOUND",
-            title: "Artist not found",
-            detail: $"No artist exists with id '{artistId}'."
-        );
 }
