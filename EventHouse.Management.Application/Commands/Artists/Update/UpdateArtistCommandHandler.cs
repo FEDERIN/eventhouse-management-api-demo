@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Application.Common;
 using EventHouse.Management.Application.Common.Interfaces;
+using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Mappers;
 using MediatR;
 
@@ -12,9 +13,8 @@ internal sealed class UpdateArtistCommandHandler(IArtistRepository artistReposit
 
     public async Task<UpdateResult> Handle(UpdateArtistCommand request, CancellationToken cancellationToken)
     {
-        var entity = await _artistRepository.GetTrackedByIdAsync(request.Id, cancellationToken);
-        if (entity is null)
-            return UpdateResult.NotFound;
+        var entity = await _artistRepository.GetTrackedByIdAsync(request.Id, cancellationToken)
+        ?? throw new NotFoundException("Artist", request.Id);
 
         entity.Update(request.Name, ArtistCategoryMapper.ToDomainRequired(request.Category));
 
