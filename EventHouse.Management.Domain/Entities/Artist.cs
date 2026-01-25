@@ -53,6 +53,31 @@ public sealed class Artist : Entity
         return AddGenreOutcome.Added;
     }
 
+    public void RemoveGenre(Guid genreId)
+    {
+        var existing = _genres.FirstOrDefault(g => g.GenreId == genreId);
+        if (existing is null)
+            return;
+
+        var wasPrimary = existing.IsPrimary;
+
+        _genres.Remove(existing);
+
+        if (wasPrimary)
+        {
+            var firstActive = _genres.FirstOrDefault(g => g.Status == ArtistGenreStatus.Active);
+            if (firstActive is not null)
+            {
+                UnmarkAllPrimary();
+                firstActive.MarkAsPrimary();
+            }
+            else
+            {
+                UnmarkAllPrimary();
+            }
+        }
+    }
+
     private void UnmarkAllPrimary()
     {
         foreach (var g in _genres.Where(x => x.IsPrimary))
