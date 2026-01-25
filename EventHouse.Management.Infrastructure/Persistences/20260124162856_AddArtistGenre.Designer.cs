@@ -3,16 +3,19 @@ using System;
 using EventHouse.Management.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace EventHouse.Management.Infrastructure.Persistence.Migrations
+namespace EventHouse.Management.Infrastructure.Persistences
 {
     [DbContext(typeof(ManagementDbContext))]
-    partial class ManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260124162856_AddArtistGenre")]
+    partial class AddArtistGenre
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.23");

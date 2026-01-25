@@ -9,6 +9,7 @@ namespace EventHouse.Management.Infrastructure.Persistence
         public DbSet<Artist> Artists { get; set; }
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Venue> Venues { get; set; }
+        public DbSet<ArtistGenre> ArtistGenres { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
