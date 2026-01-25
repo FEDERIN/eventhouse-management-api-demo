@@ -36,7 +36,15 @@ public class ArtistRepository(ManagementDbContext context) : IArtistRepository
         if (entity is null)
             return false;
 
+        if (entity.Genres.Count != 0)
+            throw new ConflictException(
+                code: "ARTIST_HAS_ASSOCIATIONS",
+                title: "Artist cannot be deleted",
+                detail: "This artist cannot be deleted because it has associated entities."
+                );
+
         _context.Artists.Remove(entity);
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
@@ -44,17 +52,24 @@ public class ArtistRepository(ManagementDbContext context) : IArtistRepository
 
     public async Task<Artist?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Artists.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+        return await _context.Artists
+            .Include(i => i.Genres)
+            .AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
     }
 
     public Task<Artist?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return _context.Artists.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+        return _context.Artists
+            .Include(i => i.Genres)
+            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
     }
 
     public async Task<PagedResultDto<Artist>> GetPagedAsync(ArtistQueryCriteria criteria, CancellationToken cancellationToken = default)
     {
-        IQueryable<Artist> query = _context.Artists.AsNoTracking();
+        IQueryable<Artist> query = 
+            _context.Artists
+            .Include(i => i.Genres)
+            .AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(criteria.Name))
             query = query.Where(a => EF.Functions.Like(a.Name, $"%{criteria.Name}%"));
@@ -79,25 +94,24 @@ public class ArtistRepository(ManagementDbContext context) : IArtistRepository
         return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
     }
 
-    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Artists.AnyAsync(e => e.Id == id, cancellationToken);
-    }
-
-
     private async Task SaveChangesWithUniqueCheckAsync(Artist entity, CancellationToken cancellationToken)
     {
         try
         {
             await _context.SaveChangesAsync(cancellationToken);
         }
-        catch (DbUpdateException ex) when (ex.IsUniqueViolation())
+        catch (DbUpdateException ex) when (ex.IsUniqueViolation("IX_Artists_Name"))
         {
             throw new ConflictException(
                 code: "ARTIST_NAME_ALREADY_EXISTS",
                 title: "Unique constraint violated",
                 detail: $"Artist with name '{entity.Name}' already exists."
             );
+        }
+        catch (DbUpdateException ex) when (ex.IsUniqueViolation("IX_ArtistGenres_ArtistId_GenreId"))
+        {
+            _context.ChangeTracker.Clear();
+            return;
         }
     }
 }

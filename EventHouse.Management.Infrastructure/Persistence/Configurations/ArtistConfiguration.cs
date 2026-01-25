@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EventHouse.Management.Infrastructure.Persistence.Configurations;
 
-public class ArtistConfiguration : IEntityTypeConfiguration<Artist>
+internal class ArtistConfiguration : IEntityTypeConfiguration<Artist>
 {
     public void Configure(EntityTypeBuilder<Artist> builder)
     {
