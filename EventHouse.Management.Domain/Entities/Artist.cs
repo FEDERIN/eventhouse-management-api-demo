@@ -1,4 +1,5 @@
 ﻿using EventHouse.Management.Domain.Enums;
+using EventHouse.Management.Domain.Exceptions;
 using EventHouse.ShareKernel.Entities;
 
 namespace EventHouse.Management.Domain.Entities;
@@ -76,6 +77,22 @@ public sealed class Artist : Entity
                 UnmarkAllPrimary();
             }
         }
+    }
+
+    public void SetPrimaryGenre(Guid genreId)
+    {
+        var selected = _genres.FirstOrDefault(g => g.GenreId == genreId)
+             ?? throw new NotAssociatedException(
+            parent: "Artist",
+            child: "Genre",
+            parentId: Id,
+            childId: genreId);
+
+        if (selected.IsPrimary)
+            return;
+
+        UnmarkAllPrimary();
+        selected.MarkAsPrimary();
     }
 
     private void UnmarkAllPrimary()
