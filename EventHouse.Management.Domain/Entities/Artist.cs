@@ -3,10 +3,13 @@ using EventHouse.ShareKernel.Entities;
 
 namespace EventHouse.Management.Domain.Entities;
 
-public class Artist : Entity
+public sealed class Artist : Entity
 {
     public string Name { get; private set; } = null!;
     public ArtistCategory Category { get; private set; }
+
+    private readonly List<ArtistGenre> _genres = [];
+    public IReadOnlyCollection<ArtistGenre> Genres => _genres.AsReadOnly();
 
     private Artist() { }
 
@@ -30,5 +33,35 @@ public class Artist : Entity
 
         Name = name.Trim();
         Category = category;
+    }
+
+    public AddGenreOutcome AddGenre(Guid genreId, ArtistGenreStatus status, bool isPrimary = false)
+    {
+        if (genreId == Guid.Empty)
+            throw new ArgumentException("GenreId cannot be empty.", nameof(genreId));
+
+        if (_genres.Any(g => g.GenreId == genreId))
+            return AddGenreOutcome.NoChange;
+
+        if (isPrimary)
+            UnmarkAllPrimary();
+
+        if (!_genres.Any(g => g.IsPrimary))
+            isPrimary = true;
+
+        _genres.Add(new ArtistGenre(Id, genreId, status, isPrimary));
+        return AddGenreOutcome.Added;
+    }
+
+    private void UnmarkAllPrimary()
+    {
+        foreach (var g in _genres.Where(x => x.IsPrimary))
+            g.MarkAsSecondary();
+    }
+
+    public enum AddGenreOutcome
+    {
+        Added,
+        NoChange
     }
 }
