@@ -6,8 +6,12 @@ using EventHouse.Management.Api.Mappers.Enums;
 using EventHouse.Management.Api.Swagger;
 using EventHouse.Management.Api.Swagger.Examples.Contracts.Artists;
 using EventHouse.Management.Api.Swagger.Examples.Requests.Artists;
+using EventHouse.Management.Application.Commands.Artists.AddGenre;
 using EventHouse.Management.Application.Commands.Artists.Create;
 using EventHouse.Management.Application.Commands.Artists.Delete;
+using EventHouse.Management.Application.Commands.Artists.RemoveGenre;
+using EventHouse.Management.Application.Commands.Artists.SetGenreStatus;
+using EventHouse.Management.Application.Commands.Artists.SetPrimaryGenre;
 using EventHouse.Management.Application.Commands.Artists.Update;
 using EventHouse.Management.Application.Queries.Artists.GetById;
 using MediatR;
@@ -114,6 +118,76 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
     public async Task<IActionResult> Delete(Guid artistId, CancellationToken cancellationToken)
     {
         await _mediator.Send(new DeleteArtistCommand(artistId), cancellationToken);
+
+        return NoContent();
+    }
+
+    [HttpPost("{artistId:guid}/genres")]
+    [SwaggerOperation(
+        OperationId = "AddGenreToArtist", 
+        Summary = "Adds a genre to an artist (idempotent).")]
+    [SwaggerRequestExample(typeof(AddArtistGenreRequest), typeof(AddArtistGenreRequestExample))]
+    [ProducesNoContentAttribute]
+    [ProducesNotFoundProblem]
+    [ProducesConflictProblem]
+    public async Task<IActionResult> AddGenre(Guid artistId, [FromBody] AddArtistGenreRequest body, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(
+            new AddArtistGenreCommand(artistId, body.GenreId,
+            ArtistGenreStatusMapper.ToApplicationRequired(body.Status), body.IsPrimary),
+            cancellationToken);
+
+        return NoContent();
+    }
+
+    [HttpDelete("{artistId:guid}/genres/{genreId:guid}")]
+    [SwaggerOperation(
+        OperationId = "RemoveGenreFromArtist",
+        Summary = "Removes a genre from an artist.")]
+    [ProducesNoContentAttribute]
+    [ProducesNotFoundProblem]
+    public async Task<IActionResult> RemoveGenre(Guid artistId, Guid genreId, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new RemoveArtistGenreCommand(artistId, genreId), cancellationToken);
+
+        return NoContent();
+    }
+
+    [HttpPatch("{artistId:guid}/genres/{genreId:guid}/primary")]
+    [SwaggerOperation(
+        OperationId = "SetArtistPrimaryGenre",
+        Summary = "Sets a specific genre as primary for an artist.")]
+    [ProducesNoContentAttribute]
+    [ProducesNotFoundProblem]
+    [ProducesConflictProblem]
+    public async Task<IActionResult> SetPrimaryGenre(Guid artistId, Guid genreId, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new SetPrimaryArtistGenreCommand(artistId, genreId), cancellationToken);
+
+        return NoContent();
+    }
+
+    [HttpPut("{artistId:guid}/genres/{genreId:guid}")]
+    [SwaggerOperation(
+        OperationId = "UpdateArtistGenreStatus",
+        Summary = "Updates an artist-genre association status.")]
+    [SwaggerRequestExample(typeof(UpdateArtistGenreStatusRequest), typeof(UpdateArtistGenreStatusRequestExample))]
+    [ProducesNoContentAttribute]
+    [ProducesValidationProblemAttribute]
+    [ProducesNotFoundProblem]
+    [ProducesConflictProblem]
+    public async Task<IActionResult> UpdateGenreStatus(
+        Guid artistId,
+        Guid genreId,
+        [FromBody] UpdateArtistGenreStatusRequest body,
+        CancellationToken cancellationToken)
+    {
+        await _mediator.Send(
+            new SetArtistGenreStatusCommand(
+                artistId,
+                genreId,
+                ArtistGenreStatusMapper.ToApplicationRequired(body.Status)),
+            cancellationToken);
 
         return NoContent();
     }
