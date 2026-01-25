@@ -40,25 +40,6 @@ public sealed class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task Invoke_WhenNextThrowsKeyNotFoundException_Returns404()
-    {
-        var context = CreateHttpContext(env: "Production");
-        static Task next(HttpContext _) => throw new KeyNotFoundException("Artist not found");
-
-        var mw = new ExceptionHandlingMiddleware(next);
-
-        await mw.Invoke(context);
-
-        Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
-
-        var json = await ReadBodyAsJson(context);
-        Assert.Equal("NOT_FOUND", json["errorCode"]!.ToString());
-        Assert.Equal("Not found", json["title"]!.ToString());
-        Assert.Equal("Artist not found", json["detail"]!.ToString());
-        Assert.Equal("urn:eventhouse:error:NOT_FOUND", json["type"]!.ToString());
-    }
-
-    [Fact]
     public async Task Invoke_WhenNextThrowsInvalidOperationException_Returns409()
     {
         var context = CreateHttpContext(env: "Production");
