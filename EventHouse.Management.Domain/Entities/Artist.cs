@@ -79,6 +79,18 @@ public sealed class Artist : Entity
         }
     }
 
+    public bool SetGenreStatus(Guid genreId, ArtistGenreStatus status)
+    {
+        var existing = _genres.FirstOrDefault(g => g.GenreId == genreId)
+            ?? throw new NotAssociatedException("Artist", "Genre", Id, genreId);
+
+        if (existing.Status == status)
+            return false;
+
+        existing.SetStatus(status);
+        return true;
+    }
+
     public void SetPrimaryGenre(Guid genreId)
     {
         var selected = _genres.FirstOrDefault(g => g.GenreId == genreId)
