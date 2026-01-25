@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Application.Exceptions;
+using EventHouse.Management.Domain.Exceptions;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
@@ -34,8 +35,8 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next)
                 NotFoundException nf => (
                 StatusCodes.Status404NotFound, nf.Code, nf.Title, nf.Message),
 
-                KeyNotFoundException knf => (
-                    StatusCodes.Status404NotFound, "NOT_FOUND", "Not found", knf.Message),
+                NotAssociatedException nae => (
+                StatusCodes.Status404NotFound, "RESOURCE_NOT_ASSOCIATED", "Resource not associated", nae.Message),
 
                 InvalidOperationException ioe => (
                     StatusCodes.Status409Conflict, "CONFLICT", "Conflict", ioe.Message),
