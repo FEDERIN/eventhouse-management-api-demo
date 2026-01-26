@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Api.Contracts.Artists;
 using EventHouse.Management.Api.Contracts.Common;
+using EventHouse.Management.Api.Contracts.Genres;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Headers;
@@ -204,5 +205,216 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
 
         if (page.TotalCount > 2)
             page.Links.Next.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task AddGenre_Returns204_And_IsVisibleInGetArtist()
+    {
+        var bearer = await _client.GetBearerTokenAsync();
+        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
+
+        // create artist
+        var createArtist = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
+        {
+            Name = "Artist With Genre OK",
+            Category = ArtistCategory.Band
+        });
+
+        createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
+        var artist = await createArtist.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+
+        // create genre
+        var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
+        {
+            Name = "Rock 2"
+        });
+
+        createGenre.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var genre = await createGenre.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+
+        // add genre to artist
+        var add = await _client.PostAsJsonAsync($"/api/v1/artists/{artist!.Id}/genres", new AddArtistGenreRequest
+        {
+            GenreId = genre!.Id,
+            Status = ArtistGenreStatus.Active,
+            IsPrimary = true
+        });
+
+        add.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task AddGenre_IsIdempotent_ShouldNotDuplicate()
+    {
+        var bearer = await _client.GetBearerTokenAsync();
+        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
+
+
+        // create artist
+        var createArtist = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
+        {
+            Name = "Artist With Genre",
+            Category = ArtistCategory.Band
+        });
+
+        createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
+        var artist = await createArtist.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+
+        // create genre
+        var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
+        {
+            Name = "Punk"
+        });
+
+        createGenre.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var genre = await createGenre.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+
+        var body = new AddArtistGenreRequest
+        {
+            GenreId = genre!.Id,
+            Status = ArtistGenreStatus.Active,
+            IsPrimary = false
+        };
+
+        (await _client.PostAsJsonAsync($"/api/v1/artists/{artist!.Id}/genres", body))
+            .StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        (await _client.PostAsJsonAsync($"/api/v1/artists/{artist.Id}/genres", body))
+            .StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task SetPrimaryGenre_Returns204_And_MovesPrimaryFlag()
+    {
+        var bearer = await _client.GetBearerTokenAsync();
+        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
+
+        var createArtist = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
+        {
+            Name = "Artist Primary",
+            Category = ArtistCategory.Band
+        });
+
+        createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var artist = await createArtist.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+
+        // create genre
+        var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
+        {
+            Name = "Trap"
+        });
+
+        createGenre.StatusCode.Should().Be(HttpStatusCode.Created);
+        var genre = await createGenre.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+
+        var createGenre2 = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
+        {
+            Name = "Cumbia"
+        });
+
+        createGenre2.StatusCode.Should().Be(HttpStatusCode.Created);
+        var genre2 = await createGenre2.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+
+        // add both genres
+        (await _client.PostAsJsonAsync($"/api/v1/artists/{artist!.Id}/genres", new AddArtistGenreRequest
+        {
+            GenreId = genre!.Id,
+            Status = ArtistGenreStatus.Active,
+            IsPrimary = true
+        })).StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        (await _client.PostAsJsonAsync($"/api/v1/artists/{artist.Id}/genres", new AddArtistGenreRequest
+        {
+            GenreId = genre2!.Id,
+            Status = ArtistGenreStatus.Active,
+            IsPrimary = false
+        })).StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // act: set g2 primary
+        var patch = await _client.PatchAsync($"/api/v1/artists/{artist.Id}/genres/{genre2.Id}/primary", content: null);
+        patch.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task RemoveGenre_Returns204_And_RemovesAssociation()
+    {
+        var bearer = await _client.GetBearerTokenAsync();
+        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
+
+
+        var createArtist = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
+        {
+            Name = "Artist Remove",
+            Category = ArtistCategory.Band
+        });
+
+        createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
+        var artist = await createArtist.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+
+        // create genre
+        var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
+        {
+            Name = "Metal"
+        });
+
+        createGenre.StatusCode.Should().Be(HttpStatusCode.Created);
+        var genre = await createGenre.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+
+
+        // add
+        (await _client.PostAsJsonAsync($"/api/v1/artists/{artist!.Id}/genres", new AddArtistGenreRequest
+        {
+            GenreId = genre!.Id,
+            Status = ArtistGenreStatus.Active,
+            IsPrimary = false
+        })).StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // delete
+        var del = await _client.DeleteAsync($"/api/v1/artists/{artist.Id}/genres/{genre.Id}");
+        del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task UpdateGenreStatus_Returns204_And_PersistsChange()
+    {
+        var bearer = await _client.GetBearerTokenAsync();
+        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
+
+        // create artist
+        var createArtist = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
+        {
+            Name = "Artist Status",
+            Category = ArtistCategory.Band
+        });
+        createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
+        var artist = await createArtist.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+        artist!.Id.Should().NotBeEmpty();
+
+        // create genre
+        var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
+        {
+            Name = "Alternativa"
+        });
+        createGenre.StatusCode.Should().Be(HttpStatusCode.Created);
+        var genre = await createGenre.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+        genre!.Id.Should().NotBeEmpty();
+
+        // associate genre to artist (Active)
+        (await _client.PostAsJsonAsync($"/api/v1/artists/{artist.Id}/genres", new AddArtistGenreRequest
+        {
+            GenreId = genre.Id,
+            Status = ArtistGenreStatus.Active,
+            IsPrimary = true
+        })).StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // act: update status to Inactive
+        var put = await _client.PutAsJsonAsync(
+            $"/api/v1/artists/{artist.Id}/genres/{genre.Id}",
+            new UpdateArtistGenreStatusRequest { Status = ArtistGenreStatus.Inactive });
+
+        put.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }
