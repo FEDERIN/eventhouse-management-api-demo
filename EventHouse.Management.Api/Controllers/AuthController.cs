@@ -1,9 +1,12 @@
 ﻿using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Contracts.Auth;
 using EventHouse.Management.Api.Swagger;
+using EventHouse.Management.Api.Swagger.Examples.Contracts.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Swashbuckle.AspNetCore.Annotations;
+using Swashbuckle.AspNetCore.Filters;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -17,11 +20,16 @@ public sealed class AuthController(IConfiguration configuration) : ControllerBas
 {
     private readonly IConfiguration _configuration = configuration;
 
-    /// <summary>Issues a demo JWT access token.</summary>
     /// <remarks>
     /// Demo endpoint. Use username = "demo" and password = "demo".
     /// </remarks>
     [HttpPost("token")]
+    [SwaggerOperation(
+        OperationId = "GetToken",
+        Summary = "Issues a demo JWT access token."
+        )]
+    [SwaggerRequestExample(typeof(TokenRequest), typeof(TokenRequestExample))]
+    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(TokenResponseExample))]
     [ProducesOkAttribute<TokenResponse>]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(EventHouseProblemDetails), StatusCodes.Status401Unauthorized)]
