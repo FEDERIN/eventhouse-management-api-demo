@@ -4,7 +4,7 @@ using Swashbuckle.AspNetCore.Filters;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Artists;
 
-public sealed class ArtistPagedResultExample : IExamplesProvider<PagedResult<Artist>>
+internal sealed class ArtistPagedResultExample : IExamplesProvider<PagedResult<Artist>>
 {
     public PagedResult<Artist> GetExamples() => new()
     {

@@ -4,7 +4,7 @@ using Swashbuckle.AspNetCore.Filters;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Requests.Genres;
 
-public sealed class GetGenresRequestExample : IExamplesProvider<GetGenresRequest>
+internal sealed class GetGenresRequestExample : IExamplesProvider<GetGenresRequest>
 {
     public GetGenresRequest GetExamples() => new()
     {

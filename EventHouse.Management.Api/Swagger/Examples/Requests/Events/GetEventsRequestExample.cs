@@ -5,7 +5,7 @@ using Swashbuckle.AspNetCore.Filters;
 namespace EventHouse.Management.Api.Swagger.Examples.Requests.Events;
 
 
-public sealed class GetEventsRequestExample
+internal sealed class GetEventsRequestExample
     : IExamplesProvider<GetEventsRequest>
 {
     public GetEventsRequest GetExamples() => new()

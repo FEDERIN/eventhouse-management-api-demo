@@ -3,7 +3,7 @@ using Swashbuckle.AspNetCore.Filters;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Genres;
 
-public class GenreResponseExample : IExamplesProvider<Genre>
+internal class GenreResponseExample : IExamplesProvider<Genre>
 {
     public Genre GetExamples() => new()
     {
