@@ -3,7 +3,7 @@ using EventHouse.Management.Api.Contracts.Artists;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Artists;
 
-public sealed class ArtistResponseExample : IExamplesProvider<Artist>
+internal sealed class ArtistResponseExample : IExamplesProvider<Artist>
 {
     public Artist GetExamples() => new()
     {

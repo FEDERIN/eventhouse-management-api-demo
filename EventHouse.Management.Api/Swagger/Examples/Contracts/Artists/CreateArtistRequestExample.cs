@@ -3,7 +3,7 @@ using Swashbuckle.AspNetCore.Filters;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Artists;
 
-public sealed class CreateArtistRequestExample : IExamplesProvider<CreateArtistRequest>
+internal sealed class CreateArtistRequestExample : IExamplesProvider<CreateArtistRequest>
 {
     public CreateArtistRequest GetExamples() => new()
     {

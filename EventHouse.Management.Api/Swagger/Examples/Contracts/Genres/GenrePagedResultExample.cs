@@ -4,7 +4,7 @@ using Swashbuckle.AspNetCore.Filters;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Genres;
 
-public class GenrePagedResultExample : IExamplesProvider<PagedResult<Genre>>
+internal class GenrePagedResultExample : IExamplesProvider<PagedResult<Genre>>
 {
     public PagedResult<Genre> GetExamples() => new()
     {

@@ -3,7 +3,7 @@ using Swashbuckle.AspNetCore.Filters;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Events;
 
-public sealed class UpdateEventRequestExample : IExamplesProvider<UpdateEventRequest>
+internal sealed class UpdateEventRequestExample : IExamplesProvider<UpdateEventRequest>
 {
     public UpdateEventRequest GetExamples() => new()
     {

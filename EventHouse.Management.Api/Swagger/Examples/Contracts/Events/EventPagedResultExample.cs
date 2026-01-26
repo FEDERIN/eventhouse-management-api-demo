@@ -4,7 +4,7 @@ using Swashbuckle.AspNetCore.Filters;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Events;
 
-public sealed class EventPagedResultExample : IExamplesProvider<PagedResult<Event>>
+internal sealed class EventPagedResultExample : IExamplesProvider<PagedResult<Event>>
 {
     public PagedResult<Event> GetExamples() => new()
     {
