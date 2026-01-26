@@ -3,7 +3,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace EventHouse.Management.Api.Swagger.Filters;
 
-public sealed class JsonOnlyResponsesOperationFilter : IOperationFilter
+internal sealed class JsonOnlyResponsesOperationFilter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
