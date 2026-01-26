@@ -4,7 +4,7 @@ using EventHouse.Management.Domain.Entities;
 
 namespace EventHouse.Management.Infrastructure.Persistence.Configurations;
 
-public class EventConfiguration : IEntityTypeConfiguration<Event>
+internal class EventConfiguration : IEntityTypeConfiguration<Event>
 {
     public void Configure(EntityTypeBuilder<Event> builder)
     {
