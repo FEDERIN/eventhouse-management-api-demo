@@ -1,8 +1,10 @@
 ﻿using EventHouse.Management.Api.Contracts.Genres;
 using Swashbuckle.AspNetCore.Filters;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Genres;
 
+[ExcludeFromCodeCoverage]
 internal class GenreResponseExample : IExamplesProvider<Genre>
 {
     public Genre GetExamples() => new()

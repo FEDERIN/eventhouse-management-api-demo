@@ -22,7 +22,7 @@ dotnet ef database update ` --project EventHouse.Management.Infrastructure --sta
 
 
 ## Tests and code coverage (local)
-dotnet test EventHouse.sln --collect:"XPlat Code Coverage" /p:ExcludeByFile="**/Swagger/Examples/**/*.cs" 
+dotnet test EventHouse.sln --collect:"XPlat Code Coverage"
 
 
 ## Generate HTML coverage report

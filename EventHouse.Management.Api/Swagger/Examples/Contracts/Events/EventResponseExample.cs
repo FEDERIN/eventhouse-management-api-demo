@@ -1,9 +1,11 @@
 ﻿using EventHouse.Management.Api.Contracts.Events;
 using Swashbuckle.AspNetCore.Filters;
+using System.Diagnostics.CodeAnalysis;
 using Contract = EventHouse.Management.Api.Contracts.Events.Event;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Events;
 
+[ExcludeFromCodeCoverage]
 internal sealed class EventResponseExample
     : IExamplesProvider<Contract>
 {
