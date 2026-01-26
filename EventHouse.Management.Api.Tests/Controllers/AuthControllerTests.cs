@@ -10,6 +10,35 @@ namespace EventHouse.Management.Api.Tests.Controllers;
 
 public sealed class AuthControllerTests
 {
+    [Theory]
+    [InlineData("", "demo")]
+    [InlineData("demo", "")]
+    [InlineData("", "")]
+    public void Token_WhenUsernameOrPasswordIsMissing_Returns400ProblemJson(
+        string username,
+        string password)
+    {
+        // Arrange
+        var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
+        var controller = CreateController(config, path: "/auth/token");
+
+        var request = new TokenRequest { Username = username, Password = password };
+
+        // Act
+        var result = controller.Token(request);
+
+        // Assert
+        var obj = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status400BadRequest, obj.StatusCode);
+
+        var problem = Assert.IsType<ValidationProblemDetails>(obj.Value);
+        Assert.Equal("Validation error", problem.Title);
+        Assert.Equal("urn:eventhouse:error:VALIDATION_ERROR", problem.Type);
+        Assert.Contains("username", problem.Errors.Keys);
+        Assert.Contains("password", problem.Errors.Keys);
+    }
+
+
     [Fact]
     public void Token_WhenCredentialsAreInvalid_Returns401ProblemJson()
     {
@@ -30,7 +59,7 @@ public sealed class AuthControllerTests
         Assert.Equal("UNAUTHORIZED", problem.ErrorCode);
         Assert.Equal("urn:eventhouse:error:UNAUTHORIZED", problem.Type);
         Assert.Equal("Unauthorized", problem.Title);
-        Assert.Equal("Invalid credentials. Use demo/demo.", problem.Detail);
+        Assert.Equal("Invalid credentials.", problem.Detail);
         Assert.Equal("/auth/token", problem.Instance);
 
         Assert.Contains("application/problem+json", obj.ContentTypes);
@@ -40,7 +69,6 @@ public sealed class AuthControllerTests
     public void Token_WhenAuthSettingsMissing_Returns500AuthNotConfiguredProblemJson()
     {
         // Arrange
-        // Sin Auth:* configurado
         var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
         var controller = CreateController(config, path: "/auth/token");
 
@@ -90,25 +118,21 @@ public sealed class AuthControllerTests
         var response = Assert.IsType<TokenResponse>(ok.Value);
 
         Assert.Equal("Bearer", response.TokenType);
-        Assert.Equal(3600, response.ExpiresIn);
+        Assert.Equal(7200, response.ExpiresIn);
         Assert.False(string.IsNullOrWhiteSpace(response.AccessToken));
 
-        // Validar que sea un JWT parseable
         var handler = new JwtSecurityTokenHandler();
         Assert.True(handler.CanReadToken(response.AccessToken));
 
         var jwt = handler.ReadJwtToken(response.AccessToken);
 
-        // Issuer/Audience
         Assert.Equal("eventhouse.local", jwt.Issuer);
         Assert.Contains("eventhouse.management", jwt.Audiences);
 
-        // Claims esperados
         Assert.Contains(jwt.Claims, c => c.Type == JwtRegisteredClaimNames.Sub && c.Value == "demo-user");
         Assert.Contains(jwt.Claims, c => c.Type == "scope" && c.Value == "management");
         Assert.Contains(jwt.Claims, c => c.Type == JwtRegisteredClaimNames.Jti && !string.IsNullOrWhiteSpace(c.Value));
 
-        // Expiración aproximada (no exacta)
         Assert.True(jwt.ValidTo > DateTime.UtcNow);
     }
 
@@ -116,7 +140,6 @@ public sealed class AuthControllerTests
     {
         var controller = new AuthController(config)
         {
-            // Setear HttpContext para TraceIdentifier y Request.Path
             ControllerContext = new ControllerContext
             {
                 HttpContext = new DefaultHttpContext()
