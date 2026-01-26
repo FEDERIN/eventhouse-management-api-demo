@@ -8,11 +8,10 @@ using EventHouse.Management.Infrastructure.Persistence;
 using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
 
 namespace EventHouse.Management.Infrastructure.Repositories;
 
-public class ArtistRepository(ManagementDbContext context) : IArtistRepository
+internal class ArtistRepository(ManagementDbContext context) : IArtistRepository
 {
     private readonly ManagementDbContext _context = context;
 

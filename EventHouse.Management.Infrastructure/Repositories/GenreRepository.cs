@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories
 {
-    public class GenreRepository(ManagementDbContext context) : IGenreRepository
+    internal class GenreRepository(ManagementDbContext context) : IGenreRepository
     {
         private readonly ManagementDbContext _context = context;
 
