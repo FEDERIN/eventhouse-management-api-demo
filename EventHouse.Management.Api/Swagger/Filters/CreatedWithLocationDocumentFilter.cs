@@ -3,7 +3,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace EventHouse.Management.Api.Swagger.Filters;
 
-public sealed class CreatedWithLocationDocumentFilter : IDocumentFilter
+internal sealed class CreatedWithLocationDocumentFilter : IDocumentFilter
 {
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {

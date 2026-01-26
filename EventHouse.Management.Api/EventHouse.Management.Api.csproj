@@ -24,5 +24,12 @@
     <ProjectReference Include="..\EventHouse.Management.Application\EventHouse.Management.Application.csproj" />
     <ProjectReference Include="..\EventHouse.Management.Infrastructure\EventHouse.Management.Infrastructure.csproj" />
   </ItemGroup>
+  
+    <ItemGroup>
+  	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+		<_Parameter1>EventHouse.Management.Api.Tests</_Parameter1>
+	</AssemblyAttribute>
+  </ItemGroup>
+
 
 </Project>
