@@ -8,6 +8,7 @@ using EventHouse.Management.Infrastructure.Persistence;
 using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace EventHouse.Management.Infrastructure.Repositories;
 
@@ -27,6 +28,28 @@ public class ArtistRepository(ManagementDbContext context) : IArtistRepository
             throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
         await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+    }
+
+    public async Task SetPrimaryGenreAsync(Guid artistId, Guid genreOldId, Guid genreId, CancellationToken ct)
+    {
+        if (!genreOldId.Equals(Guid.Empty))
+        {
+            await _context.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE ArtistGenres
+                SET IsPrimary = 0
+                WHERE ArtistId = {artistId} AND GenreId = {genreOldId}
+            """, ct);
+
+            await _context.SaveChangesAsync(ct);
+        }
+
+        await _context.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE ArtistGenres
+                SET IsPrimary = 1
+                WHERE ArtistId = {artistId} AND GenreId = {genreId}
+            """, ct);
+
+        await _context.SaveChangesAsync(ct);
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)

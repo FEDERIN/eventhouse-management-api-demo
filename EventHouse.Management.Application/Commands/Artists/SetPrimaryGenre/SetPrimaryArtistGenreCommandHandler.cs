@@ -15,9 +15,15 @@ internal sealed class SetPrimaryArtistGenreCommandHandler(IArtistRepository arti
     {
         var artist = await _artistRepository.GetTrackedByIdAsync(request.ArtistId, cancellationToken)
             ?? throw new NotFoundException("Artist", request.ArtistId);
+
+        var genrePrimary = artist.Genres.FirstOrDefault(a => a.IsPrimary);
+
+        var changed = artist.SetPrimaryGenre(request.GenreId);
         
-        artist.SetPrimaryGenre(request.GenreId);
-        
-        await _artistRepository.UpdateAsync(artist, cancellationToken);
+        if (changed)
+        {
+            var genreOldId = genrePrimary == null ? Guid.Empty : genrePrimary.GenreId;
+             await _artistRepository.SetPrimaryGenreAsync(artist.Id, genreOldId, request.GenreId, cancellationToken);
+        }
     }
 }

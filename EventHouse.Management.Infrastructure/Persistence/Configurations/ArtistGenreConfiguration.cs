@@ -36,9 +36,9 @@ internal class ArtistGenreConfiguration : IEntityTypeConfiguration<ArtistGenre>
         builder.Property(e => e.IsPrimary)
                .IsRequired();
 
-        builder.HasIndex(e => new { e.ArtistId, e.IsPrimary })
+        builder.HasIndex(e => e.ArtistId)
                .IsUnique()
-               .HasFilter("[IsPrimary] = 1")
+               .HasFilter("IsPrimary = 1")
                .HasDatabaseName("UX_ArtistGenres_Artist_Primary");
     }
 }

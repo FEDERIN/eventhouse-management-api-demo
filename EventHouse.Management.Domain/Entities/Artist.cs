@@ -91,7 +91,7 @@ public sealed class Artist : Entity
         return true;
     }
 
-    public void SetPrimaryGenre(Guid genreId)
+    public bool SetPrimaryGenre(Guid genreId)
     {
         var selected = _genres.FirstOrDefault(g => g.GenreId == genreId)
              ?? throw new NotAssociatedException(
@@ -101,10 +101,13 @@ public sealed class Artist : Entity
             childId: genreId);
 
         if (selected.IsPrimary)
-            return;
+            return false;
 
         UnmarkAllPrimary();
+
         selected.MarkAsPrimary();
+
+        return true;
     }
 
     private void UnmarkAllPrimary()
