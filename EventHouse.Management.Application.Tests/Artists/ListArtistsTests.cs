@@ -1,7 +1,6 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.Common.Sorting;
-using EventHouse.Management.Application.Mappers;
 using EventHouse.Management.Application.Queries.Artists.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Domain.Enums;
