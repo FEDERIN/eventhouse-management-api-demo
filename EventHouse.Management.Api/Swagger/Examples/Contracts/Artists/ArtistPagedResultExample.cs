@@ -1,9 +1,11 @@
 ﻿using EventHouse.Management.Api.Contracts.Artists;
 using EventHouse.Management.Api.Contracts.Common;
 using Swashbuckle.AspNetCore.Filters;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Artists;
 
+[ExcludeFromCodeCoverage]
 internal sealed class ArtistPagedResultExample : IExamplesProvider<PagedResult<Artist>>
 {
     public PagedResult<Artist> GetExamples() => new()

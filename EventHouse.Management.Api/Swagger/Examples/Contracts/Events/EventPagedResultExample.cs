@@ -1,9 +1,11 @@
 ﻿using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.Events;
 using Swashbuckle.AspNetCore.Filters;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Events;
 
+[ExcludeFromCodeCoverage]
 internal sealed class EventPagedResultExample : IExamplesProvider<PagedResult<Event>>
 {
     public PagedResult<Event> GetExamples() => new()
