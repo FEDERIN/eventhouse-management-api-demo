@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories;
 
-public class EventRepository(ManagementDbContext context) : IEventRepository
+internal class EventRepository(ManagementDbContext context) : IEventRepository
 {
     private readonly ManagementDbContext _context = context;
 

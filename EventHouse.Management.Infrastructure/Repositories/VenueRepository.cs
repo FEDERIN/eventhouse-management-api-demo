@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories
 {
-    public class VenueRepository(ManagementDbContext context) : IVenueRepository
+    internal class VenueRepository(ManagementDbContext context) : IVenueRepository
     {
         private readonly ManagementDbContext _context = context;
 
