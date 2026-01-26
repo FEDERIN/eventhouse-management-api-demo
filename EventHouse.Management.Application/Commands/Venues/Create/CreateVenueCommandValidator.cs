@@ -1,11 +1,10 @@
 ﻿using EventHouse.Management.Application.Common.RegularExpressions;
 using FluentValidation;
-using System.Text.RegularExpressions;
 using TimeZoneConverter;
 
 namespace EventHouse.Management.Application.Commands.Venues.Create;
 
-public sealed class CreateVenueCommandValidator : AbstractValidator<CreateVenueCommand>
+internal sealed class CreateVenueCommandValidator : AbstractValidator<CreateVenueCommand>
 {
     public CreateVenueCommandValidator()
     {

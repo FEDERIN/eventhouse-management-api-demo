@@ -4,7 +4,7 @@ using TimeZoneConverter;
 
 namespace EventHouse.Management.Application.Commands.Venues.Update;
 
-public sealed class UpdateVenueCommandValidator : AbstractValidator<UpdateVenueCommand>
+internal sealed class UpdateVenueCommandValidator : AbstractValidator<UpdateVenueCommand>
 {
     public UpdateVenueCommandValidator()
     {

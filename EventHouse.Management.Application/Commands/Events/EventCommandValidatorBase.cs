@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace EventHouse.Management.Application.Commands.Events;
 
-public abstract class EventCommandValidatorBase<TCommand> : AbstractValidator<TCommand>
+internal abstract class EventCommandValidatorBase<TCommand> : AbstractValidator<TCommand>
 {
     protected EventCommandValidatorBase()
     {
