@@ -15,19 +15,20 @@ Run API
 dotnet run --project EventHouse.Management.Api
 
 ### Update BD
-dotnet ef migrations add AddNameUniqueEvent `--project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api --output-dir Persistences
+dotnet ef migrations add UpdateIndexArtistGenrePrimary `--project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api --output-dir Persistences
+
 dotnet ef database update ` --project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api
 
 
-## Tests and code coverage (local)
-dotnet test /p:CollectCoverage=true /p:CoverletOutput=./coverage/coverage /p:CoverletOutputFormat=cobertura /p:ExcludeByFile="**/Swagger/Examples/**/*.cs" 
 
-dotnet test /p:MergeWith=./coverage/coverage.cobertura.xml
+## Tests and code coverage (local)
+dotnet test EventHouse.sln --collect:"XPlat Code Coverage" /p:ExcludeByFile="**/Swagger/Examples/**/*.cs" 
+
+
 ## Generate HTML coverage report
-reportgenerator -reports:"EventHouse.Management.Api.Tests\coverage\coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Html -filefilters:"-*\\obj\\*;-*RegexGenerator.g.cs"
+reportgenerator -reports:"EventHouse.Management.Domain.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Application.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Api.Tests\TestResults\*\coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Html -filefilters:"-*\\obj\\*;-*RegexGenerator.g.cs"
 
 ## Open the report:
-
 start coverage-report/index.html
 
 
