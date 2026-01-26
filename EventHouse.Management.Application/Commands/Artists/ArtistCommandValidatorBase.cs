@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace EventHouse.Management.Application.Commands.Artists;
 
-public abstract class ArtistCommandValidatorBase<TCommand> : AbstractValidator<TCommand>
+internal abstract class ArtistCommandValidatorBase<TCommand> : AbstractValidator<TCommand>
 {
     protected ArtistCommandValidatorBase()
     {

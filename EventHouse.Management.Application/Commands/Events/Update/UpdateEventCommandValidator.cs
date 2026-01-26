@@ -2,7 +2,7 @@
 
 namespace EventHouse.Management.Application.Commands.Events.Update;
 
-public sealed class UpdateEventCommandValidator
+internal sealed class UpdateEventCommandValidator
     : EventCommandValidatorBase<UpdateEventCommand>
 {
     public UpdateEventCommandValidator()

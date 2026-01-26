@@ -2,7 +2,7 @@
 
 namespace EventHouse.Management.Application.Commands.Genres.Update;
 
-public sealed class UpdateGenreCommandValidator
+internal sealed class UpdateGenreCommandValidator
     : AbstractValidator<UpdateGenreCommand>
 {
     public UpdateGenreCommandValidator()

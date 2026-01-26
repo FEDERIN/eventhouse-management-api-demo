@@ -1,7 +1,7 @@
 ﻿
 namespace EventHouse.Management.Application.Commands.Artists.Create;
 
-public sealed class CreateArtistCommandValidator
+internal sealed class CreateArtistCommandValidator
     : ArtistCommandValidatorBase<CreateArtistCommand>
 {
     public CreateArtistCommandValidator()

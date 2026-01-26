@@ -2,7 +2,7 @@
 
 namespace EventHouse.Management.Application.Commands.Genres.Create;
 
-public sealed class CreateGenreCommandValidator
+internal sealed class CreateGenreCommandValidator
     : AbstractValidator<CreateGenreCommand>
 {
     public CreateGenreCommandValidator()

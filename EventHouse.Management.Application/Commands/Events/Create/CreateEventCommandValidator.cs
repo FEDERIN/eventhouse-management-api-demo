@@ -1,7 +1,7 @@
 ﻿
 namespace EventHouse.Management.Application.Commands.Events.Create;
 
-public sealed class CreateEventCommandValidator
+internal sealed class CreateEventCommandValidator
     : EventCommandValidatorBase<CreateEventCommand>
 {
     public CreateEventCommandValidator()

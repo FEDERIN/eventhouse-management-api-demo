@@ -2,7 +2,7 @@
 
 namespace EventHouse.Management.Application.Commands.Artists.Update;
 
-public sealed class UpdateArtistCommandValidator
+internal sealed class UpdateArtistCommandValidator
     : ArtistCommandValidatorBase<UpdateArtistCommand>
 {
     public UpdateArtistCommandValidator()
