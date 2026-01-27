@@ -1,8 +1,9 @@
 ﻿using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Application.Common.Interfaces;
-using MediatR;
 using EventHouse.Management.Application.Mappers;
+using EventHouse.Management.Application.Mappers.Artists;
+using MediatR;
 
 namespace EventHouse.Management.Application.Queries.Artists.GetAll;
 
@@ -28,16 +29,9 @@ internal sealed class GetAllArtistsQueryHandler(IArtistRepository artistReposito
             cancellationToken
             );
 
-        var dtoList = result.Items.Select(e => new ArtistDto
-        {
-            Id = e.Id,
-            Name = e.Name,
-            Category = ArtistCategoryMapper.ToApplication(e.Category)
-        }).ToList();
-
         return new PagedResultDto<ArtistDto>
         {
-            Items = dtoList,
+            Items = ArtistMapper.ToDto((List<Domain.Entities.Artist>)result.Items),
             TotalCount = result.TotalCount,
             Page = result.Page,
             PageSize = result.PageSize
