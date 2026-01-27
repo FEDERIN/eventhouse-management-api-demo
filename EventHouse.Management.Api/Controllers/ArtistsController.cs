@@ -34,10 +34,10 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
         )]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(ArtistPagedResultExample))]
     [SwaggerRequestExample(typeof(GetArtistsRequest), typeof(GetArtistsRequestExample))]
-    [ProducesOkAttribute<PagedResult<Artist>>]
+    [ProducesOkAttribute<PagedResult<ArtistSummary>>]
     [ProducesValidationProblemAttribute]
     [ProducesTooManyRequestsProblemAttribute]
-    public async Task<ActionResult<PagedResult<Artist>>> GetAll(
+    public async Task<ActionResult<PagedResult<ArtistSummary>>> GetAll(
         [FromQuery] GetArtistsRequest request,
         CancellationToken cancellationToken)
     {
@@ -52,10 +52,10 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
         OperationId = "GetArtistById",
         Summary = "Retrieve a specific artist by their unique identifier."
         )]
-    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(ArtistResponseExample))]
-    [ProducesOkAttribute<Artist>]
+    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(ArtistDetailResponseExample))]
+    [ProducesOkAttribute<ArtistDetail>]
     [ProducesNotFoundProblem]
-    public async Task<ActionResult<Artist>> GetById(Guid artistId, CancellationToken cancellationToken)
+    public async Task<ActionResult<ArtistDetail>> GetById(Guid artistId, CancellationToken cancellationToken)
     {
         var resultDto = await _mediator.Send(new GetArtistByIdQuery(artistId), cancellationToken);
 
@@ -68,8 +68,8 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
         Summary = "Create a new artist in the system."
         )]
     [SwaggerRequestExample(typeof(CreateArtistRequest), typeof(CreateArtistRequestExample))]
-    [SwaggerResponseExample(StatusCodes.Status201Created, typeof(ArtistResponseExample))]
-    [ProducesCreated<Artist>]
+    [SwaggerResponseExample(StatusCodes.Status201Created, typeof(ArtistSumaryResponseExample))]
+    [ProducesCreated<ArtistSummary>]
     [ProducesValidationProblemAttribute]
     [ProducesConflictProblem]
     public async Task<IActionResult> Create([FromBody] CreateArtistRequest body, CancellationToken cancellationToken)
@@ -79,7 +79,7 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
             ArtistCategoryMapper.ToApplicationRequired(body.Category)),
             cancellationToken);
 
-        var createdArtist = ArtistMapper.ToContract(createdDto);
+        var createdArtist = ArtistMapper.ToContractSumary(createdDto);
 
         return CreatedAtAction(nameof(GetById), new { artistId = createdArtist.Id }, createdArtist);
     }

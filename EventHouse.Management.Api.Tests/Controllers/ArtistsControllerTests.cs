@@ -39,7 +39,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         post.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Assert: body
-        var created = await post.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+        var created = await post.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
 
         created.Should().NotBeNull();
         created!.Id.Should().NotBeEmpty();
@@ -57,7 +57,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         var get = await _client.GetAsync($"/api/v1/artists/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var fetched = await get.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+        var fetched = await get.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
         fetched.Should().NotBeNull();
         fetched!.Id.Should().Be(created.Id);
         fetched.Name.Should().Be(created.Name);
@@ -88,7 +88,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         });
         create.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var created = await create.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+        var created = await create.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
         created!.Id.Should().NotBeEmpty();
 
         // update
@@ -104,7 +104,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         var get = await _client.GetAsync($"/api/v1/artists/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var updated = await get.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+        var updated = await get.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
         updated!.Name.Should().Be("Artist A Updated");
         updated.Category.Should().Be(ArtistCategory.Singer);
     }
@@ -140,7 +140,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         });
         create.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var created = await create.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+        var created = await create.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
 
         // delete
         var del = await _client.DeleteAsync($"/api/v1/artists/{created!.Id}");
@@ -189,7 +189,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         var res = await _client.GetAsync("/api/v1/artists?page=1&pageSize=2");
         res.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var page = await res.Content.ReadFromJsonAsync<PagedResult<Artist>>(JsonTestOptions.Default);
+        var page = await res.Content.ReadFromJsonAsync<PagedResult<ArtistDetail>>(JsonTestOptions.Default);
         page.Should().NotBeNull();
 
         page!.Items.Should().NotBeNull();
@@ -221,7 +221,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         });
 
         createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
-        var artist = await createArtist.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+        var artist = await createArtist.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
 
         // create genre
         var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
@@ -259,7 +259,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         });
 
         createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
-        var artist = await createArtist.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+        var artist = await createArtist.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
 
         // create genre
         var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
@@ -299,7 +299,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
 
         createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var artist = await createArtist.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+        var artist = await createArtist.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
 
         // create genre
         var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
@@ -352,7 +352,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         });
 
         createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
-        var artist = await createArtist.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+        var artist = await createArtist.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
 
         // create genre
         var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
@@ -390,7 +390,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
             Category = ArtistCategory.Band
         });
         createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
-        var artist = await createArtist.Content.ReadFromJsonAsync<Artist>(JsonTestOptions.Default);
+        var artist = await createArtist.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
         artist!.Id.Should().NotBeEmpty();
 
         // create genre
