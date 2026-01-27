@@ -1,7 +1,7 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Application.Exceptions;
-using EventHouse.Management.Application.Mappers;
+using EventHouse.Management.Application.Mappers.Artists;
 using MediatR;
 
 namespace EventHouse.Management.Application.Queries.Artists.GetById;
@@ -16,11 +16,6 @@ internal sealed class GetArtistByIdQueryHandler(IArtistRepository repository)
         var entity = await _repository.GetByIdAsync(request.Id, cancellationToken)
             ?? throw new NotFoundException("Artist", request.Id);
 
-        return new ArtistDto
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            Category = ArtistCategoryMapper.ToApplication(entity.Category),
-        };
+        return ArtistMapper.ToDto(entity);
     }
 }

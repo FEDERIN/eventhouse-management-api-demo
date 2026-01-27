@@ -8,5 +8,6 @@ namespace EventHouse.Management.Application.DTOs
         public Guid Id { get; init; }
         public required string Name { get; init; }
         public ArtistCategoryDto Category { get; init; }
+        public IReadOnlyList<ArtistGenreDto> Genres = [];
     }
 }

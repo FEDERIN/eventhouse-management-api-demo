@@ -9,9 +9,24 @@ namespace EventHouse.Management.Api.Mappers.Artists;
 
 public class ArtistMapper
 {
-   public static Artist ToContract(ArtistDto dto)
+   public static ArtistDetail ToContract(ArtistDto dto)
     {
-        return new Artist
+        return new ArtistDetail
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Category = ArtistCategoryMapper.ToContract(dto.Category),
+            Genres = [.. dto.Genres.Select(g => new ArtistGenre
+            {
+                GenreId = g.GenreId,
+                Status = ArtistGenreStatusMapper.ToContract(g.Status),
+                IsPrimary = g.IsPrimary
+            })]
+        };
+    }
+    public static ArtistSummary ToContractSumary(ArtistDto dto)
+    {
+        return new ArtistSummary
         {
             Id = dto.Id,
             Name = dto.Name,
@@ -19,7 +34,7 @@ public class ArtistMapper
         };
     }
 
-    public static PagedResult<Artist> ToContract(
+    public static PagedResult<ArtistSummary> ToContract(
     PagedResultDto<ArtistDto> paged, HttpRequest request)
-    => paged.ToContract(ToContract, request);
+    => paged.ToContract(ToContractSumary, request);
 }
