@@ -1,25 +1,25 @@
 ﻿
 using EventHouse.Management.Application.Common.Enums;
-using DomainScope = EventHouse.Management.Domain.Enums.EventScope;
+using EventHouse.Management.Domain.Enums;
 
 namespace EventHouse.Management.Application.Mappers;
 
 public static class EventScopeMapper
 {
-    public static DomainScope ToDomainRequired(EventScopeDto scope) => 
+    public static EventScope ToDomainRequired(EventScopeDto scope) => 
         MapToDomain(scope);
 
-    public static DomainScope? ToDomainOptional(EventScopeDto? scope) => 
+    public static EventScope? ToDomainOptional(EventScopeDto? scope) => 
         scope is null ? null : MapToDomain(scope.Value);
 
-    public static EventScopeDto ToApplicationRequired(DomainScope scope) => 
+    public static EventScopeDto ToApplicationRequired(EventScope scope) => 
         MapToApplication(scope);
 
-    private static DomainScope MapToDomain(EventScopeDto scope) => scope switch
+    private static EventScope MapToDomain(EventScopeDto scope) => scope switch
     {
-        EventScopeDto.Local => DomainScope.Local,
-        EventScopeDto.National => DomainScope.National,
-        EventScopeDto.International => DomainScope.International,
+        EventScopeDto.Local => EventScope.Local,
+        EventScopeDto.National => EventScope.National,
+        EventScopeDto.International => EventScope.International,
         _ => throw new ArgumentOutOfRangeException(
             nameof(scope),
             scope,
@@ -27,11 +27,11 @@ public static class EventScopeMapper
         )
     };
 
-    private static EventScopeDto MapToApplication(DomainScope scope) => scope switch
+    private static EventScopeDto MapToApplication(EventScope scope) => scope switch
     {
-        DomainScope.Local => EventScopeDto.Local,
-        DomainScope.National => EventScopeDto.National,
-        DomainScope.International => EventScopeDto.International,
+        EventScope.Local => EventScopeDto.Local,
+        EventScope.National => EventScopeDto.National,
+        EventScope.International => EventScopeDto.International,
         _ => throw new ArgumentOutOfRangeException(
             nameof(scope),
             scope,

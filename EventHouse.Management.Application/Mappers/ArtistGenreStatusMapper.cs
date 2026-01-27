@@ -1,15 +1,15 @@
-﻿using DomainStatus = EventHouse.Management.Domain.Enums.ArtistGenreStatus;
+﻿using EventHouse.Management.Domain.Enums;
 using EventHouse.Management.Application.Common.Enums;
 
 namespace EventHouse.Management.Application.Mappers;
 
 public static class ArtistGenreStatusMapper
 {
-    public static DomainStatus ToDomainRequired(ArtistGenreStatusDto status) =>
+    public static ArtistGenreStatus ToDomainRequired(ArtistGenreStatusDto status) =>
         status switch
         {
-            ArtistGenreStatusDto.Active => DomainStatus.Active,
-            ArtistGenreStatusDto.Inactive => DomainStatus.Inactive,
+            ArtistGenreStatusDto.Active => ArtistGenreStatus.Active,
+            ArtistGenreStatusDto.Inactive => ArtistGenreStatus.Inactive,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(status),
                 status,
@@ -17,12 +17,12 @@ public static class ArtistGenreStatusMapper
             )
         };
 
-    public static DomainStatus? ToDomainOptional(ArtistGenreStatusDto? status) =>
+    public static ArtistGenreStatus? ToDomainOptional(ArtistGenreStatusDto? status) =>
         status switch
         {
             null => null,
-            ArtistGenreStatusDto.Active => DomainStatus.Active,
-            ArtistGenreStatusDto.Inactive => DomainStatus.Inactive,
+            ArtistGenreStatusDto.Active => ArtistGenreStatus.Active,
+            ArtistGenreStatusDto.Inactive => ArtistGenreStatus.Inactive,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(status),
                 status,
@@ -30,11 +30,11 @@ public static class ArtistGenreStatusMapper
             )
         };
 
-    public static ArtistGenreStatusDto ToApplication(DomainStatus? status) =>
+    public static ArtistGenreStatusDto ToApplication(ArtistGenreStatus? status) =>
     status switch
     {
-        DomainStatus.Active => ArtistGenreStatusDto.Active,
-        DomainStatus.Inactive => ArtistGenreStatusDto.Inactive,
+        ArtistGenreStatus.Active => ArtistGenreStatusDto.Active,
+        ArtistGenreStatus.Inactive => ArtistGenreStatusDto.Inactive,
         _ => throw new ArgumentOutOfRangeException(
             nameof(status),
             status,
