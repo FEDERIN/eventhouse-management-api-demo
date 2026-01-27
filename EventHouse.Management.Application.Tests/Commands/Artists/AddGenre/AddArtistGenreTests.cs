@@ -8,7 +8,7 @@ using NSubstitute;
 using NSubstitute.ReturnsExtensions;
 using ArtistCategory = EventHouse.Management.Domain.Enums.ArtistCategory;
 
-namespace EventHouse.Management.Application.Tests.Artists;
+namespace EventHouse.Management.Application.Tests.Commands.Artists.AddGenre;
 
 public sealed class AddArtistGenreTests
 {

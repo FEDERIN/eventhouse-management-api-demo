@@ -1,5 +1,4 @@
-﻿
-using EventHouse.Management.Application.Commands.Artists.SetPrimaryGenre;
+﻿using EventHouse.Management.Application.Commands.Artists.SetPrimaryGenre;
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Domain.Entities;
@@ -7,7 +6,7 @@ using EventHouse.Management.Domain.Enums;
 using NSubstitute;
 using NSubstitute.ReturnsExtensions;
 
-namespace EventHouse.Management.Application.Tests.Artists;
+namespace EventHouse.Management.Application.Tests.Commands.Artists.SetPrimaryGenre;
 
 public sealed class SetPrimaryArtistGenreTests
 {

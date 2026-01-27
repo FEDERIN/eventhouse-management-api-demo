@@ -4,10 +4,10 @@ using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Domain.Entities;
 using NSubstitute;
-using  EventHouse.Management.Application.Common.Enums;
+using EventHouse.Management.Application.Common.Enums;
 using EventHouse.Management.Domain.Enums;
 
-namespace EventHouse.Management.Application.Tests.Artists;
+namespace EventHouse.Management.Application.Tests.Commands.Artists.Update;
 
 public sealed class UpdateArtistTests
 {

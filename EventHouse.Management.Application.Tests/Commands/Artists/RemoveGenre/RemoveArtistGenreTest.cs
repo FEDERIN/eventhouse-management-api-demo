@@ -1,12 +1,11 @@
-﻿
-using EventHouse.Management.Application.Commands.Artists.RemoveGenre;
+﻿using EventHouse.Management.Application.Commands.Artists.RemoveGenre;
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Domain.Entities;
 using NSubstitute;
 using NSubstitute.ReturnsExtensions;
 
-namespace EventHouse.Management.Application.Tests.Artists;
+namespace EventHouse.Management.Application.Tests.Commands.Artists.RemoveGenre;
 
     public sealed class RemoveArtistGenreTest
     {

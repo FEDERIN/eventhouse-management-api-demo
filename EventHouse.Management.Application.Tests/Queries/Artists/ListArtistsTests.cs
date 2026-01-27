@@ -6,7 +6,7 @@ using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Domain.Enums;
 using NSubstitute;
 
-namespace EventHouse.Management.Application.Tests.Artists;
+namespace EventHouse.Management.Application.Tests.Queries.Artists;
 
 public sealed class ListArtistsTests
 {

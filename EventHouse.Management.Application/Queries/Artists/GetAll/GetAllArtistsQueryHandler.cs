@@ -31,7 +31,7 @@ internal sealed class GetAllArtistsQueryHandler(IArtistRepository artistReposito
 
         return new PagedResultDto<ArtistDto>
         {
-            Items = ArtistMapper.ToDto((List<Domain.Entities.Artist>)result.Items),
+            Items = ArtistMapper.ToDto(result.Items),
             TotalCount = result.TotalCount,
             Page = result.Page,
             PageSize = result.PageSize

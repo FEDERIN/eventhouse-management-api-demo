@@ -4,7 +4,7 @@ using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Domain.Entities;
 using NSubstitute;
 
-namespace EventHouse.Management.Application.Tests.Artists;
+namespace EventHouse.Management.Application.Tests.Commands.Artists.Create;
 
 public sealed class CreateArtistCommandHandlerTests
 {
