@@ -6,5 +6,5 @@ namespace EventHouse.Management.Application.Commands.Artists.Create;
 
 public sealed record CreateArtistCommand(
     string Name,
-    ArtistCategory Category
+    ArtistCategoryDto Category
 ) : IRequest<ArtistDto>;

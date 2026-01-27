@@ -1,7 +1,7 @@
 ﻿
 namespace EventHouse.Management.Application.Common.Enums;
 
-public enum ArtistCategory : byte
+public enum ArtistCategoryDto : byte
 {
     Singer = 1,
     Band = 2,

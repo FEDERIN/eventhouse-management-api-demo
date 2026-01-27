@@ -1,27 +1,27 @@
 ﻿
 using Contract = EventHouse.Management.Api.Contracts.Artists.ArtistCategory;
-using Dto = EventHouse.Management.Application.Common.Enums.ArtistCategory;
+using EventHouse.Management.Application.Common.Enums;
 
 namespace EventHouse.Management.Api.Mappers.Enums;
 
 public static class ArtistCategoryMapper
 {
-    public static Dto ToApplicationRequired(Contract categoryContract)
+    public static ArtistCategoryDto ToApplicationRequired(Contract categoryContract)
         => MapToApplication(categoryContract);
 
-    public static Dto? ToApplicationOptional(Contract? categoryContract)
+    public static ArtistCategoryDto? ToApplicationOptional(Contract? categoryContract)
         => categoryContract is null ? null : MapToApplication(categoryContract.Value);
 
-    public static Contract ToContract(Dto category)
+    public static Contract ToContract(ArtistCategoryDto category)
         => category switch
         {
-            Dto.Singer => Contract.Singer,
-            Dto.Band => Contract.Band,
-            Dto.DJ => Contract.DJ,
-            Dto.Host => Contract.Host,
-            Dto.Comedian => Contract.Comedian,
-            Dto.Influencer => Contract.Influencer,
-            Dto.Dancer => Contract.Dancer,
+            ArtistCategoryDto.Singer => Contract.Singer,
+            ArtistCategoryDto.Band => Contract.Band,
+            ArtistCategoryDto.DJ => Contract.DJ,
+            ArtistCategoryDto.Host => Contract.Host,
+            ArtistCategoryDto.Comedian => Contract.Comedian,
+            ArtistCategoryDto.Influencer => Contract.Influencer,
+            ArtistCategoryDto.Dancer => Contract.Dancer,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(category),
                 category,
@@ -29,16 +29,16 @@ public static class ArtistCategoryMapper
             )
         };
 
-    private static Dto MapToApplication(Contract categoryContract)
+    private static ArtistCategoryDto MapToApplication(Contract categoryContract)
         => categoryContract switch
         {
-            Contract.Singer => Dto.Singer,
-            Contract.Band => Dto.Band,
-            Contract.DJ => Dto.DJ,
-            Contract.Host => Dto.Host,
-            Contract.Comedian => Dto.Comedian,
-            Contract.Influencer => Dto.Influencer,
-            Contract.Dancer => Dto.Dancer,
+            Contract.Singer => ArtistCategoryDto.Singer,
+            Contract.Band => ArtistCategoryDto.Band,
+            Contract.DJ => ArtistCategoryDto.DJ,
+            Contract.Host => ArtistCategoryDto.Host,
+            Contract.Comedian => ArtistCategoryDto.Comedian,
+            Contract.Influencer => ArtistCategoryDto.Influencer,
+            Contract.Dancer => ArtistCategoryDto.Dancer,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(categoryContract),
                 categoryContract,

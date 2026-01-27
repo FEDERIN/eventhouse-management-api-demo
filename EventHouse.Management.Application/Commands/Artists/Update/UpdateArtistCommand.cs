@@ -8,6 +8,6 @@ namespace EventHouse.Management.Application.Commands.Artists.Update
         (
         Guid Id,
         string Name,
-        ArtistCategory Category
+        ArtistCategoryDto Category
         ) : IRequest<UpdateResult>;
 }

@@ -22,7 +22,7 @@ public sealed class CreateArtistCommandHandlerTests
 
         var request = new CreateArtistCommand(
             Name: "  The Rolling Stones  ",
-            Category: ArtistCategory.Band // ajusta al enum de tu command
+            Category: ArtistCategoryDto.Band // ajusta al enum de tu command
         );
 
         // Act

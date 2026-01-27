@@ -9,5 +9,5 @@ public sealed record GetAllArtistsQuery
 : SortablePaginationQuery<ArtistSortField>, IRequest<PagedResultDto<ArtistDto>>
 {
     public string? Name { get; init; }
-    public ArtistCategory? Category { get; init; }
+    public ArtistCategoryDto? Category { get; init; }
 }

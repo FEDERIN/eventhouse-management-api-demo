@@ -3,9 +3,9 @@ using EventHouse.Management.Application.Common;
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Domain.Entities;
-using EventHouse.Management.Domain.Enums;
 using NSubstitute;
-using ArtistCategory = EventHouse.Management.Application.Common.Enums.ArtistCategory;
+using  EventHouse.Management.Application.Common.Enums;
+using EventHouse.Management.Domain.Enums;
 
 namespace EventHouse.Management.Application.Tests.Artists;
 
@@ -19,7 +19,7 @@ public sealed class UpdateArtistTests
         var id = Guid.NewGuid();
         var ct = new CancellationTokenSource().Token;
 
-        var entity = new Artist(id, "Old", Domain.Enums.ArtistCategory.Band);
+        var entity = new Artist(id, "Old", ArtistCategory.Band);
 
         repo.GetTrackedByIdAsync(id, ct).Returns(entity);
         repo.UpdateAsync(Arg.Any<Artist>(), ct).Returns(Task.CompletedTask);
@@ -29,7 +29,7 @@ public sealed class UpdateArtistTests
         var cmd = new UpdateArtistCommand(
             Id: id,
             Name: " New Name ",
-            Category: ArtistCategory.Singer
+            Category: ArtistCategoryDto.Singer
         );
 
         // Act
@@ -41,8 +41,8 @@ public sealed class UpdateArtistTests
         await repo.Received(1).UpdateAsync(
             Arg.Is<Artist>(a =>
                 a.Id == id &&
-                a.Name == "New Name" &&                 // trim aplicado por entity.Update(...)
-                a.Category == Domain.Enums.ArtistCategory.Singer      // mapeo DTO -> Domain aplicado
+                a.Name == "New Name" &&
+                a.Category == ArtistCategory.Singer
             ),
             ct
         );
@@ -63,7 +63,7 @@ public sealed class UpdateArtistTests
         var cmd = new UpdateArtistCommand(
             Id: id,
             Name: "Name",
-            Category: ArtistCategory.Band
+            Category: ArtistCategoryDto.Band
         );
 
         // Act + Assert

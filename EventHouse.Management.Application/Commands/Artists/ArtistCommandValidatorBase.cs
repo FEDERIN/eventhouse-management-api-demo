@@ -12,7 +12,7 @@ internal abstract class ArtistCommandValidatorBase<TCommand> : AbstractValidator
 
     protected void ApplyArtistRules(
         Func<TCommand, string> name,
-        Func<TCommand, ArtistCategory> category)
+        Func<TCommand, ArtistCategoryDto> category)
     {
         RuleFor(x => name(x))
             .NotEmpty().WithMessage("Name is require.")
