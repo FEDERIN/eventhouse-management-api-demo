@@ -1,5 +1,5 @@
 ﻿using Contract = EventHouse.Management.Api.Contracts.Artists.ArtistGenreStatus;
-using Dto = EventHouse.Management.Application.Common.Enums.ArtistGenreStatus;
+using EventHouse.Management.Application.Common.Enums;
 
 
 namespace EventHouse.Management.Api.Mappers.Enums;
@@ -7,11 +7,11 @@ namespace EventHouse.Management.Api.Mappers.Enums;
 
 public static class ArtistGenreStatusMapper
 {
-    public static Dto ToApplicationRequired(Contract statusContract) =>
+    public static ArtistGenreStatusDto ToApplicationRequired(Contract statusContract) =>
         statusContract switch
         {
-            Contract.Active => Dto.Active,
-            Contract.Inactive => Dto.Inactive,
+            Contract.Active => ArtistGenreStatusDto.Active,
+            Contract.Inactive => ArtistGenreStatusDto.Inactive,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(statusContract),
                 statusContract,
@@ -19,12 +19,12 @@ public static class ArtistGenreStatusMapper
             )
         };
 
-    public static Dto? ToApplicationOptional(Contract? statusContract) =>
+    public static ArtistGenreStatusDto? ToApplicationOptional(Contract? statusContract) =>
         statusContract switch
         {
             null => null,
-            Contract.Active => Dto.Active,
-            Contract.Inactive => Dto.Inactive,
+            Contract.Active => ArtistGenreStatusDto.Active,
+            Contract.Inactive => ArtistGenreStatusDto.Inactive,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(statusContract),
                 statusContract,
@@ -32,11 +32,11 @@ public static class ArtistGenreStatusMapper
             )
         };
 
-    public static Contract ToContract(Dto status) =>
+    public static Contract ToContract(ArtistGenreStatusDto status) =>
     status switch
     {
-        Dto.Active => Contract.Active,
-        Dto.Inactive => Contract.Inactive,
+        ArtistGenreStatusDto.Active => Contract.Active,
+        ArtistGenreStatusDto.Inactive => Contract.Inactive,
         _ => throw new ArgumentOutOfRangeException(
             nameof(status),
             status,

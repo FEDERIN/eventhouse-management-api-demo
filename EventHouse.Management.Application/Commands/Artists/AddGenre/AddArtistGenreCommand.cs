@@ -6,6 +6,6 @@ namespace EventHouse.Management.Application.Commands.Artists.AddGenre
     public sealed record AddArtistGenreCommand(
         Guid ArtistId,
         Guid GenreId,
-        ArtistGenreStatus Status,
+        ArtistGenreStatusDto Status,
         bool IsPrimary) : IRequest;
 }

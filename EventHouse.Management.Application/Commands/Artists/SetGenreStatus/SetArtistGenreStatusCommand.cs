@@ -6,5 +6,5 @@ namespace EventHouse.Management.Application.Commands.Artists.SetGenreStatus;
 public sealed record SetArtistGenreStatusCommand(
     Guid ArtistId,
     Guid GenreId,
-    ArtistGenreStatus Status
+    ArtistGenreStatusDto Status
 ) : IRequest;
