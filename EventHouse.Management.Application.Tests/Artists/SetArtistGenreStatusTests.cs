@@ -1,11 +1,13 @@
 ﻿
 using EventHouse.Management.Application.Commands.Artists.SetGenreStatus;
+using EventHouse.Management.Application.Common.Enums;
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Domain.Enums;
 using NSubstitute;
 using NSubstitute.ReturnsExtensions;
+using ArtistCategory = EventHouse.Management.Domain.Enums.ArtistCategory;
 
 namespace EventHouse.Management.Application.Tests.Artists;
 
@@ -27,7 +29,7 @@ public sealed class SetArtistGenreStatusTests
         var cmd = new SetArtistGenreStatusCommand(
             artistId,
             genreId,
-            Common.Enums.ArtistGenreStatus.Active);
+            ArtistGenreStatusDto.Active);
 
         // Act + Assert
         await Assert.ThrowsAsync<NotFoundException>(() => handler.Handle(cmd, ct));
@@ -55,7 +57,7 @@ public sealed class SetArtistGenreStatusTests
         var cmd = new SetArtistGenreStatusCommand(
             artistId,
             genreId,
-            Common.Enums.ArtistGenreStatus.Active);
+            ArtistGenreStatusDto.Active);
         
         // Act
         await handler.Handle(cmd, ct);

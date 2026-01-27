@@ -1,10 +1,12 @@
 ﻿using EventHouse.Management.Application.Commands.Artists.AddGenre;
+using EventHouse.Management.Application.Common.Enums;
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Domain.Enums;
 using NSubstitute;
 using NSubstitute.ReturnsExtensions;
+using ArtistCategory = EventHouse.Management.Domain.Enums.ArtistCategory;
 
 namespace EventHouse.Management.Application.Tests.Artists;
 
@@ -28,7 +30,7 @@ public sealed class AddArtistGenreTests
         var cmd = new AddArtistGenreCommand(
             artistId,
             genreId,
-            Common.Enums.ArtistGenreStatus.Active,
+            ArtistGenreStatusDto.Active,
             true);
 
         // Act + Assert
@@ -64,7 +66,7 @@ public sealed class AddArtistGenreTests
         var cmd = new AddArtistGenreCommand(
             artistId,
             genreId,
-            Common.Enums.ArtistGenreStatus.Active,
+            ArtistGenreStatusDto.Active,
             true);
 
         // Act + Assert
@@ -99,7 +101,7 @@ public sealed class AddArtistGenreTests
         var cmd = new AddArtistGenreCommand(
             artistId,
             genreId,
-            Common.Enums.ArtistGenreStatus.Active,
+            ArtistGenreStatusDto.Active,
             false);
 
         // Act
@@ -136,7 +138,7 @@ public sealed class AddArtistGenreTests
         var cmd = new AddArtistGenreCommand(
             artistId,
             genreId,
-            Common.Enums.ArtistGenreStatus.Active,
+            ArtistGenreStatusDto.Active,
             true);
 
         // Act
