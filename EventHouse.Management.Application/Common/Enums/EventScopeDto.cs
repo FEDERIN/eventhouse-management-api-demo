@@ -1,7 +1,7 @@
 ﻿
 namespace EventHouse.Management.Application.Common.Enums;
 
-public enum EventScope : byte
+public enum EventScopeDto : byte
 {
     Local = 1,
     National = 2,

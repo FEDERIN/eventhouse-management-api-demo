@@ -22,7 +22,7 @@ public sealed class CreateEventTests
         var request = new CreateEventCommand(
             Name: "Summer Fest 2026",
             Description: "Annual open-air music festival.",
-            Scope: EventScope.Local
+            Scope: EventScopeDto.Local
         );
 
         var ct = new CancellationTokenSource().Token;

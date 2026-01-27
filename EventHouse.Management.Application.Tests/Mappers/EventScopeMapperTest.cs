@@ -1,5 +1,5 @@
 ﻿using EventHouse.Management.Application.Mappers;
-using AppScope = EventHouse.Management.Application.Common.Enums.EventScope;
+using EventScopeDto = EventHouse.Management.Application.Common.Enums.EventScopeDto;
 using DomainScope = EventHouse.Management.Domain.Enums.EventScope;
 
 namespace EventHouse.Management.Application.Tests.Mappers;
@@ -7,11 +7,11 @@ namespace EventHouse.Management.Application.Tests.Mappers;
 public sealed class EventScopeMapperTests
 {
     [Theory]
-    [InlineData(AppScope.Local, DomainScope.Local)]
-    [InlineData(AppScope.National, DomainScope.National)]
-    [InlineData(AppScope.International, DomainScope.International)]
-    public void ToDomainRequired_WhenValidAppScope_ReturnsMappedDomain(
-        AppScope input,
+    [InlineData(EventScopeDto.Local, DomainScope.Local)]
+    [InlineData(EventScopeDto.National, DomainScope.National)]
+    [InlineData(EventScopeDto.International, DomainScope.International)]
+    public void ToDomainRequired_WhenValidEventScopeDto_ReturnsMappedDomain(
+        EventScopeDto input,
         DomainScope expected)
     {
         var result = EventScopeMapper.ToDomainRequired(input);
@@ -20,11 +20,11 @@ public sealed class EventScopeMapperTests
     }
 
     [Theory]
-    [InlineData(AppScope.Local, DomainScope.Local)]
-    [InlineData(AppScope.National, DomainScope.National)]
-    [InlineData(AppScope.International, DomainScope.International)]
+    [InlineData(EventScopeDto.Local, DomainScope.Local)]
+    [InlineData(EventScopeDto.National, DomainScope.National)]
+    [InlineData(EventScopeDto.International, DomainScope.International)]
     public void ToDomainOptional_WhenHasValue_ReturnsMappedDomain(
-        AppScope input,
+        EventScopeDto input,
         DomainScope expected)
     {
         var result = EventScopeMapper.ToDomainOptional(input);
@@ -35,7 +35,7 @@ public sealed class EventScopeMapperTests
     [Fact]
     public void ToDomainOptional_WhenNull_ReturnsNull()
     {
-        AppScope? input = null;
+        EventScopeDto? input = null;
 
         var result = EventScopeMapper.ToDomainOptional(input);
 
@@ -43,12 +43,12 @@ public sealed class EventScopeMapperTests
     }
 
     [Theory]
-    [InlineData(DomainScope.Local, AppScope.Local)]
-    [InlineData(DomainScope.National, AppScope.National)]
-    [InlineData(DomainScope.International, AppScope.International)]
+    [InlineData(DomainScope.Local, EventScopeDto.Local)]
+    [InlineData(DomainScope.National, EventScopeDto.National)]
+    [InlineData(DomainScope.International, EventScopeDto.International)]
     public void ToApplicationRequired_WhenValidDomainScope_ReturnsMappedApp(
         DomainScope input,
-        AppScope expected)
+        EventScopeDto expected)
     {
         var result = EventScopeMapper.ToApplicationRequired(input);
 
@@ -58,7 +58,7 @@ public sealed class EventScopeMapperTests
     [Fact]
     public void ToDomainRequired_WhenInvalidValue_ShouldThrowArgumentOutOfRange()
     {
-        var invalid = unchecked((AppScope)999);
+        var invalid = unchecked((EventScopeDto)999);
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             EventScopeMapper.ToDomainRequired(invalid));

@@ -8,5 +8,5 @@ public record UpdateEventCommand(
     Guid Id,
     string Name,
     string? Description,
-    EventScope Scope
+    EventScopeDto Scope
 ) : IRequest<UpdateResult>;

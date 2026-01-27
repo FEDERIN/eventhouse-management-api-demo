@@ -7,5 +7,5 @@ namespace EventHouse.Management.Application.Commands.Events.Create;
 public record CreateEventCommand(
     string Name,
     string? Description,
-    EventScope Scope
+    EventScopeDto Scope
 ) : IRequest<EventDto>;

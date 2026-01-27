@@ -4,7 +4,7 @@
     using EventHouse.Management.Domain.Entities;
     using EventHouse.Management.Domain.Enums;
     using NSubstitute;
-    using EventScopeDto = EventHouse.Management.Application.Common.Enums.EventScope;
+    using EventScopeDto = EventHouse.Management.Application.Common.Enums.EventScopeDto;
 
     namespace EventHouse.Management.Application.Tests.Events;
 
