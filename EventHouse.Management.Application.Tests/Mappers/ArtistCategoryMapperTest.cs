@@ -1,22 +1,22 @@
-﻿using EventHouse.Management.Application.Mappers;
+﻿using EventHouse.Management.Application.Common.Enums;
+using EventHouse.Management.Application.Mappers;
 using DomainCategory = EventHouse.Management.Domain.Enums.ArtistCategory;
-using Dto = EventHouse.Management.Application.Common.Enums.ArtistCategory;
 
 namespace EventHouse.Management.Application.Tests.Mappers;
 
 public sealed class ArtistCategoryMapperTests
 {
     [Theory]
-    [InlineData(DomainCategory.Influencer, Dto.Influencer)]
-    [InlineData(DomainCategory.Dancer, Dto.Dancer)]
-    [InlineData(DomainCategory.Host, Dto.Host)]
-    [InlineData(DomainCategory.Band, Dto.Band)]
-    [InlineData(DomainCategory.Comedian, Dto.Comedian)]
-    [InlineData(DomainCategory.DJ, Dto.DJ)]
-    [InlineData(DomainCategory.Singer, Dto.Singer)]
+    [InlineData(DomainCategory.Influencer, ArtistCategoryDto.Influencer)]
+    [InlineData(DomainCategory.Dancer, ArtistCategoryDto.Dancer)]
+    [InlineData(DomainCategory.Host, ArtistCategoryDto.Host)]
+    [InlineData(DomainCategory.Band, ArtistCategoryDto.Band)]
+    [InlineData(DomainCategory.Comedian, ArtistCategoryDto.Comedian)]
+    [InlineData(DomainCategory.DJ, ArtistCategoryDto.DJ)]
+    [InlineData(DomainCategory.Singer, ArtistCategoryDto.Singer)]
     public void ToApplication_WhenValidDomainCategory_ReturnsMappedDto(
         DomainCategory input,
-        Dto expected)
+        ArtistCategoryDto expected)
     {
         var result = ArtistCategoryMapper.ToApplication(input);
 
@@ -24,15 +24,15 @@ public sealed class ArtistCategoryMapperTests
     }
 
     [Theory]
-    [InlineData(Dto.Influencer, DomainCategory.Influencer)]
-    [InlineData(Dto.Dancer, DomainCategory.Dancer)]
-    [InlineData(Dto.Host, DomainCategory.Host)]
-    [InlineData(Dto.Band, DomainCategory.Band)]
-    [InlineData(Dto.Comedian, DomainCategory.Comedian)]
-    [InlineData(Dto.DJ, DomainCategory.DJ)]
-    [InlineData(Dto.Singer, DomainCategory.Singer)]
+    [InlineData(ArtistCategoryDto.Influencer, DomainCategory.Influencer)]
+    [InlineData(ArtistCategoryDto.Dancer, DomainCategory.Dancer)]
+    [InlineData(ArtistCategoryDto.Host, DomainCategory.Host)]
+    [InlineData(ArtistCategoryDto.Band, DomainCategory.Band)]
+    [InlineData(ArtistCategoryDto.Comedian, DomainCategory.Comedian)]
+    [InlineData(ArtistCategoryDto.DJ, DomainCategory.DJ)]
+    [InlineData(ArtistCategoryDto.Singer, DomainCategory.Singer)]
     public void ToDomainRequired_WhenValidDto_ReturnsMappedDomainCategory(
-        Dto input,
+        ArtistCategoryDto input,
         DomainCategory expected)
     {
         var result = ArtistCategoryMapper.ToDomainRequired(input);
@@ -41,15 +41,15 @@ public sealed class ArtistCategoryMapperTests
     }
 
     [Theory]
-    [InlineData(Dto.Influencer, DomainCategory.Influencer)]
-    [InlineData(Dto.Dancer, DomainCategory.Dancer)]
-    [InlineData(Dto.Host, DomainCategory.Host)]
-    [InlineData(Dto.Band, DomainCategory.Band)]
-    [InlineData(Dto.Comedian, DomainCategory.Comedian)]
-    [InlineData(Dto.DJ, DomainCategory.DJ)]
-    [InlineData(Dto.Singer, DomainCategory.Singer)]
+    [InlineData(ArtistCategoryDto.Influencer, DomainCategory.Influencer)]
+    [InlineData(ArtistCategoryDto.Dancer, DomainCategory.Dancer)]
+    [InlineData(ArtistCategoryDto.Host, DomainCategory.Host)]
+    [InlineData(ArtistCategoryDto.Band, DomainCategory.Band)]
+    [InlineData(ArtistCategoryDto.Comedian, DomainCategory.Comedian)]
+    [InlineData(ArtistCategoryDto.DJ, DomainCategory.DJ)]
+    [InlineData(ArtistCategoryDto.Singer, DomainCategory.Singer)]
     public void ToDomainOptional_WhenDtoHasValue_ReturnsMappedDomainCategory(
-        Dto input,
+        ArtistCategoryDto input,
         DomainCategory expected)
     {
         var result = ArtistCategoryMapper.ToDomainOptional(input);
@@ -68,7 +68,7 @@ public sealed class ArtistCategoryMapperTests
     [Fact]
     public void ToDomainRequired_WhenInvalidValue_ShouldThrowArgumentOutOfRange()
     {
-        var invalid = unchecked((Dto)999);
+        var invalid = unchecked((ArtistCategoryDto)999);
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             ArtistCategoryMapper.ToDomainRequired(invalid));
