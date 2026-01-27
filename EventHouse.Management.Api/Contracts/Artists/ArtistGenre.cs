@@ -1,6 +1,6 @@
 ﻿namespace EventHouse.Management.Api.Contracts.Artists;
 
-public class ArtistGenre
+public sealed record ArtistGenre
 {
     public Guid GenreId { get; set; }
     public bool IsPrimary { get; set; }

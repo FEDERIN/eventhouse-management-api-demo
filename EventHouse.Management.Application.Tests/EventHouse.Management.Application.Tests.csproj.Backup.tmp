@@ -15,8 +15,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="FluentAssertions" Version="7.*" />
-    <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="NSubstitute" Version="5.3.0" />
     <PackageReference Include="xunit.analyzers" Version="1.26.0">
@@ -36,10 +34,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EventHouse.Management.Application\EventHouse.Management.Application.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Artists\" />
   </ItemGroup>
 
 </Project>

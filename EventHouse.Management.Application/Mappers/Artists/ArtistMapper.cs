@@ -21,7 +21,7 @@ internal class ArtistMapper
         };
     }
 
-    public static List<ArtistDto> ToDto(List<Artist> artists)
+    public static IReadOnlyList<ArtistDto> ToDto(IReadOnlyList<Artist> artists)
     {
         return [.. artists.Select(ToDto)];
     }

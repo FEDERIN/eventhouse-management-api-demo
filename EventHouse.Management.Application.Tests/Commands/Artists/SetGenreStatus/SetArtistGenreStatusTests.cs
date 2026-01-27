@@ -1,5 +1,4 @@
-﻿
-using EventHouse.Management.Application.Commands.Artists.SetGenreStatus;
+﻿using EventHouse.Management.Application.Commands.Artists.SetGenreStatus;
 using EventHouse.Management.Application.Common.Enums;
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Exceptions;
@@ -9,7 +8,7 @@ using NSubstitute;
 using NSubstitute.ReturnsExtensions;
 using ArtistCategory = EventHouse.Management.Domain.Enums.ArtistCategory;
 
-namespace EventHouse.Management.Application.Tests.Artists;
+namespace EventHouse.Management.Application.Tests.Commands.Artists.SetGenreStatus;
 
 public sealed class SetArtistGenreStatusTests
 {
