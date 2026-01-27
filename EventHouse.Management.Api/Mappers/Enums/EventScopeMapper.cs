@@ -1,32 +1,32 @@
 ﻿using Contract = EventHouse.Management.Api.Contracts.Events.EventScope;
-using Dto = EventHouse.Management.Application.Common.Enums.EventScope;
+using EventHouse.Management.Application.Common.Enums;
 
 
 namespace EventHouse.Management.Api.Mappers.Enums;
 
 public static class EventScopeMapper
 {
-    public static Dto ToApplicationRequired(Contract scopeContract)
+    public static EventScopeDto ToApplicationRequired(Contract scopeContract)
         => MapToApplication(scopeContract);
 
-    public static Dto? ToApplicationOptional(Contract? scopeContract)
+    public static EventScopeDto? ToApplicationOptional(Contract? scopeContract)
     => scopeContract is null ? null : MapToApplication(scopeContract.Value);
 
-    public static Contract ToContractRequired(Dto scope) =>
+    public static Contract ToContractRequired(EventScopeDto scope) =>
     scope switch
     {
-        Dto.Local => Contract.Local,
-        Dto.National => Contract.National,
-        Dto.International => Contract.International,
+        EventScopeDto.Local => Contract.Local,
+        EventScopeDto.National => Contract.National,
+        EventScopeDto.International => Contract.International,
         _ => throw new ArgumentOutOfRangeException(nameof(scope), scope, "Invalid EventScope value.")
     };
 
-    private static Dto MapToApplication(Contract scopeContract) =>
+    private static EventScopeDto MapToApplication(Contract scopeContract) =>
         scopeContract switch
         {
-            Contract.Local => Dto.Local,
-            Contract.National => Dto.National,
-            Contract.International => Dto.International,
+            Contract.Local => EventScopeDto.Local,
+            Contract.National => EventScopeDto.National,
+            Contract.International => EventScopeDto.International,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(scopeContract),
                 scopeContract,

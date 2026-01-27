@@ -1,6 +1,6 @@
 ﻿using EventHouse.Management.Api.Mappers.Enums;
 using Contract = EventHouse.Management.Api.Contracts.Events.EventScope;
-using Dto = EventHouse.Management.Application.Common.Enums.EventScope;
+using EventHouse.Management.Application.Common.Enums;
 
 namespace EventHouse.Management.Api.Tests.Mappers;
 
@@ -8,12 +8,12 @@ namespace EventHouse.Management.Api.Tests.Mappers;
 public sealed class EventScopeMapperTests
 {
     [Theory]
-    [InlineData(Contract.Local, Dto.Local)]
-    [InlineData(Contract.National, Dto.National)]
-    [InlineData(Contract.International, Dto.International)]
+    [InlineData(Contract.Local, EventScopeDto.Local)]
+    [InlineData(Contract.National, EventScopeDto.National)]
+    [InlineData(Contract.International, EventScopeDto.International)]
     public void ToApplicationRequired_WhenValidContract_ReturnsMappedDto(
         Contract input,
-        Dto expected)
+        EventScopeDto expected)
     {
         var result = EventScopeMapper.ToApplicationRequired(input);
 
@@ -29,12 +29,12 @@ public sealed class EventScopeMapperTests
     }
 
     [Theory]
-    [InlineData(Contract.Local, Dto.Local)]
-    [InlineData(Contract.National, Dto.National)]
-    [InlineData(Contract.International, Dto.International)]
+    [InlineData(Contract.Local, EventScopeDto.Local)]
+    [InlineData(Contract.National, EventScopeDto.National)]
+    [InlineData(Contract.International, EventScopeDto.International)]
     public void ToApplicationOptional_WhenHasValue_ReturnsMappedDto(
         Contract input,
-        Dto expected)
+        EventScopeDto expected)
     {
         Contract? nullable = input;
 
@@ -44,11 +44,11 @@ public sealed class EventScopeMapperTests
     }
 
     [Theory]
-    [InlineData(Dto.Local, Contract.Local)]
-    [InlineData(Dto.National, Contract.National)]
-    [InlineData(Dto.International, Contract.International)]
+    [InlineData(EventScopeDto.Local, Contract.Local)]
+    [InlineData(EventScopeDto.National, Contract.National)]
+    [InlineData(EventScopeDto.International, Contract.International)]
     public void ToContractRequired_WhenValidDto_ReturnsMappedContract(
-        Dto input,
+        EventScopeDto input,
         Contract expected)
     {
         var result = EventScopeMapper.ToContractRequired(input);
@@ -59,7 +59,7 @@ public sealed class EventScopeMapperTests
     [Fact]
     public void ToContractRequired_WhenInvalidDto_ThrowsArgumentOutOfRangeException()
     {
-        var invalid = unchecked((Dto)999);
+        var invalid = unchecked((EventScopeDto)999);
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             EventScopeMapper.ToContractRequired(invalid));

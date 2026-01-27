@@ -10,5 +10,5 @@ public sealed record GetAllEventsQuery
 {
     public string? Name { get; init; }
     public string? Description { get; init; }
-    public EventScope? Scope { get; init; }
+    public EventScopeDto? Scope { get; init; }
 }

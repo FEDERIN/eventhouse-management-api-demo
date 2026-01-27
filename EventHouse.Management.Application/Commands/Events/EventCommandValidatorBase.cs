@@ -13,7 +13,7 @@ internal abstract class EventCommandValidatorBase<TCommand> : AbstractValidator<
     protected void ApplyEventRules(
         Func<TCommand, string> name,
         Func<TCommand, string?> description,
-        Func<TCommand, EventScope> scope)
+        Func<TCommand, EventScopeDto> scope)
     {
         RuleFor(x => name(x))
             .NotEmpty().WithMessage("Name is require.")
