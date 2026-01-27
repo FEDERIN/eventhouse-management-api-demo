@@ -2,7 +2,7 @@
 
 namespace EventHouse.Management.Api.Contracts.Artists;
 
-public sealed record Artist
+public sealed record ArtistDetail
 {
     /// <summary>Unique identifier of the artist.</summary>
     public required Guid Id { get; init; }
@@ -17,4 +17,11 @@ public sealed record Artist
     [SwaggerSchema(
         Description = "Category that classifies the artist.")]
     public ArtistCategory Category { get; init; }
+
+    /// <summary>Genres associated with the artist.</summary>
+    [SwaggerSchema(
+        Description = "Genres associated",
+        Nullable = false
+        )]
+    public IReadOnlyList<ArtistGenre> Genres { get; init; } = [];
 }
