@@ -6,9 +6,9 @@ using System.Diagnostics.CodeAnalysis;
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Artists;
 
 [ExcludeFromCodeCoverage]
-internal sealed class ArtistPagedResultExample : IExamplesProvider<PagedResult<Artist>>
+internal sealed class ArtistPagedResultExample : IExamplesProvider<PagedResult<ArtistSummary>>
 {
-    public PagedResult<Artist> GetExamples() => new()
+    public PagedResult<ArtistSummary> GetExamples() => new()
     {
         Items =
         [
