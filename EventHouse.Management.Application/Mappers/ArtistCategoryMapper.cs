@@ -1,28 +1,28 @@
 ﻿
 using EventHouse.Management.Application.Common.Enums;
-using DomainCategory = EventHouse.Management.Domain.Enums.ArtistCategory;
+using EventHouse.Management.Domain.Enums;
 
 
 namespace EventHouse.Management.Application.Mappers;
 
 public static class ArtistCategoryMapper
 {
-    public static DomainCategory ToDomainRequired(ArtistCategoryDto category)
+    public static ArtistCategory ToDomainRequired(ArtistCategoryDto category)
     => MapToDomain(category);
 
-    public static DomainCategory? ToDomainOptional(ArtistCategoryDto? category)
+    public static ArtistCategory? ToDomainOptional(ArtistCategoryDto? category)
     => category is null ? null : MapToDomain(category.Value);
 
-    private static DomainCategory MapToDomain(ArtistCategoryDto category) =>
+    private static ArtistCategory MapToDomain(ArtistCategoryDto category) =>
      category switch
      {
-         ArtistCategoryDto.Singer => DomainCategory.Singer,
-         ArtistCategoryDto.Band => DomainCategory.Band,
-         ArtistCategoryDto.DJ => DomainCategory.DJ,
-         ArtistCategoryDto.Host => DomainCategory.Host,
-         ArtistCategoryDto.Comedian => DomainCategory.Comedian,
-         ArtistCategoryDto.Influencer => DomainCategory.Influencer,
-         ArtistCategoryDto.Dancer => DomainCategory.Dancer,
+         ArtistCategoryDto.Singer => ArtistCategory.Singer,
+         ArtistCategoryDto.Band => ArtistCategory.Band,
+         ArtistCategoryDto.DJ => ArtistCategory.DJ,
+         ArtistCategoryDto.Host => ArtistCategory.Host,
+         ArtistCategoryDto.Comedian => ArtistCategory.Comedian,
+         ArtistCategoryDto.Influencer => ArtistCategory.Influencer,
+         ArtistCategoryDto.Dancer => ArtistCategory.Dancer,
          _ => throw new ArgumentOutOfRangeException(
              nameof(category),
              category,
@@ -30,16 +30,16 @@ public static class ArtistCategoryMapper
          )
      };
 
-    public static ArtistCategoryDto ToApplication(DomainCategory category) =>
+    public static ArtistCategoryDto ToApplication(ArtistCategory category) =>
     category switch
     {
-        DomainCategory.Singer => ArtistCategoryDto.Singer,
-        DomainCategory.Band => ArtistCategoryDto.Band,
-        DomainCategory.DJ => ArtistCategoryDto.DJ,
-        DomainCategory.Host => ArtistCategoryDto.Host,
-        DomainCategory.Comedian => ArtistCategoryDto.Comedian,
-        DomainCategory.Influencer => ArtistCategoryDto.Influencer,
-        DomainCategory.Dancer => ArtistCategoryDto.Dancer,
+        ArtistCategory.Singer => ArtistCategoryDto.Singer,
+        ArtistCategory.Band => ArtistCategoryDto.Band,
+        ArtistCategory.DJ => ArtistCategoryDto.DJ,
+        ArtistCategory.Host => ArtistCategoryDto.Host,
+        ArtistCategory.Comedian => ArtistCategoryDto.Comedian,
+        ArtistCategory.Influencer => ArtistCategoryDto.Influencer,
+        ArtistCategory.Dancer => ArtistCategoryDto.Dancer,
         _ => throw new ArgumentOutOfRangeException(
             nameof(category),
             category,
