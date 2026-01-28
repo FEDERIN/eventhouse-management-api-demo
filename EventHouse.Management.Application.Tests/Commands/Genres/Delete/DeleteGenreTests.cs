@@ -1,25 +1,25 @@
-﻿using EventHouse.Management.Application.Commands.Events.Delete;
+﻿using EventHouse.Management.Application.Commands.Genres.Delete;
 using EventHouse.Management.Application.Common;
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Exceptions;
 using NSubstitute;
 
-namespace EventHouse.Management.Application.Tests.Events;
+namespace EventHouse.Management.Application.Tests.Commands.Genres.Delete;
 
-public sealed class DeleteEventTests
+public sealed class DeleteGenreTests
 {
     [Fact]
-    public async Task Handle_WhenEventExists_ShouldDeleteAndReturnOk()
+    public async Task Handle_WhenGenreExists_ShouldDeleteAndReturnOk()
     {
         // Arrange
-        var repo = Substitute.For<IEventRepository>();
+        var repo = Substitute.For<IGenreRepository>();
         var id = Guid.NewGuid();
         var ct = new CancellationTokenSource().Token;
 
         repo.DeleteAsync(id, ct).Returns(true);
 
-        var handler = new DeleteEventCommandHandler(repo);
-        var cmd = new DeleteEventCommand(id);
+        var handler = new DeleteGenreCommandHandler(repo);
+        var cmd = new DeleteGenreCommand(id);
 
         // Act
         var result = await handler.Handle(cmd, ct);
@@ -32,17 +32,17 @@ public sealed class DeleteEventTests
     }
 
     [Fact]
-    public async Task Handle_WhenEventDoesNotExist_ShouldThrowNotFoundException()
+    public async Task Handle_WhenGenreDoesNotExist_ShouldThrowNotFoundException()
     {
         // Arrange
-        var repo = Substitute.For<IEventRepository>();
+        var repo = Substitute.For<IGenreRepository>();
         var id = Guid.NewGuid();
         var ct = new CancellationTokenSource().Token;
 
         repo.DeleteAsync(id, ct).Returns(false);
 
-        var handler = new DeleteEventCommandHandler(repo);
-        var cmd = new DeleteEventCommand(id);
+        var handler = new DeleteGenreCommandHandler(repo);
+        var cmd = new DeleteGenreCommand(id);
 
         // Act + Assert
         await Assert.ThrowsAsync<NotFoundException>(() => handler.Handle(cmd, ct));

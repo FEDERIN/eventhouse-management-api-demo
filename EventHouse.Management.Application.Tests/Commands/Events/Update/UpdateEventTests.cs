@@ -1,12 +1,12 @@
-﻿    using EventHouse.Management.Application.Commands.Events.Update;
-    using EventHouse.Management.Application.Common;
-    using EventHouse.Management.Application.Common.Interfaces;
-    using EventHouse.Management.Domain.Entities;
-    using EventHouse.Management.Domain.Enums;
-    using NSubstitute;
-    using EventScopeDto = EventHouse.Management.Application.Common.Enums.EventScopeDto;
+﻿using EventHouse.Management.Application.Commands.Events.Update;
+using EventHouse.Management.Application.Common;
+using EventHouse.Management.Application.Common.Interfaces;
+using EventHouse.Management.Domain.Entities;
+using EventHouse.Management.Domain.Enums;
+using NSubstitute;
+using EventScopeDto = EventHouse.Management.Application.Common.Enums.EventScopeDto;
 
-    namespace EventHouse.Management.Application.Tests.Events;
+namespace EventHouse.Management.Application.Tests.Commands.Events.Update;
 
     public sealed class UpdateEventTests
     {

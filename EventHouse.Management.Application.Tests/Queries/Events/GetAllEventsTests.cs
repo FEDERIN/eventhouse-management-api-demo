@@ -6,9 +6,9 @@ using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Domain.Enums;
 using NSubstitute;
 
-namespace EventHouse.Management.Application.Tests.Events;
+namespace EventHouse.Management.Application.Tests.Queries.Events;
 
-public sealed class ListEventsTests
+public sealed class GetAllEventsTests
 {
     [Fact]
     public async Task Handle_ShouldReturnPagedResult()
