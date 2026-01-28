@@ -1,11 +1,10 @@
-﻿
-using EventHouse.Management.Application.Commands.Events.Create;
+﻿using EventHouse.Management.Application.Commands.Events.Create;
 using EventHouse.Management.Application.Common.Enums;
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Domain.Entities;
 using NSubstitute;
 
-namespace EventHouse.Management.Application.Tests.Events;
+namespace EventHouse.Management.Application.Tests.Commands.Events.Create;
 
 public sealed class CreateEventTests
 {

@@ -8,7 +8,7 @@ using NSubstitute;
 
 namespace EventHouse.Management.Application.Tests.Queries.Artists;
 
-public sealed class ListArtistsTests
+public sealed class GetAllArtistsTests
 {
     [Fact]
     public async Task Handle_ShouldReturnPagedResult()

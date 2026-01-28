@@ -5,7 +5,7 @@ using MediatR;
 
 namespace EventHouse.Management.Application.Commands.Genres.Delete;
 
-internal sealed class DeleteArtistCommandHandler(IGenreRepository repository)
+internal sealed class DeleteGenreCommandHandler(IGenreRepository repository)
        : IRequestHandler<DeleteGenreCommand, DeleteResult>
 {
     private readonly IGenreRepository _repository = repository;

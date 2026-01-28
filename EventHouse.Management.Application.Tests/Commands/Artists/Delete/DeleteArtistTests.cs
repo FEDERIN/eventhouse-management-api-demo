@@ -4,7 +4,7 @@ using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Exceptions;
 using NSubstitute;
 
-namespace EventHouse.Management.Application.Tests.Commands.Artists;
+namespace EventHouse.Management.Application.Tests.Commands.Artists.Delete;
 
 public sealed class DeleteArtistTests
 {
