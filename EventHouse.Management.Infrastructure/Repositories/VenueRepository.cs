@@ -44,12 +44,12 @@ namespace EventHouse.Management.Infrastructure.Repositories
 
         public async Task<Venue?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            return await _context.Venues.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+            return await _context.Venues.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
         }
 
         public async Task<Venue?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            return await _context.Venues.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+            return await _context.Venues.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
         }
 
         public async Task<PagedResultDto<Venue>> GetPagedAsync(
@@ -72,6 +72,9 @@ namespace EventHouse.Management.Infrastructure.Repositories
 
             if (!string.IsNullOrWhiteSpace(criteria.CountryCode))
                 query = query.Where(v => v.CountryCode != null && v.CountryCode == criteria.CountryCode);
+
+            if(criteria.Capacity.HasValue)
+                query = query.Where(v => v.Capacity.HasValue && v.Capacity.Value >= criteria.Capacity.Value);
 
             if (criteria.IsActive is not null)
                 query = query.Where(v => v.IsActive == criteria.IsActive.Value);
@@ -122,6 +125,9 @@ namespace EventHouse.Management.Infrastructure.Repositories
 
                 VenueSortField.CountryCode =>
                     asc ? query.OrderBy(x => x.CountryCode) : query.OrderByDescending(x => x.CountryCode),
+
+                VenueSortField.Capacity =>
+                    asc ? query.OrderBy(x => x.Capacity) : query.OrderByDescending(x => x.Capacity),
 
                 VenueSortField.IsActive =>
                     asc ? query.OrderBy(x => x.IsActive) : query.OrderByDescending(x => x.IsActive),
