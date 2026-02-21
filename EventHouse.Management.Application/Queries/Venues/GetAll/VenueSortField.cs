@@ -7,5 +7,6 @@ public enum VenueSortField
     City,
     Region,
     CountryCode,
+    Capacity,
     IsActive
 }

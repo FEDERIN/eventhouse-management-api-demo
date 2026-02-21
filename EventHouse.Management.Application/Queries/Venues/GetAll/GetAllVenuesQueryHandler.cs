@@ -20,6 +20,7 @@ internal sealed class GetAllVenuesQueryHandler(IVenueRepository venueRepository)
             Region = request.Region,
             CountryCode = request.CountryCode,
             IsActive = request.IsActive,
+            Capacity = request.Capacity,
             Page = request.Page,
             PageSize = request.PageSize,
             SortBy = request.SortBy,
