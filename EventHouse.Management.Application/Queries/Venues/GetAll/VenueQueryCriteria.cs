@@ -9,5 +9,6 @@ public sealed record VenueQueryCriteria : SortablePaginationCriteria<VenueSortFi
     public string? City { get; init; }
     public string? Region { get; init; }
     public string? CountryCode { get; init; }
+    public int? Capacity { get; init; }
     public bool? IsActive { get; init; }
 }

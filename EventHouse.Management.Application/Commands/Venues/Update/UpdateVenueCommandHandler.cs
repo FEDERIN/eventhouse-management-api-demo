@@ -17,6 +17,7 @@ internal sealed class UpdateVenueCommandHandler(IVenueRepository VenueRepository
         request.Latitude, request.Longitude, request.TimeZoneId, request.Capacity, request.IsActive);
 
         await _VenueRepository.UpdateAsync(entity, cancellationToken);
+
         return UpdateResult.Success;
     }
 }

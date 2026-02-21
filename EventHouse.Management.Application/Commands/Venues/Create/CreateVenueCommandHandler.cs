@@ -1,6 +1,6 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.DTOs;
-using EventHouse.Management.Application.Exceptions;
+using EventHouse.Management.Application.Mappers.Venues;
 using EventHouse.Management.Domain.Entities;
 using MediatR;
 
@@ -29,19 +29,6 @@ internal sealed class CreateVenueCommandHandler(IVenueRepository venueRepository
 
         await _venueRepository.AddAsync(entity, cancellationToken);
 
-        return new VenueDto
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            Address = entity.Address,
-            City = entity.City,
-            Region = entity.Region,
-            CountryCode = entity.CountryCode,
-            Capacity = entity.Capacity,
-            Latitude = entity.Latitude,
-            Longitude = entity.Longitude,
-            TimeZoneId = entity.TimeZoneId,
-            IsActive = entity.IsActive
-        };
+        return VenuesMapper.ToDto(entity);
     }
 }

@@ -12,5 +12,6 @@ public sealed record GetAllVenuesQuery
     public string? City { get; init; }
     public string? Region { get; init; }
     public string? CountryCode { get; init; }
+    public int? Capacity { get; init; }
     public bool? IsActive { get; init; }
 }
