@@ -134,7 +134,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
             CountryCode = "US",
             Latitude = 25.7814m,
             Longitude = -80.1870m,
-            TimeZoneId = "America/Miami",
+            TimeZoneId = "America/New_York",
             Capacity = 19600,
             IsActive = true
         };
@@ -203,7 +203,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
             CountryCode = "US",
             Latitude = 25.7814m,
             Longitude = -80.1870m,
-            TimeZoneId = "America/Miami",
+            TimeZoneId = "America/New_York",
             Capacity = 19600,
             IsActive = true
         });
