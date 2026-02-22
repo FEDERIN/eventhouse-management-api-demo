@@ -40,9 +40,6 @@ public class Venue : Entity
         IsActive = isActive;
     }
 
-    public void Deactivate() => IsActive = false;
-    public void Activate() => IsActive = true;
-
     private void SetName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -72,23 +69,44 @@ public class Venue : Entity
         if (string.IsNullOrWhiteSpace(countryCode))
             throw new ArgumentException("Venue countryCode is required.", nameof(countryCode));
 
+        if (address.Length > 200)
+            throw new ArgumentException("Venue address is too long.", nameof(address));
+
+        if (city.Length > 100)
+            throw new ArgumentException("Venue city is too long.", nameof(city));
+
+        if (region.Length > 100)
+            throw new ArgumentException("Venue region is too long.", nameof(region));
+
         Address = address.Trim();
         City = city.Trim();
         Region = region.Trim();
 
         var cc = countryCode.Trim().ToUpperInvariant();
 
-        if (cc.Length != 2) throw new ArgumentException("CountryCode must be ISO-3166 alpha-2.", nameof(countryCode));
+        if (cc.Length != 2) 
+            throw new ArgumentException("CountryCode must be ISO-3166 alpha-2.", nameof(countryCode));
         CountryCode = cc;
     }
 
     private void SetCoordinates(decimal? latitude, decimal? longitude)
     {
+        if (latitude is null && longitude is null)
+        {
+            Latitude = null;
+            Longitude = null;
+            return;
+        }
+
+        if (latitude is null || longitude is null)
+            throw new ArgumentException(
+                "Latitude and Longitude must both be provided or both be null.");
+
         if (latitude is < -90 or > 90)
-            throw new ArgumentOutOfRangeException(nameof(latitude));
+            throw new ArgumentOutOfRangeException(nameof(latitude), "Latitude must be between -90 and 90.");
 
         if (longitude is < -180 or > 180)
-            throw new ArgumentOutOfRangeException(nameof(longitude));
+            throw new ArgumentOutOfRangeException(nameof(longitude), "Longitude must be between -180 and 180.");
 
         Latitude = latitude;
         Longitude = longitude;
@@ -96,7 +114,24 @@ public class Venue : Entity
 
     private void SetTimeZone(string? timeZoneId)
     {
-        TimeZoneId = Normalize(timeZoneId);
+        var normalized = Normalize(timeZoneId);
+
+        if (normalized is null)
+        {
+            TimeZoneId = null;
+            return;
+        }
+
+        try
+        {
+            _ = TimeZoneInfo.FindSystemTimeZoneById(normalized);
+        }
+        catch
+        {
+            throw new ArgumentException("Invalid TimeZoneId.", nameof(timeZoneId));
+        }
+
+        TimeZoneId = normalized;
     }
 
     private void SetCapacity(int? capacity)
