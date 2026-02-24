@@ -46,7 +46,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
         post.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Assert: body
-        var created = await post.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
+        var created = await post.Content.ReadFromJsonAsync<VenueResponse>(JsonTestOptions.Default);
 
         created.Should().NotBeNull();
         created!.Id.Should().NotBeEmpty();
@@ -72,7 +72,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
         var get = await _client.GetAsync($"/api/v1/venues/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var fetched = await get.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
+        var fetched = await get.Content.ReadFromJsonAsync<VenueResponse>(JsonTestOptions.Default);
         fetched.Should().NotBeNull();
         fetched!.Id.Should().Be(created.Id);
         fetched.Name.Should().Be(created.Name);
@@ -120,7 +120,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
 
         create.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var created = await create.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
+        var created = await create.Content.ReadFromJsonAsync<VenueResponse>(JsonTestOptions.Default);
         created!.Id.Should().NotBeEmpty();
 
         // update
@@ -147,7 +147,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
         var get = await _client.GetAsync($"/api/v1/venues/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var updated = await get.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
+        var updated = await get.Content.ReadFromJsonAsync<VenueResponse>(JsonTestOptions.Default);
         updated.Should().NotBeNull();
         updated!.Id.Should().NotBeEmpty();
         updated.Name.Should().Be(update.Name);
@@ -209,7 +209,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
         });
         create.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var created = await create.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
+        var created = await create.Content.ReadFromJsonAsync<VenueResponse>(JsonTestOptions.Default);
 
         // delete
         var del = await _client.DeleteAsync($"/api/v1/venues/{created!.Id}");
@@ -281,7 +281,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
 
         var res = await _client.GetAsync("/api/v1/venues?page=1&pageSize=2");
         res.StatusCode.Should().Be(HttpStatusCode.OK);
-        var page = await res.Content.ReadFromJsonAsync<PagedResult<Venue>>(JsonTestOptions.Default);
+        var page = await res.Content.ReadFromJsonAsync<PagedResult<VenueResponse>>(JsonTestOptions.Default);
 
         page.Should().NotBeNull();
 

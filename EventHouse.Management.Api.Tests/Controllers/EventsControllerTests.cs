@@ -39,7 +39,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         post.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Assert: body
-        var created = await post.Content.ReadFromJsonAsync<Event>(JsonTestOptions.Default);
+        var created = await post.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
 
         created.Should().NotBeNull();
         created!.Id.Should().NotBeEmpty();
@@ -58,7 +58,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         var get = await _client.GetAsync($"/api/v1/events/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var fetched = await get.Content.ReadFromJsonAsync<Event>(JsonTestOptions.Default);
+        var fetched = await get.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
         fetched.Should().NotBeNull();
         fetched!.Id.Should().Be(created.Id);
         fetched.Name.Should().Be(created.Name);
@@ -91,7 +91,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         });
         create.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var created = await create.Content.ReadFromJsonAsync<Event>(JsonTestOptions.Default);
+        var created = await create.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
         created!.Id.Should().NotBeEmpty();
 
         // update
@@ -108,7 +108,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         var get = await _client.GetAsync($"/api/v1/events/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var updated = await get.Content.ReadFromJsonAsync<Event>(JsonTestOptions.Default);
+        var updated = await get.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
         updated.Should().NotBeNull();
         updated!.Name.Should().Be("Event A Updated");
         updated.Description.Should().Be("Updated description");
@@ -149,7 +149,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         });
         create.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var created = await create.Content.ReadFromJsonAsync<Event>(JsonTestOptions.Default);
+        var created = await create.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
 
         // delete
         var del = await _client.DeleteAsync($"/api/v1/events/{created!.Id}");
@@ -202,7 +202,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         var res = await _client.GetAsync("/api/v1/events?page=1&pageSize=2");
         res.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var page = await res.Content.ReadFromJsonAsync<PagedResult<Event>>(JsonTestOptions.Default);
+        var page = await res.Content.ReadFromJsonAsync<PagedResult<EventResponse>>(JsonTestOptions.Default);
         page.Should().NotBeNull();
 
         page!.Items.Should().NotBeNull();

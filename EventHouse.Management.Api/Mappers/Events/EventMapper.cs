@@ -1,17 +1,17 @@
 ﻿using EventHouse.Management.Api.Contracts.Common;
+using EventHouse.Management.Api.Contracts.Events;
 using EventHouse.Management.Api.Mappers.Common;
 using EventHouse.Management.Api.Mappers.Enums;
 using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.DTOs;
-using Contract = EventHouse.Management.Api.Contracts.Events.Event;
 
 namespace EventHouse.Management.Api.Mappers.Events;
 
 public static class EventMapper
 {
-    public static Contract ToContract(EventDto dto)
+    public static EventResponse ToContract(EventDto dto)
     {
-        return new Contract
+        return new EventResponse
         {
             Id = dto.Id,
             Name = dto.Name,
@@ -20,7 +20,7 @@ public static class EventMapper
         };
     }
 
-    public static PagedResult<Contract> ToContract(
+    public static PagedResult<EventResponse> ToContract(
     PagedResultDto<EventDto> paged, HttpRequest request)
     => paged.ToContract(ToContract, request);
 }

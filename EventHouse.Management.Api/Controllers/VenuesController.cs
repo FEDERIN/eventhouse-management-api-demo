@@ -29,10 +29,10 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
         )]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(VenuePagedResultExample))]
     [SwaggerRequestExample(typeof(GetVenuesRequest), typeof(GetVenuesRequestExample))]
-    [ProducesOkAttribute<PagedResult<Venue>>]
+    [ProducesOkAttribute<PagedResult<VenueResponse>>]
     [ProducesValidationProblemAttribute]
     [ProducesTooManyRequestsProblemAttribute]
-    public async Task<ActionResult<PagedResult<Venue>>> GetAll(
+    public async Task<ActionResult<PagedResult<VenueResponse>>> GetAll(
         [FromQuery] GetVenuesRequest query,
         CancellationToken cancellationToken)
     {
@@ -49,9 +49,9 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
         Summary = "Retrieve a specific venue by their unique identifier."
         )]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(VenueResponseExample))]
-    [ProducesOkAttribute<Venue>]
+    [ProducesOkAttribute<VenueResponse>]
     [ProducesNotFoundProblem]
-    public async Task<ActionResult<Venue>> GetById(Guid venueId, CancellationToken cancellationToken)
+    public async Task<ActionResult<VenueResponse>> GetById(Guid venueId, CancellationToken cancellationToken)
     {
         var resultDto = await _mediator.Send(new GetVenueByIdQuery(venueId), cancellationToken);
 
@@ -65,11 +65,11 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
         )]
     [SwaggerRequestExample(typeof(CreateVenueRequest), typeof(CreateVenueRequestExample))]
     [SwaggerResponseExample(StatusCodes.Status201Created, typeof(VenueResponseExample))]
-    [ProducesCreated<Venue>]
+    [ProducesCreated<VenueResponse>]
     [ProducesValidationProblemAttribute]
     [ProducesConflictProblem]
 
-    public async Task<ActionResult<Venue>> Create([FromBody] CreateVenueRequest body, CancellationToken cancellationToken)
+    public async Task<ActionResult<VenueResponse>> Create([FromBody] CreateVenueRequest body, CancellationToken cancellationToken)
     {
 
         var command = new CreateVenueCommand(

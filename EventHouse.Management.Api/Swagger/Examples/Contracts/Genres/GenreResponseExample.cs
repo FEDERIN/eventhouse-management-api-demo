@@ -5,9 +5,9 @@ using System.Diagnostics.CodeAnalysis;
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Genres;
 
 [ExcludeFromCodeCoverage]
-internal class GenreResponseExample : IExamplesProvider<Genre>
+internal class GenreResponseExample : IExamplesProvider<GenreResponse>
 {
-    public Genre GetExamples() => new()
+    public GenreResponse GetExamples() => new()
     {
         Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
         Name = "Rock"

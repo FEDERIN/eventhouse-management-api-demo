@@ -231,7 +231,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
 
         createGenre.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var genre = await createGenre.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+        var genre = await createGenre.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default);
 
         // add genre to artist
         var add = await _client.PostAsJsonAsync($"/api/v1/artists/{artist!.Id}/genres", new AddArtistGenreRequest
@@ -269,7 +269,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
 
         createGenre.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var genre = await createGenre.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+        var genre = await createGenre.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default);
 
         var body = new AddArtistGenreRequest
         {
@@ -308,7 +308,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         });
 
         createGenre.StatusCode.Should().Be(HttpStatusCode.Created);
-        var genre = await createGenre.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+        var genre = await createGenre.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default);
 
         var createGenre2 = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
         {
@@ -316,7 +316,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         });
 
         createGenre2.StatusCode.Should().Be(HttpStatusCode.Created);
-        var genre2 = await createGenre2.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+        var genre2 = await createGenre2.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default);
 
         // add both genres
         (await _client.PostAsJsonAsync($"/api/v1/artists/{artist!.Id}/genres", new AddArtistGenreRequest
@@ -361,7 +361,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         });
 
         createGenre.StatusCode.Should().Be(HttpStatusCode.Created);
-        var genre = await createGenre.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+        var genre = await createGenre.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default);
 
 
         // add
@@ -399,7 +399,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
             Name = "Alternativa"
         });
         createGenre.StatusCode.Should().Be(HttpStatusCode.Created);
-        var genre = await createGenre.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+        var genre = await createGenre.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default);
         genre!.Id.Should().NotBeEmpty();
 
         // associate genre to artist (Active)

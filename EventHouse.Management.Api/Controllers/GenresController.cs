@@ -28,10 +28,10 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
         Summary = "List genres with optional filtering, sorting, and pagination.")]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GenrePagedResultExample))]
     [SwaggerRequestExample(typeof(GetGenresRequest), typeof(GetGenresRequestExample))]
-    [ProducesOkAttribute<PagedResult<Genre>>]
+    [ProducesOkAttribute<PagedResult<GenreResponse>>]
     [ProducesValidationProblemAttribute]
     [ProducesTooManyRequestsProblemAttribute]
-    public async Task<ActionResult<PagedResult<Genre>>> GetAll(
+    public async Task<ActionResult<PagedResult<GenreResponse>>> GetAll(
         [FromQuery] GetGenresRequest request,
         CancellationToken cancellationToken)
     {
@@ -47,9 +47,9 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
         OperationId = "GetGenreById",
         Summary = "Retrieve a specific genre by its unique identifier.")]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GenreResponseExample))]
-    [ProducesOkAttribute<Genre>]
+    [ProducesOkAttribute<GenreResponse>]
     [ProducesNotFoundProblem]
-    public async Task<ActionResult<Genre>> GetById(Guid genreId, CancellationToken cancellationToken)
+    public async Task<ActionResult<GenreResponse>> GetById(Guid genreId, CancellationToken cancellationToken)
     {
         var resultDto = await _mediator.Send(new GetGenreByIdQuery(genreId), cancellationToken);
 
@@ -62,10 +62,10 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
         Summary = "Create a new genre in the system.")]
     [SwaggerRequestExample(typeof(CreateGenreRequest), typeof(CreateGenreRequestExample))]
     [SwaggerResponseExample(StatusCodes.Status201Created, typeof(GenreResponseExample))]
-    [ProducesCreated<Genre>]
+    [ProducesCreated<GenreResponse>]
     [ProducesValidationProblemAttribute]
     [ProducesConflictProblem]
-    public async Task<ActionResult<Genre>> Create(
+    public async Task<ActionResult<GenreResponse>> Create(
         [FromBody] CreateGenreRequest body,
         CancellationToken cancellationToken)
     {

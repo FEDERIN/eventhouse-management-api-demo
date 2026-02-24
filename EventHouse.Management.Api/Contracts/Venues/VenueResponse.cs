@@ -1,6 +1,6 @@
 ﻿namespace EventHouse.Management.Api.Contracts.Venues;
 
-public sealed class Venue
+public sealed class VenueResponse
 {
     // <summary>Unique identifier of the venue.</summary>
     public Guid Id { get; set; }

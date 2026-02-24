@@ -6,9 +6,9 @@ using System.Diagnostics.CodeAnalysis;
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Venues;
 
 [ExcludeFromCodeCoverage]
-internal class VenuePagedResultExample : IExamplesProvider<PagedResult<Venue>>
+internal class VenuePagedResultExample : IExamplesProvider<PagedResult<VenueResponse>>
 {
-    public PagedResult<Venue> GetExamples() => new()
+    public PagedResult<VenueResponse> GetExamples() => new()
     {
         Items = [VenueExampleData.MadisonSquareGarden()],
         TotalCount = 1,
