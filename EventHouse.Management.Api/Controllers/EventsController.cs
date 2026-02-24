@@ -30,10 +30,10 @@ public sealed class EventsController(IMediator mediator) : BaseApiController
         )]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(EventPagedResultExample))]
     [SwaggerRequestExample(typeof(GetEventsRequest), typeof(GetEventsRequestExample))]
-    [ProducesOkAttribute<PagedResult<Event>>]
+    [ProducesOkAttribute<PagedResult<EventResponse>>]
     [ProducesValidationProblemAttribute]
     [ProducesTooManyRequestsProblemAttribute]
-    public async Task<ActionResult<PagedResult<Event>>> GetAll(
+    public async Task<ActionResult<PagedResult<EventResponse>>> GetAll(
         [FromQuery] GetEventsRequest request,
         CancellationToken cancellationToken)
     {
@@ -51,9 +51,9 @@ public sealed class EventsController(IMediator mediator) : BaseApiController
         Summary = "Retrieve a specific event by its unique identifier."
         )]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(EventResponseExample))]
-    [ProducesOkAttribute<Event>]
+    [ProducesOkAttribute<EventResponse>]
     [ProducesNotFoundProblem]
-    public async Task<ActionResult<Event>> GetById(Guid eventId, CancellationToken cancellationToken)
+    public async Task<ActionResult<EventResponse>> GetById(Guid eventId, CancellationToken cancellationToken)
     {
         var resultDto = await _mediator.Send(new GetEventByIdQuery(eventId), cancellationToken);
 
@@ -67,10 +67,10 @@ public sealed class EventsController(IMediator mediator) : BaseApiController
         )]
     [SwaggerRequestExample(typeof(CreateEventRequest), typeof(CreateEventRequestExample))]
     [SwaggerResponseExample(StatusCodes.Status201Created, typeof(EventResponseExample))]
-    [ProducesCreated<Event>]
+    [ProducesCreated<EventResponse>]
     [ProducesValidationProblemAttribute]
     [ProducesConflictProblem]
-    public async Task<ActionResult<Event>> Create([FromBody] CreateEventRequest body, CancellationToken cancellationToken)
+    public async Task<ActionResult<EventResponse>> Create([FromBody] CreateEventRequest body, CancellationToken cancellationToken)
     {
         var createdEventDto = await _mediator.Send(
             new CreateEventCommand(body.Name, body.Description, EventScopeMapper.ToApplicationRequired(body.Scope)),

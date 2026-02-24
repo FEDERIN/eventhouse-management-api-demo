@@ -6,9 +6,9 @@ using System.Diagnostics.CodeAnalysis;
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Genres;
 
 [ExcludeFromCodeCoverage]
-internal class GenrePagedResultExample : IExamplesProvider<PagedResult<Genre>>
+internal class GenrePagedResultExample : IExamplesProvider<PagedResult<GenreResponse>>
 {
-    public PagedResult<Genre> GetExamples() => new()
+    public PagedResult<GenreResponse> GetExamples() => new()
     {
         Items =
         [

@@ -8,15 +8,15 @@ namespace EventHouse.Management.Api.Mappers.Genres
 {
     public class GenreMapper
     {
-        public static Genre ToContract(GenreDto dto)
+        public static GenreResponse ToContract(GenreDto dto)
         {
-            return new Genre
+            return new GenreResponse
             {
                 Id = dto.Id,
                 Name = dto.Name
             };
         }
-        public static PagedResult<Genre> ToContract(
+        public static PagedResult<GenreResponse> ToContract(
         PagedResultDto<GenreDto> paged, HttpRequest request)
         => paged.ToContract(ToContract, request);
     }

@@ -6,9 +6,9 @@ using System.Diagnostics.CodeAnalysis;
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Events;
 
 [ExcludeFromCodeCoverage]
-internal sealed class EventPagedResultExample : IExamplesProvider<PagedResult<Event>>
+internal sealed class EventPagedResultExample : IExamplesProvider<PagedResult<EventResponse>>
 {
-    public PagedResult<Event> GetExamples() => new()
+    public PagedResult<EventResponse> GetExamples() => new()
     {
         Items =
         [

@@ -16,7 +16,7 @@ public class ArtistMapper
             Id = dto.Id,
             Name = dto.Name,
             Category = ArtistCategoryMapper.ToContract(dto.Category),
-            Genres = [.. dto.Genres.Select(g => new ArtistGenre
+            Genres = [.. dto.Genres.Select(g => new ArtistGenreResponse
             {
                 GenreId = g.GenreId,
                 Status = ArtistGenreStatusMapper.ToContract(g.Status),

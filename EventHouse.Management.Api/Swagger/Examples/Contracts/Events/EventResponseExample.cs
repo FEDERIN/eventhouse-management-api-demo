@@ -1,7 +1,7 @@
 ﻿using EventHouse.Management.Api.Contracts.Events;
 using Swashbuckle.AspNetCore.Filters;
 using System.Diagnostics.CodeAnalysis;
-using Contract = EventHouse.Management.Api.Contracts.Events.Event;
+using Contract = EventHouse.Management.Api.Contracts.Events.EventResponse;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Events;
 

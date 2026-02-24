@@ -23,5 +23,5 @@ public sealed record ArtistDetail
         Description = "Genres associated",
         Nullable = false
         )]
-    public IReadOnlyList<ArtistGenre> Genres { get; init; } = [];
+    public IReadOnlyList<ArtistGenreResponse> Genres { get; init; } = [];
 }

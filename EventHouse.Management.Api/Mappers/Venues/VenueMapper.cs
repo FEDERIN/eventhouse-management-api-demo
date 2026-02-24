@@ -8,7 +8,7 @@ namespace EventHouse.Management.Api.Mappers.Venues;
 
 public static class VenueMapper
 {
-    public static Venue ToContract(VenueDto dto) => new()
+    public static VenueResponse ToContract(VenueDto dto) => new()
     {
         Id = dto.Id,
         Name = dto.Name,
@@ -23,7 +23,7 @@ public static class VenueMapper
         IsActive = dto.IsActive
     };
 
-    public static PagedResult<Venue> ToContract(
+    public static PagedResult<VenueResponse> ToContract(
     PagedResultDto<VenueDto> paged, HttpRequest request)
     => paged.ToContract(ToContract, request);
 }

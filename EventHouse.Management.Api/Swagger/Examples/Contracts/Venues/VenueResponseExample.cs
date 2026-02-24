@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Venues;
 
 [ExcludeFromCodeCoverage]
-internal class VenueResponseExample : IExamplesProvider<Venue>
+internal class VenueResponseExample : IExamplesProvider<VenueResponse>
 {
-    public Venue GetExamples() => VenueExampleData.MadisonSquareGarden();
+    public VenueResponse GetExamples() => VenueExampleData.MadisonSquareGarden();
 }

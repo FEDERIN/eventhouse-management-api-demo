@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EventHouse.Management.Api.Contracts.Events;
 
-public class Event
+public class EventResponse
 {
     /// <summary>Unique identifier of the event.</summary>
     public Guid Id { get; init; }
