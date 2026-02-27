@@ -4,7 +4,7 @@ using EventHouse.Management.Application.Common.Enums;
 
 namespace EventHouse.Management.Api.Mappers.Enums;
 
-public static class ArtistCategoryMapper
+internal static class ArtistCategoryMapper
 {
     public static ArtistCategoryDto ToApplicationRequired(Contract categoryContract)
         => MapToApplication(categoryContract);

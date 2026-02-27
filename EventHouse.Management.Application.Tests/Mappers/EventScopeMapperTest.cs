@@ -1,6 +1,6 @@
-﻿using EventHouse.Management.Application.Mappers;
-using EventScopeDto = EventHouse.Management.Application.Common.Enums.EventScopeDto;
+﻿using EventScopeDto = EventHouse.Management.Application.Common.Enums.EventScopeDto;
 using EventHouse.Management.Domain.Enums;
+using EventHouse.Management.Application.Mappers.Events;
 
 namespace EventHouse.Management.Application.Tests.Mappers;
 

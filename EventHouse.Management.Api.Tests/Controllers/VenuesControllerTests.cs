@@ -1,30 +1,34 @@
 ﻿
 using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.Venues;
+using EventHouse.Management.Api.Tests.Abstractions;
+using EventHouse.Management.Api.Tests.Common;
+using EventHouse.Management.Domain.Entities;
 using FluentAssertions;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace EventHouse.Management.Api.Tests.Controllers;
 
-public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
+    : BaseIntegrationTest(factory)
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private const string BaseUrl = ApiRoutes.Venues;
 
     [Fact]
     public async Task GetAll_WithoutToken_Returns401()
     {
-        var res = await _client.GetAsync("/api/v1/venues");
+        var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl)
+            .WithoutAuthentication();
+
+        var res = await Client.SendAsync(request);
+
         res.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task Create_Returns201_Location_And_CanGetById()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
         var request = new CreateVenueRequest
         {
             Name = "Miami International Arena",
@@ -40,13 +44,13 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
         };
 
         // Act
-        var post = await _client.PostAsJsonAsync("/api/v1/venues", request);
+        var post = await Client.PostAsJsonAsync(BaseUrl, request);
 
         // Assert: 201
         post.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Assert: body
-        var created = await post.Content.ReadFromJsonAsync<VenueResponse>(JsonTestOptions.Default);
+        var created = await post.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
 
         created.Should().NotBeNull();
         created!.Id.Should().NotBeEmpty();
@@ -65,14 +69,14 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
         post.Headers.Location.Should().NotBeNull();
         var location = post.Headers.Location!.ToString();
 
-        location.Should().Contain("/api/v1/venues/");
+        location.Should().Contain(BaseUrl);
         location.Should().EndWith(created.Id.ToString());
 
         // Roundtrip: GET by id returns 200 and same resource
-        var get = await _client.GetAsync($"/api/v1/venues/{created.Id}");
+        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var fetched = await get.Content.ReadFromJsonAsync<VenueResponse>(JsonTestOptions.Default);
+        var fetched = await get.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
         fetched.Should().NotBeNull();
         fetched!.Id.Should().Be(created.Id);
         fetched.Name.Should().Be(created.Name);
@@ -89,22 +93,15 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
     [Fact]
     public async Task GetById_WhenMissing_Returns404()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
-        var res = await _client.GetAsync($"/api/v1/venues/{Guid.NewGuid()}");
+        var res = await Client.GetAsync($"{BaseUrl}/{Guid.NewGuid()}");
         res.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Update_Returns204_And_PersistsChanges()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
-
         // create
-        var create = await _client.PostAsJsonAsync("/api/v1/venues", new CreateVenueRequest
+        var create = await Client.PostAsJsonAsync(BaseUrl, new CreateVenueRequest
         {
             Name = "Madison Square Garden",
             Address = "4 Pennsylvania Plaza, New York, NY 10001",
@@ -120,7 +117,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
 
         create.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var created = await create.Content.ReadFromJsonAsync<VenueResponse>(JsonTestOptions.Default);
+        var created = await create.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
         created!.Id.Should().NotBeEmpty();
 
         // update
@@ -139,15 +136,15 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
             IsActive = true
         };
 
-        var put = await _client.PutAsJsonAsync($"/api/v1/venues/{created.Id}", update);
+        var put = await Client.PutAsJsonAsync($"{BaseUrl}/{created.Id}", update);
 
         put.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // roundtrip
-        var get = await _client.GetAsync($"/api/v1/venues/{created.Id}");
+        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var updated = await get.Content.ReadFromJsonAsync<VenueResponse>(JsonTestOptions.Default);
+        var updated = await get.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
         updated.Should().NotBeNull();
         updated!.Id.Should().NotBeEmpty();
         updated.Name.Should().Be(update.Name);
@@ -165,11 +162,8 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
     [Fact]
     public async Task Update_WhenMissing_Returns404_ProblemJson()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
         var id = Guid.NewGuid();
-        var res = await _client.PutAsJsonAsync($"/api/v1/venues/{id}", new UpdateVenueRequest
+        var res = await Client.PutAsJsonAsync($"{BaseUrl}/{id}", new UpdateVenueRequest
         {
             Name = "Kaseya Center 3",
             Address = "601 Biscayne Blvd, Miami, FL 33132",
@@ -183,18 +177,14 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
             IsActive = true
         });
 
-        res.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
+        await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Delete_Returns204()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
         // create
-        var create = await _client.PostAsJsonAsync("/api/v1/venues", new CreateVenueRequest
+        var create = await Client.PostAsJsonAsync(BaseUrl, new CreateVenueRequest
         {
             Name = "Kaseya Center 2",
             Address = "601 Biscayne Blvd, Miami, FL 33132",
@@ -209,36 +199,29 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
         });
         create.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var created = await create.Content.ReadFromJsonAsync<VenueResponse>(JsonTestOptions.Default);
+        var created = await create.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
 
         // delete
-        var del = await _client.DeleteAsync($"/api/v1/venues/{created!.Id}");
+        var del = await Client.DeleteAsync($"{BaseUrl}/{created!.Id}");
         del.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]
     public async Task Delete_WhenMissing_Returns404_ProblemJson()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
 
         var id = Guid.NewGuid();
 
         // delete
-        var del = await _client.DeleteAsync($"/api/v1/venues/{id}");
+        var del = await Client.DeleteAsync($"{BaseUrl}/{id}");
 
-        del.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        Assert.Equal("application/problem+json", del.Content.Headers.ContentType?.MediaType);
+        await del.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Create_WhenInvalid_Returns400_ValidationProblemJson()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
-        var res = await _client.PostAsJsonAsync("/api/v1/venues", new CreateVenueRequest
+        var res = await Client.PostAsJsonAsync(BaseUrl, new CreateVenueRequest
         {
             Name = "A",
             Address = "1",
@@ -250,19 +233,15 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
             IsActive = true
         });
 
-        res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
+        await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task GetAll_WithPaging_ReturnsPagedResultWithLinks()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
         foreach (var name in new[] { "E1", "E2", "E3" })
         {
-            var create = await _client.PostAsJsonAsync("/api/v1/venues", new CreateVenueRequest
+            var create = await Client.PostAsJsonAsync(BaseUrl, new CreateVenueRequest
             {
                 Name = name,
                 Address = "123 Test St, Test City, TS 12345",
@@ -279,9 +258,9 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory) :
         }
 
 
-        var res = await _client.GetAsync("/api/v1/venues?page=1&pageSize=2");
+        var res = await Client.GetAsync($"{BaseUrl}?address=123 Test&city=Test City&region=TS&countryCode=US&capacity=50&isActive=true&sortBy=Name&sortDirection=Asc&page=1&pageSize=2");
         res.StatusCode.Should().Be(HttpStatusCode.OK);
-        var page = await res.Content.ReadFromJsonAsync<PagedResult<VenueResponse>>(JsonTestOptions.Default);
+        var page = await res.Content.ReadFromJsonAsync<PagedResult<Venue>>(JsonTestOptions.Default);
 
         page.Should().NotBeNull();
 

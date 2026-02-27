@@ -1,12 +1,6 @@
 ﻿using EventHouse.Management.Api.Contracts.Venues;
 using EventHouse.Management.Api.Mappers.Venues;
-using EventHouse.Management.Api.Mappers.Venues;
 using EventHouse.Management.Application.Queries.Venues.GetAll;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventHouse.Management.Api.Tests.Mappers;
 

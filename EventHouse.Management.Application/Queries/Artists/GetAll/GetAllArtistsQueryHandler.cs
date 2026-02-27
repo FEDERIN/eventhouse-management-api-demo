@@ -1,7 +1,6 @@
 ﻿using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Application.Common.Interfaces;
-using EventHouse.Management.Application.Mappers;
 using EventHouse.Management.Application.Mappers.Artists;
 using MediatR;
 
