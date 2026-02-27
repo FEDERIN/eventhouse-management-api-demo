@@ -1,8 +1,7 @@
-﻿
-using EventHouse.Management.Application.Common.Enums;
+﻿using EventHouse.Management.Application.Common.Enums;
 using EventHouse.Management.Domain.Enums;
 
-namespace EventHouse.Management.Application.Mappers;
+namespace EventHouse.Management.Application.Mappers.Events;
 
 public static class EventScopeMapper
 {

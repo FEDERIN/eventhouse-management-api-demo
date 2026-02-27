@@ -29,7 +29,7 @@ public sealed class SetPrimaryArtistGenreTests
 
         // Act + Assert
         await Assert.ThrowsAsync<NotFoundException>(() => handler.Handle(cmd, ct));
-        
+
         await artistRepo.DidNotReceiveWithAnyArgs()
             .UpdateAsync(default!, ct);
     }
@@ -45,13 +45,13 @@ public sealed class SetPrimaryArtistGenreTests
         var genreId2 = Guid.NewGuid();
 
         var artist = new Artist(artistId, "J", ArtistCategory.Band);
-        
+
         artist.AddGenre(genreId, ArtistGenreStatus.Active, false);
         artist.AddGenre(genreId2, ArtistGenreStatus.Active, true);
 
-        artistRepo.GetTrackedByIdAsync(artistId, Arg.Any<CancellationToken>())
+        artistRepo.GetByIdAsync(artistId, Arg.Any<CancellationToken>())
             .Returns(artist);
-        
+
         var handler = new SetPrimaryArtistGenreCommandHandler(artistRepo);
         var cmd = new SetPrimaryArtistGenreCommand(
             artistId,
@@ -62,9 +62,9 @@ public sealed class SetPrimaryArtistGenreTests
 
         // Assert
         var artistGenre = artist.Genres.First(g => g.GenreId == genreId);
-        
+
         Assert.True(artistGenre.IsPrimary);
-        
+
         await artistRepo.Received(1)
             .SetPrimaryGenreAsync(artistId, genreId2, genreId, ct);
     }
@@ -77,14 +77,14 @@ public sealed class SetPrimaryArtistGenreTests
         var ct = new CancellationTokenSource().Token;
         var artistId = Guid.NewGuid();
         var genreId = Guid.NewGuid();
-        
+
         var artist = new Artist(artistId, "K", ArtistCategory.Singer);
-        
+
         artist.AddGenre(genreId, ArtistGenreStatus.Active, true);
-        
-        artistRepo.GetTrackedByIdAsync(artistId, Arg.Any<CancellationToken>())
+
+        artistRepo.GetByIdAsync(artistId, Arg.Any<CancellationToken>())
             .Returns(artist);
-        
+
         var handler = new SetPrimaryArtistGenreCommandHandler(artistRepo);
         var cmd = new SetPrimaryArtistGenreCommand(
             artistId,

@@ -1,30 +1,32 @@
 ﻿using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.Events;
+using EventHouse.Management.Api.Tests.Abstractions;
+using EventHouse.Management.Api.Tests.Common;
 using FluentAssertions;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace EventHouse.Management.Api.Tests.Controllers;
 
-public sealed class EventsControllerTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
+    : BaseIntegrationTest(factory)
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private const string BaseUrl = ApiRoutes.Events;
 
     [Fact]
     public async Task GetAll_WithoutToken_Returns401()
     {
-        var res = await _client.GetAsync("/api/v1/events");
+
+        var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl).WithoutAuthentication();
+
+        var res = await Client.SendAsync(request);
+
         res.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task Create_Returns201_Location_And_CanGetById()
     {
-        // Arrange
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
         var request = new CreateEventRequest
         {
             Name = "Summer Fest 2026",
@@ -33,7 +35,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         };
 
         // Act
-        var post = await _client.PostAsJsonAsync("/api/v1/events", request);
+        var post = await Client.PostAsJsonAsync(BaseUrl, request);
 
         // Assert: 201
         post.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -55,7 +57,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         location.Should().EndWith(created.Id.ToString());
 
         // Roundtrip: GET by id returns 200 and same resource
-        var get = await _client.GetAsync($"/api/v1/events/{created.Id}");
+        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var fetched = await get.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
@@ -69,21 +71,15 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
     [Fact]
     public async Task GetById_WhenMissing_Returns404()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
-        var res = await _client.GetAsync($"/api/v1/events/{Guid.NewGuid()}");
-        res.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var res = await Client.GetAsync($"{BaseUrl}/{Guid.NewGuid()}");
+        await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Update_Returns204_And_PersistsChanges()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
         // create
-        var create = await _client.PostAsJsonAsync("/api/v1/events", new CreateEventRequest
+        var create = await Client.PostAsJsonAsync(BaseUrl, new CreateEventRequest
         {
             Name = "Event A",
             Description = "Initial description",
@@ -95,7 +91,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         created!.Id.Should().NotBeEmpty();
 
         // update
-        var put = await _client.PutAsJsonAsync($"/api/v1/events/{created.Id}", new UpdateEventRequest
+        var put = await Client.PutAsJsonAsync($"{BaseUrl}/{created.Id}", new UpdateEventRequest
         {
             Name = "Event A Updated",
             Description = "Updated description",
@@ -105,7 +101,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         put.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // roundtrip
-        var get = await _client.GetAsync($"/api/v1/events/{created.Id}");
+        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var updated = await get.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
@@ -118,30 +114,22 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
     [Fact]
     public async Task Update_WhenMissing_Returns404_ProblemJson()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
         var id = Guid.NewGuid();
-        var res = await _client.PutAsJsonAsync($"/api/v1/events/{id}", new UpdateEventRequest
+        var res = await Client.PutAsJsonAsync($"{BaseUrl}/{id}", new UpdateEventRequest
         {
             Name = "Does not matter",
             Description = "Does not matter",
             Scope = EventScope.Local
         });
 
-        res.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
-        //AssertProblemMediaType(res);
+        await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Delete_Returns204_And_Then_GetReturns404()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
         // create
-        var create = await _client.PostAsJsonAsync("/api/v1/events", new CreateEventRequest
+        var create = await Client.PostAsJsonAsync(BaseUrl, new CreateEventRequest
         {
             Name = "Event To Delete",
             Description = "To be deleted",
@@ -152,44 +140,35 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         var created = await create.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
 
         // delete
-        var del = await _client.DeleteAsync($"/api/v1/events/{created!.Id}");
+        var del = await Client.DeleteAsync($"{BaseUrl}/{created!.Id}");
         del.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // get -> 404
-        var get = await _client.GetAsync($"/api/v1/events/{created.Id}");
-        get.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        //AssertProblemMediaType(get);
-        Assert.Equal("application/problem+json", get.Content.Headers.ContentType?.MediaType);
+        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}");
+
+        await get.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Create_WhenInvalid_Returns400_ValidationProblemJson()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
-        var res = await _client.PostAsJsonAsync("/api/v1/events", new CreateEventRequest
+        var res = await Client.PostAsJsonAsync(BaseUrl, new CreateEventRequest
         {
             Name = "A", // too short (min 2)
             Description = null,
             Scope = EventScope.Local
         });
 
-        res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        //AssertProblemMediaType(res);
-        Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
+        await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task GetAll_WithPaging_ReturnsPagedResultWithLinks()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
         // Arrange: create 3 events
         foreach (var name in new[] { "E1", "E2", "E3" })
         {
-            var create = await _client.PostAsJsonAsync("/api/v1/events", new CreateEventRequest
+            var create = await Client.PostAsJsonAsync(BaseUrl, new CreateEventRequest
             {
                 Name = name,
                 Description = "Demo",
@@ -199,7 +178,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory) :
         }
 
         // Act
-        var res = await _client.GetAsync("/api/v1/events?page=1&pageSize=2");
+        var res = await Client.GetAsync($"{BaseUrl}?page=1&pageSize=2");
         res.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var page = await res.Content.ReadFromJsonAsync<PagedResult<EventResponse>>(JsonTestOptions.Default);

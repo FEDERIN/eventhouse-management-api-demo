@@ -13,7 +13,7 @@ internal sealed class SetPrimaryArtistGenreCommandHandler(IArtistRepository arti
         SetPrimaryArtistGenreCommand request,
         CancellationToken cancellationToken)
     {
-        var artist = await _artistRepository.GetTrackedByIdAsync(request.ArtistId, cancellationToken)
+        var artist = await _artistRepository.GetByIdAsync(request.ArtistId, cancellationToken)
             ?? throw new NotFoundException("Artist", request.ArtistId);
 
         var genrePrimary = artist.Genres.FirstOrDefault(a => a.IsPrimary);

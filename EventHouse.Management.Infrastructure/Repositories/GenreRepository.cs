@@ -35,6 +35,15 @@ namespace EventHouse.Management.Infrastructure.Repositories
             if (entity is null)
                 return false;
 
+            var artistGenre = await _context.ArtistGenres.FirstOrDefaultAsync(x => x.GenreId == id, cancellationToken: cancellationToken);
+
+            if (artistGenre != null)
+                throw new ConflictException(
+                    code: "GENRE_HAS_ASSOCIATIONS",
+                    title: "Genre cannot be deleted",
+                    detail: "This genre cannot be deleted because it has associated entities."
+                    );
+
             _context.Genres.Remove(entity);
             await _context.SaveChangesAsync(cancellationToken);
 

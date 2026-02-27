@@ -1,139 +1,85 @@
 ﻿using EventHouse.Management.Api.Contracts.Artists;
 using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.Genres;
+using EventHouse.Management.Api.Tests.Abstractions;
+using EventHouse.Management.Api.Tests.Common;
+using EventHouse.Management.Api.Tests.Contracts;
 using FluentAssertions;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace EventHouse.Management.Api.Tests.Controllers;
 
-public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
+    : BaseIntegrationTest(factory)
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private const string BaseUrlArtists = ApiRoutes.Artists;
+    private const string BaseUrlGenres = ApiRoutes.Genres;
 
     [Fact]
     public async Task GetAll_WithoutToken_Returns401()
     {
-        var res = await _client.GetAsync("/api/v1/artists");
+        var request = new HttpRequestMessage(HttpMethod.Get, BaseUrlArtists).WithoutAuthentication();
+
+        var res = await Client.SendAsync(request);
+
         res.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
-    public async Task Create_Returns201_Location_And_CanGetById()
+    public async Task Create_Returns201_And_MatchesRequest()
     {
-        // Arrange
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
+        var request = ArtistFactory.CreateRequest("The Rolling Stones");
 
-        var request = new CreateArtistRequest
-        {
-            Name = "The Rolling Stones",
-            Category = ArtistCategory.Band
-        };
+        var response = await Client.PostAsJsonAsync(BaseUrlArtists, request);
+        var created = await response.ReadContentAsync<ArtistDetail>();
 
-        // Act
-        var post = await _client.PostAsJsonAsync("/api/v1/artists", request);
-
-        // Assert: 201
-        post.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        // Assert: body
-        var created = await post.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
-
-        created.Should().NotBeNull();
-        created!.Id.Should().NotBeEmpty();
-        created.Name.Should().Be("The Rolling Stones");
-        created.Category.Should().Be(ArtistCategory.Band);
-
-        // Assert: Location header matches CreatedAtAction(GetById)
-        post.Headers.Location.Should().NotBeNull();
-        var location = post.Headers.Location!.ToString();
-
-        location.Should().Contain("/api/v1/artists/");
-        location.Should().EndWith(created.Id.ToString());
-
-        // Roundtrip: GET by id returns 200 and same resource
-        var get = await _client.GetAsync($"/api/v1/artists/{created.Id}");
-        get.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var fetched = await get.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
-        fetched.Should().NotBeNull();
-        fetched!.Id.Should().Be(created.Id);
-        fetched.Name.Should().Be(created.Name);
-        fetched.Category.Should().Be(created.Category);
+        created.Should().BeEquivalentTo(request, opt => opt.ExcludingMissingMembers());
     }
 
     [Fact]
     public async Task GetById_WhenMissing_Returns404()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
+        var res = await Client.GetAsync($"{BaseUrlArtists}/{Guid.NewGuid()}");
 
-        var res = await _client.GetAsync($"/api/v1/artists/{Guid.NewGuid()}");
-        res.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Update_Returns204_And_PersistsChanges()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
+        var artist = await CreateArtistAsync("Artist A", ArtistCategory.Singer);
+        var updateRequest = new UpdateArtistRequest { Name = "Artist A Updated", Category = ArtistCategory.Singer };
 
-        // create
-        var create = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
-        {
-            Name = "Artist A",
-            Category = ArtistCategory.Band
-        });
-        create.StatusCode.Should().Be(HttpStatusCode.Created);
+        // Act
+        var response = await Client.PutAsJsonAsync($"{BaseUrlArtists}/{artist.Id}", updateRequest);
 
-        var created = await create.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
-        created!.Id.Should().NotBeEmpty();
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // update
-        var put = await _client.PutAsJsonAsync($"/api/v1/artists/{created.Id}", new UpdateArtistRequest
-        {
-            Name = "Artist A Updated",
-            Category = ArtistCategory.Singer
-        });
-
-        put.StatusCode.Should().Be(HttpStatusCode.NoContent);
-
-        // roundtrip
-        var get = await _client.GetAsync($"/api/v1/artists/{created.Id}");
-        get.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var updated = await get.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
-        updated!.Name.Should().Be("Artist A Updated");
-        updated.Category.Should().Be(ArtistCategory.Singer);
+        // Roundtrip
+        var updated = await Client.GetFromJsonAsync<ArtistDetail>($"{BaseUrlArtists}/{artist.Id}", JsonTestOptions.Default);
+        updated.Should().BeEquivalentTo(updateRequest); // Ahora sí comparas DTO con DTO
     }
 
     [Fact]
     public async Task Update_WhenMissing_Returns404_ProblemJson()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
         var id = Guid.NewGuid();
-        var res = await _client.PutAsJsonAsync($"/api/v1/artists/{id}", new UpdateArtistRequest
+        var res = await Client.PutAsJsonAsync($"{BaseUrlArtists}/{id}", new UpdateArtistRequest
         {
             Name = "Does not matter",
             Category = ArtistCategory.Band
         });
 
-        res.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
+        await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Delete_Returns204_And_Then_GetReturns404()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
         // create
-        var create = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
+        var create = await Client.PostAsJsonAsync(BaseUrlArtists, new CreateArtistRequest
         {
             Name = "Artist To Delete",
             Category = ArtistCategory.Band
@@ -143,50 +89,37 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         var created = await create.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
 
         // delete
-        var del = await _client.DeleteAsync($"/api/v1/artists/{created!.Id}");
+        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{created!.Id}");
         del.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // get -> 404
-        var get = await _client.GetAsync($"/api/v1/artists/{created.Id}");
-        get.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        Assert.Equal("application/problem+json", get.Content.Headers.ContentType?.MediaType);
+        var get = await Client.GetAsync($"{BaseUrlArtists}/{created.Id}");
+        await get.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Create_WhenInvalid_Returns400_ValidationProblemJson()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
-        var res = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
+        var res = await Client.PostAsJsonAsync(BaseUrlArtists, new CreateArtistRequest
         {
             Name = "A",
             Category = ArtistCategory.Band
         });
 
-        res.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
+        await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task GetAll_WithPaging_ReturnsPagedResultWithLinks()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
         // Arrange: create 3 artists
         foreach (var name in new[] { "A1", "A2", "A3" })
         {
-            var create = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
-            {
-                Name = name,
-                Category = ArtistCategory.Band
-            });
-            create.StatusCode.Should().Be(HttpStatusCode.Created);
+            await CreateArtistAsync(name, ArtistCategory.Band);
         }
 
         // Act
-        var res = await _client.GetAsync("/api/v1/artists?page=1&pageSize=2");
+        var res = await Client.GetAsync($"{BaseUrlArtists}?page=1&pageSize=2");
         res.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var page = await res.Content.ReadFromJsonAsync<PagedResult<ArtistDetail>>(JsonTestOptions.Default);
@@ -210,59 +143,29 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
     [Fact]
     public async Task AddGenre_Returns204_And_IsVisibleInGetArtist()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
+        // Arrange
+        var artist = await CreateArtistAsync("Artist With Genre OK", ArtistCategory.DJ);
+        var genre = await CreateGenreAsync("Rock 2");
 
-        // create artist
-        var createArtist = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
-        {
-            Name = "Artist With Genre OK",
-            Category = ArtistCategory.Band
-        });
-
-        createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
-        var artist = await createArtist.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
-
-        // create genre
-        var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
-        {
-            Name = "Rock 2"
-        });
-
-        createGenre.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var genre = await createGenre.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default);
-
-        // add genre to artist
-        var add = await _client.PostAsJsonAsync($"/api/v1/artists/{artist!.Id}/genres", new AddArtistGenreRequest
+        // Act
+        var response = await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", new AddArtistGenreRequest
         {
             GenreId = genre!.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = true
         });
 
-        add.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]
     public async Task AddGenre_IsIdempotent_ShouldNotDuplicate()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
-
-        // create artist
-        var createArtist = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
-        {
-            Name = "Artist With Genre",
-            Category = ArtistCategory.Band
-        });
-
-        createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
-        var artist = await createArtist.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
+        var artist = await CreateArtistAsync("Artist With Genre", ArtistCategory.Host);
 
         // create genre
-        var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
+        var createGenre = await Client.PostAsJsonAsync(BaseUrlGenres, new CreateGenreRequest
         {
             Name = "Punk"
         });
@@ -278,31 +181,20 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
             IsPrimary = false
         };
 
-        (await _client.PostAsJsonAsync($"/api/v1/artists/{artist!.Id}/genres", body))
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", body))
             .StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        (await _client.PostAsJsonAsync($"/api/v1/artists/{artist.Id}/genres", body))
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist.Id}/genres", body))
             .StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]
     public async Task SetPrimaryGenre_Returns204_And_MovesPrimaryFlag()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
-        var createArtist = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
-        {
-            Name = "Artist Primary",
-            Category = ArtistCategory.Band
-        });
-
-        createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var artist = await createArtist.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
+        var artist = await CreateArtistAsync("Artist Primary", ArtistCategory.Comedian);
 
         // create genre
-        var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
+        var createGenre = await Client.PostAsJsonAsync(BaseUrlGenres, new CreateGenreRequest
         {
             Name = "Trap"
         });
@@ -310,7 +202,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         createGenre.StatusCode.Should().Be(HttpStatusCode.Created);
         var genre = await createGenre.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default);
 
-        var createGenre2 = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
+        var createGenre2 = await Client.PostAsJsonAsync(BaseUrlGenres, new CreateGenreRequest
         {
             Name = "Cumbia"
         });
@@ -319,14 +211,14 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         var genre2 = await createGenre2.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default);
 
         // add both genres
-        (await _client.PostAsJsonAsync($"/api/v1/artists/{artist!.Id}/genres", new AddArtistGenreRequest
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", new AddArtistGenreRequest
         {
             GenreId = genre!.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = true
         })).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        (await _client.PostAsJsonAsync($"/api/v1/artists/{artist.Id}/genres", new AddArtistGenreRequest
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist.Id}/genres", new AddArtistGenreRequest
         {
             GenreId = genre2!.Id,
             Status = ArtistGenreStatus.Active,
@@ -334,28 +226,17 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         })).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // act: set g2 primary
-        var patch = await _client.PatchAsync($"/api/v1/artists/{artist.Id}/genres/{genre2.Id}/primary", content: null);
+        var patch = await Client.PatchAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre2.Id}/primary", content: null);
         patch.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]
     public async Task RemoveGenre_Returns204_And_RemovesAssociation()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
-
-
-        var createArtist = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
-        {
-            Name = "Artist Remove",
-            Category = ArtistCategory.Band
-        });
-
-        createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
-        var artist = await createArtist.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
+        var artist = await CreateArtistAsync("Artist Remove", ArtistCategory.Influencer);
 
         // create genre
-        var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
+        var createGenre = await Client.PostAsJsonAsync(BaseUrlGenres, new CreateGenreRequest
         {
             Name = "Metal"
         });
@@ -365,7 +246,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
 
 
         // add
-        (await _client.PostAsJsonAsync($"/api/v1/artists/{artist!.Id}/genres", new AddArtistGenreRequest
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", new AddArtistGenreRequest
         {
             GenreId = genre!.Id,
             Status = ArtistGenreStatus.Active,
@@ -373,28 +254,19 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         })).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // delete
-        var del = await _client.DeleteAsync($"/api/v1/artists/{artist.Id}/genres/{genre.Id}");
+        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre.Id}");
         del.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]
     public async Task UpdateGenreStatus_Returns204_And_PersistsChange()
     {
-        var bearer = await _client.GetBearerTokenAsync();
-        _client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(bearer);
+        var artist = await CreateArtistAsync("Artist Status", ArtistCategory.Dancer);
 
-        // create artist
-        var createArtist = await _client.PostAsJsonAsync("/api/v1/artists", new CreateArtistRequest
-        {
-            Name = "Artist Status",
-            Category = ArtistCategory.Band
-        });
-        createArtist.StatusCode.Should().Be(HttpStatusCode.Created);
-        var artist = await createArtist.Content.ReadFromJsonAsync<ArtistDetail>(JsonTestOptions.Default);
         artist!.Id.Should().NotBeEmpty();
 
         // create genre
-        var createGenre = await _client.PostAsJsonAsync("/api/v1/genres", new CreateGenreRequest
+        var createGenre = await Client.PostAsJsonAsync(BaseUrlGenres, new CreateGenreRequest
         {
             Name = "Alternativa"
         });
@@ -403,7 +275,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         genre!.Id.Should().NotBeEmpty();
 
         // associate genre to artist (Active)
-        (await _client.PostAsJsonAsync($"/api/v1/artists/{artist.Id}/genres", new AddArtistGenreRequest
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist.Id}/genres", new AddArtistGenreRequest
         {
             GenreId = genre.Id,
             Status = ArtistGenreStatus.Active,
@@ -411,10 +283,21 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory) 
         })).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // act: update status to Inactive
-        var put = await _client.PutAsJsonAsync(
-            $"/api/v1/artists/{artist.Id}/genres/{genre.Id}",
+        var put = await Client.PutAsJsonAsync(
+            $"{BaseUrlArtists}/{artist.Id}/genres/{genre.Id}",
             new UpdateArtistGenreStatusRequest { Status = ArtistGenreStatus.Inactive });
 
         put.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
+
+    // Helpers
+    private async Task<ArtistDetail> CreateArtistAsync(string name, ArtistCategory category = ArtistCategory.Band)
+    {
+        var response = await Client.PostAsJsonAsync(BaseUrlArtists, ArtistFactory.CreateRequest(name, category));
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        return await response.ReadContentAsync<ArtistDetail>();
+    }
+
+    private async Task<GenreResponse> CreateGenreAsync(string name)
+        => await (await Client.PostAsJsonAsync(BaseUrlGenres, new CreateGenreRequest { Name = name })).ReadContentAsync<GenreResponse>();
 }

@@ -1,7 +1,8 @@
-﻿using System.Net.Http.Json;
-using EventHouse.Management.Api.Contracts.Auth;
+﻿using EventHouse.Management.Api.Contracts.Auth;
+using EventHouse.Management.Api.Tests.Abstractions;
+using System.Net.Http.Json;
 
-namespace EventHouse.Management.Api.Tests.Controllers;
+namespace EventHouse.Management.Api.Tests.Common;
 
 public static class AuthTestExtensions
 {
@@ -26,9 +27,13 @@ public static class AuthTestExtensions
         if (string.IsNullOrWhiteSpace(token.AccessToken))
             throw new InvalidOperationException("AccessToken was empty");
 
-        if (string.IsNullOrWhiteSpace(token.TokenType))
-            throw new InvalidOperationException("TokenType was empty");
-
         return $"{token.TokenType} {token.AccessToken}";
+    }
+
+
+    public static HttpRequestMessage WithoutAuthentication(this HttpRequestMessage request)
+    {
+        request.Options.Set(AuthedHandler.SkipAuth, true);
+        return request;
     }
 }

@@ -1,9 +1,9 @@
 ﻿using EventHouse.Management.Domain.Enums;
 using EventHouse.Management.Application.Common.Enums;
 
-namespace EventHouse.Management.Application.Mappers;
+namespace EventHouse.Management.Application.Mappers.Artists;
 
-public static class ArtistGenreStatusMapper
+internal static class ArtistGenreStatusMapper
 {
     public static ArtistGenreStatus ToDomainRequired(ArtistGenreStatusDto status) =>
         status switch
