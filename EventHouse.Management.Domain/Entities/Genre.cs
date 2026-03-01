@@ -13,9 +13,8 @@ public class Genre : Entity
         if (id == Guid.Empty)
             throw new ArgumentException("Id cannot be empty.", nameof(id));
 
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Genre name is required", nameof(name));
-
+        Update(name);
+        
         Id = id;
         Name = name.Trim();
     }

@@ -23,7 +23,8 @@ namespace EventHouse.Management.Infrastructure.Repositories
 
         public async Task UpdateAsync(Genre entity, CancellationToken cancellationToken = default)
         {
-            _context.Genres.Update(entity);
+            if (_context.Entry(entity).State == EntityState.Detached)
+                throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
             await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
         }
@@ -52,12 +53,12 @@ namespace EventHouse.Management.Infrastructure.Repositories
 
         public async Task<Genre?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            return await _context.Genres.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+            return await _context.Genres.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
         }
 
         public async Task<Genre?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            return await _context.Genres.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+            return await _context.Genres.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
         }
 
         public async Task<PagedResultDto<Genre>> GetPagedAsync(GenreQueryCriteria criteria, CancellationToken cancellationToken = default)
@@ -67,10 +68,9 @@ namespace EventHouse.Management.Infrastructure.Repositories
             if (!string.IsNullOrWhiteSpace(criteria.Name))
                 query = query.Where(g => EF.Functions.Like(g.Name, $"%{criteria.Name}%"));
 
-            var sortBy = criteria.SortBy ?? GenreSortField.Name;
             bool asc = criteria.SortDirection == SortDirection.Asc;
 
-            query = sortBy switch
+            query = criteria.SortBy switch
             {
                 GenreSortField.Name =>
                     asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name),
