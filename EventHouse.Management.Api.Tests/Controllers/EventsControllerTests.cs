@@ -186,16 +186,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
 
         page!.Items.Should().NotBeNull();
         page.Items.Count.Should().BeLessOrEqualTo(2);
-        page.Page.Should().Be(1);
-        page.PageSize.Should().Be(2);
-        page.TotalCount.Should().BeGreaterOrEqualTo(page.Items.Count);
+        page.ShouldHaveValidPaginationLinks(currentPage: 1, expectedPageSize: 2);
 
-        page.Links.Should().NotBeNull();
-        page.Links!.Self.Should().NotBeNull();
-        page.Links.Self!.Should().Contain("page=1");
-        page.Links.Self!.Should().Contain("pageSize=2");
-
-        if (page.TotalCount > 2)
-            page.Links.Next.Should().NotBeNull();
     }
 }

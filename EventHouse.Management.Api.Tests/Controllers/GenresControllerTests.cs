@@ -1,7 +1,8 @@
-﻿using EventHouse.Management.Api.Contracts.Genres;
+﻿using EventHouse.Management.Api.Contracts.Artists;
+using EventHouse.Management.Api.Contracts.Common;
+using EventHouse.Management.Api.Contracts.Genres;
 using EventHouse.Management.Api.Tests.Abstractions;
 using EventHouse.Management.Api.Tests.Common;
-using EventHouse.Management.Domain.Entities;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
@@ -14,20 +15,6 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
     private const string BaseUrl = ApiRoutes.Genres;
 
     [Fact]
-    public async Task Create_Returns201_And_CanGetById()
-    {
-        var request = new CreateGenreRequest { Name = "Country" };
-
-        var postResponse = await Client.PostAsJsonAsync(BaseUrl, request);
-
-        postResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        var created = await postResponse.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
-
-        created.Should().NotBeNull();
-        postResponse.Headers.Location!.ToString().Should().EndWith(created!.Id.ToString());
-    }
-
-    [Fact]
     public async Task GetAll_WithoutToken_Returns401()
     {
         var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl).WithoutAuthentication();
@@ -38,15 +25,28 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
     }
 
     [Fact]
+    public async Task Create_Returns201_And_CanGetById()
+    {
+        var request = new CreateGenreRequest { Name = "Jazz" };
+
+        var postResponse = await Client.PostAsJsonAsync(BaseUrl, request);
+
+        postResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await postResponse.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default);
+
+        created.Should().NotBeNull();
+        postResponse.Headers.Location!.ToString().Should().EndWith(created!.Id.ToString());
+    }
+
+    [Fact]
     public async Task Update_Returns204_And_PersistsChanges()
     {
-        var create = await Client.PostAsJsonAsync(BaseUrl, new CreateGenreRequest { Name = "Rock" });
-        var created = await create.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+        var genre = await CreateGenreAsync(forCategory: ArtistCategory.Band);
 
-        var put = await Client.PutAsJsonAsync($"{BaseUrl}/{created!.Id}", new UpdateGenreRequest { Name = "Pop" });
+        var put = await Client.PutAsJsonAsync($"{BaseUrl}/{genre!.Id}", new UpdateGenreRequest { Name = "Pop" });
         put.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var updated = await Client.GetFromJsonAsync<Genre>($"{BaseUrl}/{created.Id}", JsonTestOptions.Default);
+        var updated = await Client.GetFromJsonAsync<GenreResponse>($"{BaseUrl}/{genre.Id}", JsonTestOptions.Default);
         updated!.Name.Should().Be("Pop");
     }
 
@@ -59,17 +59,83 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
     }
 
     [Fact]
-    public async Task Put_WhenDomainRuleViolation_Returns409ProblemJson()
+    public async Task Update_WhenNameDuplicate_Returns409Conflict()
     {
         // Arrange
-        await Client.PostAsJsonAsync(BaseUrl, new CreateGenreRequest { Name = "Vallenato" });
-        var create2 = await Client.PostAsJsonAsync(BaseUrl, new CreateGenreRequest { Name = "Blue" });
-        var created2 = await create2.Content.ReadFromJsonAsync<Genre>(JsonTestOptions.Default);
+
+        var genre = await CreateGenreAsync(forCategory: ArtistCategory.Comedian);
+        var genre2 = await CreateGenreAsync(forCategory: ArtistCategory.Host);
 
         // Act
-        var update = await Client.PutAsJsonAsync($"{BaseUrl}/{created2!.Id}", new UpdateGenreRequest { Name = "Vallenato" });
+        var update = await Client.PutAsJsonAsync($"{BaseUrl}/{genre2!.Id}", new UpdateGenreRequest { Name = genre.Name });
 
         // Assert
         await update.ShouldHaveErrorCode(HttpStatusCode.Conflict, "GENRE_NAME_ALREADY_EXISTS");
+    }
+
+    [Fact]
+    public async Task Delete_Returns404_ProblemJson()
+    {
+        // delete
+        var res = await Client.DeleteAsync($"{BaseUrl}/{Guid.NewGuid()}");
+        await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Delete_Returns204_And_Then_GetReturns404()
+    {
+        var genre = await CreateGenreAsync(forCategory: ArtistCategory.Singer);
+
+        // delete
+        var del = await Client.DeleteAsync($"{BaseUrl}/{genre!.Id}");
+        del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // get -> 404
+        var get = await Client.GetAsync($"{BaseUrl}/{genre.Id}");
+
+        await get.ShouldBeProblemJson(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Create_WhenInvalid_Returns400_ValidationProblemJson()
+    {
+        var res = await Client.PostAsJsonAsync(BaseUrl, new CreateGenreRequest
+        {
+            Name = "R"
+        });
+
+        await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetAll_WithPaging_ReturnsPagedResultWithLinks()
+    {
+        var categories = new[] { ArtistCategory.Influencer, ArtistCategory.Dancer, ArtistCategory.DJ };
+
+        foreach (var category in categories)
+        {
+            await CreateGenreAsync(forCategory: category);
+        }
+
+        // Act
+        var res = await Client.GetAsync($"{BaseUrl}?page=1&pageSize=2");
+
+        // Assert
+        res.StatusCode.Should().Be(HttpStatusCode.OK);
+        var page = await res.Content.ReadFromJsonAsync<PagedResult<GenreResponse>>(JsonTestOptions.Default);
+
+        page.Should().NotBeNull();
+        page!.Items.Count.Should().Be(2); // Al usar prefijos únicos, podemos ser exactos
+
+        // Usamos tu método de extensión para limpiar el test
+        page.ShouldHaveValidPaginationLinks(currentPage: 1, expectedPageSize: 2);
+    }
+
+
+    [Fact]
+    public async Task GetById_WhenMissing_Returns404()
+    {
+        var res = await Client.GetAsync($"{BaseUrl}/{Guid.NewGuid()}");
+        res.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }
