@@ -7,6 +7,7 @@ Demo REST API applying DDD and Clean Architecture with .NET, JWT authentication,
 ## Run locally
 
 ### Set development secret
+
 ```powershell
 $Env:Auth__DevSecret="EVENTHOUSE_LOCAL_DEV_SECRET_32_CHARS_MINIMUM!!"
 
@@ -26,7 +27,9 @@ dotnet test EventHouse.sln --collect:"XPlat Code Coverage"
 
 
 ## Generate HTML coverage report
-reportgenerator -reports:"EventHouse.Management.Domain.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Application.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Api.Tests\TestResults\*\coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Html -filefilters:"-*\\obj\\*;-*RegexGenerator.g.cs"
+reportgenerator -reports:"EventHouse.Management.Domain.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Application.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Api.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Infrastructure.Tests\TestResults\*\coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Html -filefilters:"-*\\obj\\*;-*RegexGenerator.g.cs"
+
+
 
 ## Open the report:
 start coverage-report/index.html

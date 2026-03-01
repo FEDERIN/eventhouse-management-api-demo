@@ -27,3 +27,6 @@ Thumbs.db
 ## coverage
 coverage/
 coverage-report/
+[Tt]est[Rr]esults/
+
+*.cobertura.xml

@@ -106,10 +106,9 @@ namespace EventHouse.Management.Infrastructure.Repositories
             SortDirection sortDirection)
         {
 
-            var sortBy = venueSortField ?? VenueSortField.Name;
             bool asc = sortDirection == SortDirection.Asc;
 
-            query = sortBy switch
+            query = venueSortField switch
             {
                 VenueSortField.Name =>
                     asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name),
