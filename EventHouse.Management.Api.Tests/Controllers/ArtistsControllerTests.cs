@@ -12,9 +12,7 @@ namespace EventHouse.Management.Api.Tests.Controllers;
 public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
     : BaseIntegrationTest(factory)
 {
-    private const string BaseUrlArtists = ApiRoutes.Artists;
-    private const string BaseUrlGenres = ApiRoutes.Genres;
-
+ 
     [Fact]
     public async Task GetAll_WithoutToken_Returns401()
     {

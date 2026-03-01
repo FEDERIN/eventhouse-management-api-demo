@@ -15,8 +15,8 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
 
     protected readonly HttpClient Client = factory.CreateDefaultClient(new AuthedHandler(factory));
 
-    private const string BaseUrlGenres = ApiRoutes.Genres;
-    private const string BaseUrlArtists = ApiRoutes.Artists;
+    public const string BaseUrlGenres = ApiRoutes.Genres;
+    public const string BaseUrlArtists = ApiRoutes.Artists;
     private const string BaseUrlVenues = ApiRoutes.Venues;
 
     protected async Task<ArtistDetail> CreateArtistAsync(string? name = null, ArtistCategory? category = null)

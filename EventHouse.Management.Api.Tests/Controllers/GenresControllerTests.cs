@@ -12,12 +12,10 @@ namespace EventHouse.Management.Api.Tests.Controllers;
 public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
     : BaseIntegrationTest(factory)
 {
-    private const string BaseUrl = ApiRoutes.Genres;
-
     [Fact]
     public async Task GetAll_WithoutToken_Returns401()
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl).WithoutAuthentication();
+        var request = new HttpRequestMessage(HttpMethod.Get, BaseUrlGenres).WithoutAuthentication();
 
         var res = await Client.SendAsync(request);
 
@@ -29,7 +27,7 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
     {
         var request = new CreateGenreRequest { Name = "Jazz" };
 
-        var postResponse = await Client.PostAsJsonAsync(BaseUrl, request);
+        var postResponse = await Client.PostAsJsonAsync(BaseUrlGenres, request);
 
         postResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await postResponse.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default);
@@ -43,17 +41,18 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
     {
         var genre = await CreateGenreAsync(forCategory: ArtistCategory.Band);
 
-        var put = await Client.PutAsJsonAsync($"{BaseUrl}/{genre!.Id}", new UpdateGenreRequest { Name = "Pop" });
+        var updateRequest = new UpdateGenreRequest { Name = "Pop" };
+        var put = await Client.PutAsJsonAsync($"{BaseUrlGenres}/{genre!.Id}", updateRequest);
         put.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var updated = await Client.GetFromJsonAsync<GenreResponse>($"{BaseUrl}/{genre.Id}", JsonTestOptions.Default);
-        updated!.Name.Should().Be("Pop");
+        var updated = await Client.GetFromJsonAsync<GenreResponse>($"{BaseUrlGenres}/{genre.Id}", JsonTestOptions.Default);
+        updated.Should().BeEquivalentTo(updateRequest);
     }
 
     [Fact]
     public async Task Update_WhenMissing_Returns404_ProblemJson()
     {
-        var res = await Client.PutAsJsonAsync($"{BaseUrl}/{Guid.NewGuid()}", new UpdateGenreRequest { Name = "Salsa" });
+        var res = await Client.PutAsJsonAsync($"{BaseUrlGenres}/{Guid.NewGuid()}", new UpdateGenreRequest { Name = "Salsa" });
 
         await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
@@ -67,7 +66,7 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
         var genre2 = await CreateGenreAsync(forCategory: ArtistCategory.Host);
 
         // Act
-        var update = await Client.PutAsJsonAsync($"{BaseUrl}/{genre2!.Id}", new UpdateGenreRequest { Name = genre.Name });
+        var update = await Client.PutAsJsonAsync($"{BaseUrlGenres}/{genre2!.Id}", new UpdateGenreRequest { Name = genre.Name });
 
         // Assert
         await update.ShouldHaveErrorCode(HttpStatusCode.Conflict, "GENRE_NAME_ALREADY_EXISTS");
@@ -77,8 +76,30 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
     public async Task Delete_Returns404_ProblemJson()
     {
         // delete
-        var res = await Client.DeleteAsync($"{BaseUrl}/{Guid.NewGuid()}");
+        var res = await Client.DeleteAsync($"{BaseUrlGenres}/{Guid.NewGuid()}");
         await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Delete_When_Is_Association_Returns409Conflict()
+    {
+        // Arrange
+        var artist = await CreateArtistAsync(category: ArtistCategory.Band);
+        var genre = await CreateGenreAsync(forCategory: ArtistCategory.Band);
+
+        // Act
+        await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", new AddArtistGenreRequest
+        {
+            GenreId = genre!.Id,
+            Status = ArtistGenreStatus.Active,
+            IsPrimary = true
+        });
+
+        // delete
+        var res = await Client.DeleteAsync($"{BaseUrlGenres}/{genre.Id}");
+
+        // Assert
+        await res.ShouldHaveErrorCode(HttpStatusCode.Conflict, "GENRE_HAS_ASSOCIATIONS");
     }
 
     [Fact]
@@ -87,11 +108,11 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
         var genre = await CreateGenreAsync(forCategory: ArtistCategory.Singer);
 
         // delete
-        var del = await Client.DeleteAsync($"{BaseUrl}/{genre!.Id}");
+        var del = await Client.DeleteAsync($"{BaseUrlGenres}/{genre!.Id}");
         del.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // get -> 404
-        var get = await Client.GetAsync($"{BaseUrl}/{genre.Id}");
+        var get = await Client.GetAsync($"{BaseUrlGenres}/{genre.Id}");
 
         await get.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
@@ -99,7 +120,7 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
     [Fact]
     public async Task Create_WhenInvalid_Returns400_ValidationProblemJson()
     {
-        var res = await Client.PostAsJsonAsync(BaseUrl, new CreateGenreRequest
+        var res = await Client.PostAsJsonAsync(BaseUrlGenres, new CreateGenreRequest
         {
             Name = "R"
         });
@@ -118,7 +139,7 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
         }
 
         // Act
-        var res = await Client.GetAsync($"{BaseUrl}?page=1&pageSize=2");
+        var res = await Client.GetAsync($"{BaseUrlGenres}?page=1&pageSize=2");
 
         // Assert
         res.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -135,7 +156,7 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
     [Fact]
     public async Task GetById_WhenMissing_Returns404()
     {
-        var res = await Client.GetAsync($"{BaseUrl}/{Guid.NewGuid()}");
+        var res = await Client.GetAsync($"{BaseUrlGenres}/{Guid.NewGuid()}");
         res.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

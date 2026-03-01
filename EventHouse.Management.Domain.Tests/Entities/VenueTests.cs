@@ -2,7 +2,7 @@
 
 namespace EventHouse.Management.Domain.Tests.Entities;
 
-public sealed class VenuesTests
+public sealed class VenueTests
 {
  
     private static readonly Guid Id = Guid.NewGuid();
