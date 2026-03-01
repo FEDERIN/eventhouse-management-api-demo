@@ -1,5 +1,4 @@
 ﻿using EventHouse.Management.Application.DTOs;
-using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Application.Common.Interfaces;
 using MediatR;

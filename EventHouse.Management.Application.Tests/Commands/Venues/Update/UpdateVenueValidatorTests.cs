@@ -1,7 +1,7 @@
 ﻿using EventHouse.Management.Application.Commands.Venues.Update;
 using FluentAssertions;
 
-namespace EventHouse.Management.Application.Tests.Commands.Venues.Create;
+namespace EventHouse.Management.Application.Tests.Commands.Venues.Update;
 
 public sealed class UpdateVenueValidatorTests
 {

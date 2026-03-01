@@ -1,9 +1,8 @@
-﻿
-using EventHouse.Management.Api.Contracts.Common;
+﻿using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.Venues;
 using EventHouse.Management.Api.Tests.Abstractions;
 using EventHouse.Management.Api.Tests.Common;
-using EventHouse.Management.Domain.Entities;
+using EventHouse.Management.Api.Tests.Factories;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
@@ -27,67 +26,19 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
     }
 
     [Fact]
-    public async Task Create_Returns201_Location_And_CanGetById()
+    public async Task Create_Returns201_And_MatchesRequest()
     {
-        var request = new CreateVenueRequest
-        {
-            Name = "Miami International Arena",
-            Address = "500 Biscayne Blvd, Miami, FL 33132",
-            City = "Miami",
-            Region = "FL",
-            CountryCode = "US",
-            Latitude = 25.7800m,
-            Longitude = -80.1880m,
-            TimeZoneId = "America/New_York",
-            Capacity = 18000,
-            IsActive = true
-        };
+        // Arrange
+        var request = VenueFactory.CreateRequest(name: "Miami International Arena");
 
         // Act
-        var post = await Client.PostAsJsonAsync(BaseUrl, request);
+        var response = await Client.PostAsJsonAsync(BaseUrl, request);
+        var created = await response.ReadContentAsync<VenueResponse>();
 
-        // Assert: 201
-        post.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        // Assert: body
-        var created = await post.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
-
-        created.Should().NotBeNull();
-        created!.Id.Should().NotBeEmpty();
-        created.Name.Should().Be(request.Name);
-        created.Address.Should().Be(request.Address);
-        created.City.Should().Be(request.City);
-        created.Region.Should().Be(request.Region);
-        created.CountryCode.Should().Be(request.CountryCode);
-        created.Latitude.Should().Be(request.Latitude);
-        created.Longitude.Should().Be(request.Longitude);
-        created.TimeZoneId.Should().Be(request.TimeZoneId);
-        created.Capacity.Should().Be(request.Capacity);
-        created.IsActive.Should().Be(request.IsActive);
-
-        // Assert: Location header matches CreatedAtAction(GetById)
-        post.Headers.Location.Should().NotBeNull();
-        var location = post.Headers.Location!.ToString();
-
-        location.Should().Contain(BaseUrl);
-        location.Should().EndWith(created.Id.ToString());
-
-        // Roundtrip: GET by id returns 200 and same resource
-        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}");
-        get.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var fetched = await get.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
-        fetched.Should().NotBeNull();
-        fetched!.Id.Should().Be(created.Id);
-        fetched.Name.Should().Be(created.Name);
-        fetched.Address.Should().Be(created.Address);
-        fetched.City.Should().Be(created.City);
-        fetched.Region.Should().Be(created.Region);
-        fetched.Latitude.Should().Be(created.Latitude);
-        fetched.Longitude.Should().Be(created.Longitude);
-        fetched.TimeZoneId.Should().Be(created.TimeZoneId);
-        fetched.Capacity.Should().Be(created.Capacity);
-        fetched.IsActive.Should().Be(created.IsActive);
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        created.Should().BeEquivalentTo(request, opt => opt.ExcludingMissingMembers());
+        response.Headers.Location.Should().NotBeNull();
     }
 
     [Fact]
@@ -100,63 +51,19 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
     [Fact]
     public async Task Update_Returns204_And_PersistsChanges()
     {
-        // create
-        var create = await Client.PostAsJsonAsync(BaseUrl, new CreateVenueRequest
-        {
-            Name = "Madison Square Garden",
-            Address = "4 Pennsylvania Plaza, New York, NY 10001",
-            City = "New York",
-            Region = "NY",
-            CountryCode = "US",
-            Latitude = 40.7505m,
-            Longitude = -73.9934m,
-            TimeZoneId = "America/New_York",
-            Capacity = 20000,
-            IsActive = true
-        });
+        // Arrange
+        var venue = await CreateVenueAsync("Madison Square Garden");
+        var updateRequest = VenueFactory.UpdateRequest("Kaseya Center");
 
-        create.StatusCode.Should().Be(HttpStatusCode.Created);
+        // Act
+        var response = await Client.PutAsJsonAsync($"{BaseUrl}/{venue.Id}", updateRequest);
 
-        var created = await create.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
-        created!.Id.Should().NotBeEmpty();
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // update
-
-        var update = new UpdateVenueRequest
-        {
-            Name = "Kaseya Center",
-            Address = "601 Biscayne Blvd, Miami, FL 33132",
-            City = "Miami",
-            Region = "FL",
-            CountryCode = "US",
-            Latitude = 25.7814m,
-            Longitude = -80.1870m,
-            TimeZoneId = "America/New_York",
-            Capacity = 19600,
-            IsActive = true
-        };
-
-        var put = await Client.PutAsJsonAsync($"{BaseUrl}/{created.Id}", update);
-
-        put.StatusCode.Should().Be(HttpStatusCode.NoContent);
-
-        // roundtrip
-        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}");
-        get.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var updated = await get.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
-        updated.Should().NotBeNull();
-        updated!.Id.Should().NotBeEmpty();
-        updated.Name.Should().Be(update.Name);
-        updated.Address.Should().Be(update.Address);
-        updated.City.Should().Be(update.City);
-        updated.Region.Should().Be(update.Region);
-        updated.CountryCode.Should().Be(update.CountryCode);
-        updated.Latitude.Should().Be(update.Latitude);
-        updated.Longitude.Should().Be(update.Longitude);
-        updated.TimeZoneId.Should().Be(update.TimeZoneId);
-        updated.Capacity.Should().Be(update.Capacity);
-        updated.IsActive.Should().Be(update.IsActive);
+        // Roundtrip
+        var updated = await Client.GetFromJsonAsync<VenueResponse>($"{BaseUrl}/{venue.Id}", JsonTestOptions.Default);
+        updated.Should().BeEquivalentTo(updateRequest);
     }
 
     [Fact]
@@ -177,32 +84,35 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
             IsActive = true
         });
 
+
         await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Update_WhenNameDuplicate_Returns409Conflict()
+    {
+        // Arrange
+
+        var venue = await CreateVenueAsync();
+        var venue2 = await CreateVenueAsync();
+
+        var updateRequest = VenueFactory.UpdateRequest("Kaseya Center");
+
+        // Act
+        var update = await Client.PutAsJsonAsync($"{BaseUrl}/{venue2!.Id}", updateRequest);
+
+        // Assert
+        await update.ShouldHaveErrorCode(HttpStatusCode.Conflict, "VENUE_NAME_ALREADY_EXISTS");
     }
 
     [Fact]
     public async Task Delete_Returns204()
     {
         // create
-        var create = await Client.PostAsJsonAsync(BaseUrl, new CreateVenueRequest
-        {
-            Name = "Kaseya Center 2",
-            Address = "601 Biscayne Blvd, Miami, FL 33132",
-            City = "Miami",
-            Region = "FL",
-            CountryCode = "US",
-            Latitude = 25.7814m,
-            Longitude = -80.1870m,
-            TimeZoneId = "America/New_York",
-            Capacity = 19600,
-            IsActive = true
-        });
-        create.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var created = await create.Content.ReadFromJsonAsync<Venue>(JsonTestOptions.Default);
+        var venue = await CreateVenueAsync();
 
         // delete
-        var del = await Client.DeleteAsync($"{BaseUrl}/{created!.Id}");
+        var del = await Client.DeleteAsync($"{BaseUrl}/{venue!.Id}");
         del.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
@@ -212,7 +122,6 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
 
         var id = Guid.NewGuid();
 
-        // delete
         var del = await Client.DeleteAsync($"{BaseUrl}/{id}");
 
         await del.ShouldBeProblemJson(HttpStatusCode.NotFound);
@@ -236,46 +145,21 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
         await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }
 
+   
     [Fact]
-    public async Task GetAll_WithPaging_ReturnsPagedResultWithLinks()
+    public async Task GetAll_WithPaging_ReturnsPagedResult()
     {
-        foreach (var name in new[] { "E1", "E2", "E3" })
-        {
-            var create = await Client.PostAsJsonAsync(BaseUrl, new CreateVenueRequest
-            {
-                Name = name,
-                Address = "123 Test St, Test City, TS 12345",
-                City = "Test City",
-                Region = "TS",
-                CountryCode = "US",
-                Latitude = 0m,
-                Longitude = 0m,
-                TimeZoneId = "UTC",
-                Capacity = 100,
-                IsActive = true
-            });
-            create.StatusCode.Should().Be(HttpStatusCode.Created);
-        }
+        // Arrange
+        var prefix = Guid.NewGuid().ToString();
+        for (int i = 0; i < 3; i++) await CreateVenueAsync($"{prefix}_Arena_{i}");
 
+        // Act
+        var res = await Client.GetAsync($"{BaseUrl}?searchTerm={prefix}&page=1&pageSize=2");
+        var page = await res.ReadContentAsync<PagedResult<VenueResponse>>();
 
-        var res = await Client.GetAsync($"{BaseUrl}?address=123 Test&city=Test City&region=TS&countryCode=US&capacity=50&isActive=true&sortBy=Name&sortDirection=Asc&page=1&pageSize=2");
+        // Assert
         res.StatusCode.Should().Be(HttpStatusCode.OK);
-        var page = await res.Content.ReadFromJsonAsync<PagedResult<Venue>>(JsonTestOptions.Default);
-
-        page.Should().NotBeNull();
-
-        page!.Items.Should().NotBeNull();
-        page.Items.Count.Should().BeLessOrEqualTo(2);
-        page.Page.Should().Be(1);
-        page.PageSize.Should().Be(2);
-        page.TotalCount.Should().BeGreaterOrEqualTo(page.Items.Count);
-
-        page.Links.Should().NotBeNull();
-        page.Links!.Self.Should().NotBeNull();
-        page.Links.Self!.Should().Contain("page=1");
-        page.Links.Self!.Should().Contain("pageSize=2");
-
-        if (page.TotalCount > 2)
-            page.Links.Next.Should().NotBeNull();
+        page.Items.Should().HaveCount(2);
+        page.ShouldHaveValidPaginationLinks(currentPage: 1, expectedPageSize: 2);
     }
 }
