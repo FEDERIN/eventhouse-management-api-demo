@@ -96,7 +96,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
         var venue = await CreateVenueAsync();
         var venue2 = await CreateVenueAsync();
 
-        var updateRequest = VenueFactory.UpdateRequest("Kaseya Center");
+        var updateRequest = VenueFactory.UpdateRequest(venue.Name);
 
         // Act
         var update = await Client.PutAsJsonAsync($"{BaseUrl}/{venue2!.Id}", updateRequest);

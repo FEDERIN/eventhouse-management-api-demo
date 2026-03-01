@@ -26,7 +26,7 @@ namespace EventHouse.Management.Infrastructure.Repositories
         if (_context.Entry(entity).State == EntityState.Detached)
             throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
-            await _context.SaveChangesAsync(cancellationToken);
+            await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
         }
 
         public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)

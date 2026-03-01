@@ -15,5 +15,5 @@ namespace EventHouse.Management.Application.Commands.Venues.Update
         string? TimeZoneId,
         int? Capacity,
         bool IsActive
-        ) : IRequest<UpdateResult>;
+        ) : IRequest;
 }
