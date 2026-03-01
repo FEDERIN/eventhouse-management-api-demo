@@ -340,6 +340,25 @@ public sealed class VenuesTests
     }
 
     [Fact]
+    public void Should_throw_when_longitude_is_good_but_latitude_is_null()
+    {
+        Assert.Throws<ArgumentException>(() =>
+        new Venue(
+                Id,
+                Name,
+                Address,
+                City,
+                Region,
+                CountryCode,
+                null,
+                100,
+                TimeZoneId,
+                Capacity,
+                IsActive));
+    }
+
+
+    [Fact]
     public void Should_throw_when_timeZoneId_is_Invalid()
     {
         var ex = Assert.Throws<ArgumentException>(() =>

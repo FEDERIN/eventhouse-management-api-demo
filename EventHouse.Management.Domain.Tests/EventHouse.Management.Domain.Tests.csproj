@@ -24,4 +24,8 @@
     <ProjectReference Include="..\EventHouse.Management.Domain\EventHouse.Management.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="TestResults\" />
+  </ItemGroup>
+
 </Project>
