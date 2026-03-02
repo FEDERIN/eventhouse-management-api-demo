@@ -1,0 +1,31 @@
+﻿using EventHouse.Management.Api.Contracts.Common;
+using EventHouse.Management.Api.Contracts.Genres;
+using Swashbuckle.AspNetCore.Filters;
+using System.Diagnostics.CodeAnalysis;
+
+namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Genres;
+
+[ExcludeFromCodeCoverage]
+internal class GenrePagedResultExample : IExamplesProvider<PagedResult<GenreResponse>>
+{
+    public PagedResult<GenreResponse> GetExamples() => new()
+    {
+        Items =
+        [
+            new()
+            {
+                Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                Name = "Rock"
+            }
+        ],
+        TotalCount = 1,
+        Page = 1,
+        PageSize = 20,
+        Links = new PaginationLinks
+        {
+            Self = "/api/v1/genres?page=1&pageSize=20",
+            First = "/api/v1/genres?page=1&pageSize=20",
+            Last = "/api/v1/genres?page=1&pageSize=20"
+        }
+    };
+}
