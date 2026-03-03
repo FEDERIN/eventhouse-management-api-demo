@@ -3,6 +3,7 @@ using System;
 using EventHouse.Management.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ManagementDbContext))]
-    partial class ManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260302135548_AddSeatingMapTable")]
+    partial class AddSeatingMapTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.24");
@@ -35,7 +38,7 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Name")
                         .IsUnique()
-                        .HasDatabaseName("UX_Artists_Name");
+                        .HasDatabaseName("IX_Artists_Name");
 
                     b.ToTable("Artists", null, t =>
                         {
@@ -165,10 +168,6 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("VenueId");
-
-                    b.HasIndex("VenueId", "Name")
-                        .IsUnique()
-                        .HasDatabaseName("UX_SeatingMap_VenueId_Name");
 
                     b.ToTable("SeatingMaps", null, t =>
                         {
