@@ -16,7 +16,7 @@ Run API
 dotnet run --project EventHouse.Management.Api
 
 ### Update BD
-dotnet ef migrations add UpdateIndexArtistGenrePrimary `--project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api --output-dir Persistences
+dotnet ef migrations add UpdateIndexArtistGenrePrimary `--project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api --output-dir Persistence/Migrations
 
 dotnet ef database update ` --project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api
 
