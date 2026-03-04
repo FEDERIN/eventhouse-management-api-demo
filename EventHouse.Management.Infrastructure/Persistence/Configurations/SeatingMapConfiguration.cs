@@ -26,6 +26,7 @@ namespace EventHouse.Management.Infrastructure.Persistence.Configurations
 
             builder.Property(e => e.Version)
                    .IsRequired()
+                   .IsConcurrencyToken()
                    .HasDefaultValue(1);
 
             builder.Property(e => e.IsActive)
