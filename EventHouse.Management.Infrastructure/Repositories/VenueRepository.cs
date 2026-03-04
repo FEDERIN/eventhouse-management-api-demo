@@ -44,6 +44,11 @@ namespace EventHouse.Management.Infrastructure.Repositories
             return true;
         }
 
+        public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await ExistsAsync<Venue>(id, cancellationToken);
+        }
+
         public async Task<Venue?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _context.Venues.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
