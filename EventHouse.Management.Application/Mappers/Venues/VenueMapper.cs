@@ -3,7 +3,7 @@ using EventHouse.Management.Domain.Entities;
 
 namespace EventHouse.Management.Application.Mappers.Venues;
 
-internal class VenuesMapper
+internal class VenueMapper
 {
     public static VenueDto ToDto(Venue venue)
     {

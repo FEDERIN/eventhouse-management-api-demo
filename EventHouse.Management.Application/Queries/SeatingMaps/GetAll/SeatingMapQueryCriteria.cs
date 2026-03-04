@@ -6,6 +6,5 @@ public sealed record SeatingMapQueryCriteria : SortablePaginationCriteria<Seatin
 {
     public Guid? VenueId { get; init; }
     public string? Name { get; init; }
-    public int? Version { get; init; }
     public bool? IsActive { get; init; }
 }

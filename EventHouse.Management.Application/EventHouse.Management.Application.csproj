@@ -16,10 +16,6 @@
 		<_Parameter1>EventHouse.Management.Application.Tests</_Parameter1>
 	</AssemblyAttribute>
   </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Queries\SeatingMaps\GetById\" />
-  </ItemGroup>
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
