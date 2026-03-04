@@ -1,6 +1,7 @@
 ﻿using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence;
 using EventHouse.Management.Infrastructure.Persistence.Exceptions;
+using EventHouse.ShareKernel.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories;
@@ -38,5 +39,11 @@ public abstract class BaseRepository(ManagementDbContext context)
             }
             throw;
         }
+    }
+
+    protected async Task<bool> ExistsAsync<TEntity>(Guid id, CancellationToken ct)
+        where TEntity : Entity
+    {
+        return await _context.Set<TEntity>().AnyAsync(e => e.Id == id, ct);
     }
 }
