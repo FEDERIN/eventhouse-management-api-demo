@@ -21,7 +21,6 @@ public class SeatingMapRepository(ManagementDbContext context) :
     {
         await _context.SeatingMaps.AddAsync(entity, cancellationToken);
         await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
-
     }
 
     public async Task UpdateAsync(SeatingMap entity, CancellationToken cancellationToken = default)
@@ -64,9 +63,6 @@ public class SeatingMapRepository(ManagementDbContext context) :
 
         if (criteria.VenueId.HasValue)
             query = query.Where(v => v.VenueId == criteria.VenueId.Value);
-
-        if (criteria.Version.HasValue)
-            query = query.Where(v => v.Version == criteria.Version.Value);
 
         if (criteria.IsActive.HasValue)
             query = query.Where(v => v.IsActive == criteria.IsActive.Value);

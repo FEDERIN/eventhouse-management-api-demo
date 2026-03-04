@@ -24,4 +24,11 @@ public sealed class SeatingMap : Entity
         IsActive = isActive;
         CreatedAtUtc = DateTime.UtcNow;
     }
+
+    public void Update(string name, int version, bool isActive)
+    {
+        Name = name;
+        Version = version;
+        IsActive = isActive;
+    }
 }
