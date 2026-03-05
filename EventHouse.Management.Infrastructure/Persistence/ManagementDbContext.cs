@@ -10,6 +10,7 @@ namespace EventHouse.Management.Infrastructure.Persistence
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Venue> Venues { get; set; }
         public DbSet<ArtistGenre> ArtistGenres { get; set; }
+        public DbSet<SeatingMap> SeatingMaps { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

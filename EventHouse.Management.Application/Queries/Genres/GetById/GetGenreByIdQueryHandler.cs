@@ -1,6 +1,7 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Application.Exceptions;
+using EventHouse.Management.Application.Mappers.Genres;
 using MediatR;
 
 namespace EventHouse.Management.Application.Queries.Genres.GetById;
@@ -15,6 +16,6 @@ internal sealed class GetGenreByIdQueryHandler(IGenreRepository repository)
         var entity = await _repository.GetByIdAsync(request.Id, cancellationToken) 
             ?? throw new NotFoundException("Genre", request.Id);
         
-        return new GenreDto() { Id = entity.Id, Name = entity.Name };
+        return GenreMapper.ToDto(entity);
     }
 }

@@ -1,24 +1,26 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.Common.Sorting;
-using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Queries.Venues.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
-using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories
 {
-    internal class VenueRepository(ManagementDbContext context) : IVenueRepository
+    internal class VenueRepository(ManagementDbContext context) :
+        BaseRepository(context), IVenueRepository
     {
-        private readonly ManagementDbContext _context = context;
+        private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
+        {
+            { "Venues.Name", ("VENUE_NAME_ALREADY_EXISTS", "The name already exists in another venue.", false) }
+        };
 
         public async Task AddAsync(Venue entity, CancellationToken cancellationToken = default)
         {
             await _context.Venues.AddAsync(entity, cancellationToken);
-            await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+            await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
         }
 
         public async Task UpdateAsync(Venue entity, CancellationToken cancellationToken = default)
@@ -26,7 +28,7 @@ namespace EventHouse.Management.Infrastructure.Repositories
         if (_context.Entry(entity).State == EntityState.Detached)
             throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
-            await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+            await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
         }
 
         public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
@@ -40,6 +42,11 @@ namespace EventHouse.Management.Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
 
             return true;
+        }
+
+        public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await ExistsAsync<Venue>(id, cancellationToken);
         }
 
         public async Task<Venue?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -82,22 +89,6 @@ namespace EventHouse.Management.Infrastructure.Repositories
             query = ApplyVenueSorting(query, criteria.SortBy, criteria.SortDirection);
 
             return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
-        }
-
-        private async Task SaveChangesWithUniqueCheckAsync(Venue entity, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-            catch (DbUpdateException ex) when (ex.IsUniqueViolation())
-            {
-                throw new ConflictException(
-                    code: "VENUE_NAME_ALREADY_EXISTS",
-                    title: "Unique constraint violated",
-                    detail: $"Venue with name '{entity.Name}' already exists."
-                );
-            }
         }
 
         private static IQueryable<Venue> ApplyVenueSorting(

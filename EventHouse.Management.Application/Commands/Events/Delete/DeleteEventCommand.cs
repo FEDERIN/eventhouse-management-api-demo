@@ -1,7 +1,5 @@
-﻿using EventHouse.Management.Application.Common;
-using MediatR;
+﻿using MediatR;
 
-namespace EventHouse.Management.Application.Commands.Events.Delete
-{
-    public record DeleteEventCommand(Guid Id) : IRequest<DeleteResult>;
-}
+namespace EventHouse.Management.Application.Commands.Events.Delete;
+
+public record DeleteEventCommand(Guid Id) : IRequest;
