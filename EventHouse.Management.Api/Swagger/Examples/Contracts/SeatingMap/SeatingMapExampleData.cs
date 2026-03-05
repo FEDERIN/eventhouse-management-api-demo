@@ -25,7 +25,6 @@ internal static class SeatingMapExampleData
 
     internal static UpdateSeatingMapRequest Update() => new()
     {
-        VenueId = new Guid("11111111-1111-1111-1111-111111111111"),
         Name = "Main Floor Seating",
         Version = 1,
         IsActive = true,

@@ -87,7 +87,7 @@ public class SeatingMapRepository(ManagementDbContext context) :
                 asc ? query.OrderBy(x => x.Version) : query.OrderByDescending(x => x.Version),
 
             SeatingMapSortField.IsActive =>
-                asc ? query.OrderBy(x => x.IsActive) : query.OrderByDescending(x => x.IsActive),
+                asc ? query.OrderBy(x => x.IsActive).ThenBy(x => x.Name) : query.OrderByDescending(x => x.IsActive).ThenBy(x => x.Name),
 
             _ => asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name)
         };

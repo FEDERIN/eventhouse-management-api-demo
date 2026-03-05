@@ -5,10 +5,6 @@ namespace EventHouse.Management.Api.Contracts.SeatingMaps;
 
 public abstract class SeatingMapUpsertRequest
 {
-    [SwaggerSchema(Description = "The unique identifier of the venue to be associated with the seating map.")]
-    [Required]
-    public Guid VenueId { get; init; }
-
     /// <summary>Seating map name.</summary>
     /// <example>Main Floor Seating</example>
     [SwaggerSchema(Description = "Seating map name. Must be between 2 and 200 characters.")]

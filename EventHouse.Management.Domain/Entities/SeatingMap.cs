@@ -17,6 +17,9 @@ public sealed class SeatingMap : Entity
         if (id == Guid.Empty)
             throw new ArgumentException("Id cannot be empty.", nameof(id));
 
+        if (venueId == Guid.Empty)
+            throw new ArgumentException("VenueId cannot be empty.", nameof(venueId));
+
         Id = id;
         VenueId = venueId;
         Name = name;

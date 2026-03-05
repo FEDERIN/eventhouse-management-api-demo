@@ -6,7 +6,6 @@ namespace EventHouse.Management.Application.Commands.SeatingMaps.Update;
 public sealed record class UpdateSeatingMapCommand
 (
     Guid Id,
-    Guid VenueId,
     string Name,
     int Version,
     bool IsActive

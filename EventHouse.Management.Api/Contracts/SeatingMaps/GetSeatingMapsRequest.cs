@@ -19,5 +19,5 @@ public sealed record GetSeatingMapsRequest : SortablePaginationRequest<SeatingMa
     /// <summary>Indicates whether the seatingMap is currently active.</summary>
     /// <example>true</example>
     [FromQuery(Name = "isActive")]
-    public bool? IsActive { get; init; } = true;
+    public bool? IsActive { get; init; }
 }

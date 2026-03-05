@@ -20,6 +20,21 @@ namespace EventHouse.Management.Api.Controllers;
 [Route("api/v1/seatingMaps")]
 public sealed class SeatingMapsController(IMediator mediator) : BaseApiController
 {
+    #region READ
+    [HttpGet("{seatingMapId:guid}")]
+    [SwaggerOperation(
+        OperationId = "GetSeatingMapById",
+        Summary = "Retrieve a specific seating map by their unique identifier."
+        )]
+    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(SeatingMapResponseExample))]
+    [ProducesOkAttribute<SeatingMapResponse>]
+    [ProducesNotFoundProblem]
+    public async Task<ActionResult<SeatingMapResponse>> GetById(Guid seatingMapId, CancellationToken cancellationToken)
+    {
+        var resultDto = await mediator.Send(new GetSeatingMapByIdQuery(seatingMapId), cancellationToken);
+        return Ok(SeatingMapMapper.ToContract(resultDto));
+    }
+
     [HttpGet]
     [SwaggerOperation(
     OperationId = "ListSeatingMaps",
@@ -41,21 +56,9 @@ public sealed class SeatingMapsController(IMediator mediator) : BaseApiControlle
 
         return Ok(SeatingMapMapper.ToContract(resultDto, Request));
     }
+    #endregion
 
-    [HttpGet("{seatingMapId:guid}")]
-    [SwaggerOperation(
-        OperationId = "GetSeatingMapById",
-        Summary = "Retrieve a specific seating map by their unique identifier."
-    )]
-    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(SeatingMapResponseExample))]
-    [ProducesOkAttribute<SeatingMapResponse>]
-    [ProducesNotFoundProblem]
-    public async Task<ActionResult<SeatingMapResponse>> GetById(Guid seatingMapId, CancellationToken cancellationToken)
-    {
-        var resultDto = await mediator.Send(new GetSeatingMapByIdQuery(seatingMapId), cancellationToken);
-        return Ok(SeatingMapMapper.ToContract(resultDto));
-    }
-
+    #region WRITE
     [HttpPost]
     [SwaggerOperation(
         OperationId = "CreateSeatingMap",
@@ -94,7 +97,6 @@ public sealed class SeatingMapsController(IMediator mediator) : BaseApiControlle
     {
         await mediator.Send(new UpdateSeatingMapCommand(
             seatingMapId,
-            body.VenueId,
             body.Name,
             body.Version,
             body.IsActive
@@ -102,7 +104,9 @@ public sealed class SeatingMapsController(IMediator mediator) : BaseApiControlle
 
         return NoContent();
     }
+    #endregion
 
+    #region DELETE
     [HttpDelete("{seatingMapId:guid}")]
     [SwaggerOperation(OperationId = "DeleteSeatingMap",
     Summary = "Delete a seating map from the system."
@@ -116,4 +120,5 @@ public sealed class SeatingMapsController(IMediator mediator) : BaseApiControlle
 
         return NoContent();
     }
+    #endregion
 }
