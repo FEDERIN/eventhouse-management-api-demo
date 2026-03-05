@@ -1,26 +1,28 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.Common.Sorting;
-using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Queries.Events.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
-using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 
 namespace EventHouse.Management.Infrastructure.Repositories;
 
-internal class EventRepository(ManagementDbContext context) : IEventRepository
+internal class EventRepository(ManagementDbContext context) :
+    BaseRepository(context), IEventRepository
 {
-    private readonly ManagementDbContext _context = context;
+    private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
+    {
+        { "Events.Name", ("EVENT_NAME_ALREADY_EXISTS", "The name already exists in another event.", false) }
+    };
 
     public async Task AddAsync(Event entity, CancellationToken cancellationToken = default)
     {
         await _context.Events.AddAsync(entity, cancellationToken);
 
-        await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
     }
 
     public async Task UpdateAsync(Event entity, CancellationToken cancellationToken = default)
@@ -28,7 +30,7 @@ internal class EventRepository(ManagementDbContext context) : IEventRepository
         if (_context.Entry(entity).State == EntityState.Detached)
             throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
-        await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
@@ -95,21 +97,5 @@ internal class EventRepository(ManagementDbContext context) : IEventRepository
         };
 
         return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
-    }
-
-    private async Task SaveChangesWithUniqueCheckAsync(Event entity, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await _context.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateException ex) when (ex.IsUniqueViolation())
-        {
-            throw new ConflictException(
-                code: "EVENT_NAME_ALREADY_EXISTS",
-                title: "Unique constraint violated",
-                detail: $"Event with name '{entity.Name}' already exists."
-            );
-        }
     }
 }

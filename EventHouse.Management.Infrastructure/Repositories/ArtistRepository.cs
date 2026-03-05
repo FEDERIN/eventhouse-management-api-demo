@@ -5,20 +5,24 @@ using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Queries.Artists.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
-using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories;
 
-internal class ArtistRepository(ManagementDbContext context) : IArtistRepository
+internal class ArtistRepository(ManagementDbContext context) :
+    BaseRepository(context), IArtistRepository
 {
-    private readonly ManagementDbContext _context = context;
+    private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> ArtistMappings = new()
+    {
+        { "Artists.Name", ("ARTIST_NAME_ALREADY_EXISTS", "Artist name already exists.", false) },    
+        { "UX_ArtistGenres_Artist_Genre", (null, null, true) }
+    };
 
     public async Task AddAsync(Artist entity, CancellationToken cancellationToken = default)
     {
         await _context.Artists.AddAsync(entity, cancellationToken);
-        await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+        await SaveChangesWithUniqueCheckAsync(ArtistMappings, cancellationToken);
     }
 
     public async Task UpdateAsync(Artist entity, CancellationToken cancellationToken = default)
@@ -26,7 +30,7 @@ internal class ArtistRepository(ManagementDbContext context) : IArtistRepository
         if (_context.Entry(entity).State == EntityState.Detached)
             throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
-        await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+        await SaveChangesWithUniqueCheckAsync(ArtistMappings, cancellationToken);
     }
 
     public async Task SetPrimaryGenreAsync(Guid artistId, Guid genreOldId, Guid genreId, CancellationToken ct)
@@ -114,26 +118,5 @@ internal class ArtistRepository(ManagementDbContext context) : IArtistRepository
         };
 
         return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
-    }
-
-    private async Task SaveChangesWithUniqueCheckAsync(Artist entity, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await _context.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateException ex) when (ex.IsUniqueViolation("IX_Artists_Name"))
-        {
-            throw new ConflictException(
-                code: "ARTIST_NAME_ALREADY_EXISTS",
-                title: "Unique constraint violated",
-                detail: $"Artist with name '{entity.Name}' already exists."
-            );
-        }
-        catch (DbUpdateException ex) when (ex.IsUniqueViolation("IX_ArtistGenres_ArtistId_GenreId"))
-        {
-            _context.ChangeTracker.Clear();
-            return;
-        }
     }
 }

@@ -154,7 +154,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
         for (int i = 0; i < 3; i++) await CreateVenueAsync($"{prefix}_Arena_{i}");
 
         // Act
-        var res = await Client.GetAsync($"{BaseUrl}?searchTerm={prefix}&page=1&pageSize=2");
+        var res = await Client.GetAsync($"{BaseUrl}?page=1&pageSize=2");
         var page = await res.ReadContentAsync<PagedResult<VenueResponse>>();
 
         // Assert

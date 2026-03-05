@@ -1,10 +1,9 @@
 ﻿using EventHouse.Management.Api.Contracts.Artists;
 using EventHouse.Management.Api.Contracts.Genres;
+using EventHouse.Management.Api.Contracts.SeatingMaps;
 using EventHouse.Management.Api.Contracts.Venues;
 using EventHouse.Management.Api.Tests.Common;
 using EventHouse.Management.Api.Tests.Factories;
-using EventHouse.Management.Domain.Entities;
-using System.Net;
 using System.Net.Http.Json;
 
 namespace EventHouse.Management.Api.Tests.Abstractions;
@@ -15,9 +14,10 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
 
     protected readonly HttpClient Client = factory.CreateDefaultClient(new AuthedHandler(factory));
 
-    public const string BaseUrlGenres = ApiRoutes.Genres;
-    public const string BaseUrlArtists = ApiRoutes.Artists;
-    private const string BaseUrlVenues = ApiRoutes.Venues;
+    protected const string BaseUrlGenres = ApiRoutes.Genres;
+    protected const string BaseUrlArtists = ApiRoutes.Artists;
+    protected const string BaseUrlVenues = ApiRoutes.Venues;
+    protected const string BaseUrlSeatingMaps = ApiRoutes.SeatingMaps;
 
     protected async Task<ArtistDetail> CreateArtistAsync(string? name = null, ArtistCategory? category = null)
     {
@@ -43,5 +43,12 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
         var request = VenueFactory.CreateRequest(name);
         var response = await Client.PostAsJsonAsync(BaseUrlVenues, request);
         return await response.ReadContentAsync<VenueResponse>();
+    }
+
+    protected async Task<SeatingMapResponse> CreateSeatingMapAsync(Guid? venueId = null, string? name = null, bool isActive = true)
+    {
+        var request = SeatingMapFactory.CreateRequest(venueId, name, isActive);
+        var response = await Client.PostAsJsonAsync(BaseUrlSeatingMaps, request);
+        return await response.ReadContentAsync<SeatingMapResponse>();
     }
 }
