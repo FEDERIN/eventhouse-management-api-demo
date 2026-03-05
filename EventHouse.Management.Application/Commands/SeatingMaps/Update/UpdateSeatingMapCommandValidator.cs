@@ -1,12 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using FluentValidation;
 
-namespace EventHouse.Management.Application.Commands.SeatingMaps.Update
+namespace EventHouse.Management.Application.Commands.SeatingMaps.Update;
+
+internal sealed class UpdateSeatingMapCommandValidator
+    : SeatingMapCommandValidatorBase<UpdateSeatingMapCommand>
 {
-    internal class UpdateSeatingMapCommandValidator
+    public UpdateSeatingMapCommandValidator()
     {
+        RuleFor(x => x.Id)
+            .NotEmpty().WithMessage("Id is require.");
+
+        ApplySeatingMapRules(
+            x => x.Name,
+            x => x.Version
+            );
     }
 }
