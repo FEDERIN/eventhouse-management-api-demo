@@ -69,15 +69,14 @@ internal class EventVenueRepository(ManagementDbContext context) :
         if (criteria.Status.HasValue)
             query = query.Where(ev => ev.Status == criteria.Status.Value);
 
-        var sortBy = criteria.SortBy ?? EventVenueSortField.Status;
         bool asc = criteria.SortDirection == SortDirection.Asc;
 
-        query = sortBy switch
+        query = criteria.SortBy switch
         {
             EventVenueSortField.Status => asc
                 ? query.OrderBy(x => x.Status).ThenBy(x => x.Id)
                 : query.OrderByDescending(x => x.Status).ThenBy(x => x.Id),
-            _ => asc ? query.OrderBy(x => x.Id) : query.OrderByDescending(x => x.Id)
+            _ => asc ? query.OrderBy(x => x.Status).ThenBy(x => x.Id) : query.OrderByDescending(x => x.Status).ThenBy(x => x.Id)
         };
 
         return await query.ToPagedResultAsync(

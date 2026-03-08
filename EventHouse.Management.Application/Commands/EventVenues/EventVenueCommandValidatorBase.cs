@@ -1,9 +1,10 @@
-﻿using EventHouse.Management.Application.Common.Enums;
+﻿using System.Linq.Expressions;
+using EventHouse.Management.Application.Common.Enums;
 using FluentValidation;
 
 namespace EventHouse.Management.Application.Commands.EventVenues;
 
-internal abstract class EventVenueCommandValidatorBase <TCommand>
+internal abstract class EventVenueCommandValidatorBase<TCommand>
     : AbstractValidator<TCommand>
 {
     protected EventVenueCommandValidatorBase()
@@ -12,10 +13,10 @@ internal abstract class EventVenueCommandValidatorBase <TCommand>
     }
 
     protected void ApplyEventVenueRules(
-        Func<TCommand, Guid> eventId,
-        Func<TCommand, EventVenueStatusDto> status)
+        Expression<Func<TCommand, EventVenueStatusDto>> statusSelector)
     {
-        RuleFor(x => status(x))
-            .IsInEnum();
+        RuleFor(statusSelector)
+            .IsInEnum()
+            .WithMessage("The provided status is not valid.");
     }
 }

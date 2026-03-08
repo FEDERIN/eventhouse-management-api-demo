@@ -1,9 +1,12 @@
 ﻿using EventHouse.Management.Api.Contracts.Artists;
+using EventHouse.Management.Api.Contracts.Events;
+using EventHouse.Management.Api.Contracts.EventVenues;
 using EventHouse.Management.Api.Contracts.Genres;
 using EventHouse.Management.Api.Contracts.SeatingMaps;
 using EventHouse.Management.Api.Contracts.Venues;
 using EventHouse.Management.Api.Tests.Common;
 using EventHouse.Management.Api.Tests.Factories;
+using EventHouse.Management.Domain.Entities;
 using System.Net.Http.Json;
 
 namespace EventHouse.Management.Api.Tests.Abstractions;
@@ -18,7 +21,7 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
     protected const string BaseUrlArtists = ApiRoutes.Artists;
     protected const string BaseUrlVenues = ApiRoutes.Venues;
     protected const string BaseUrlSeatingMaps = ApiRoutes.SeatingMaps;
-
+    protected const string BaseUrlEventVenues = ApiRoutes.EventVenues;
     protected async Task<ArtistDetail> CreateArtistAsync(string? name = null, ArtistCategory? category = null)
     {
         var request = ArtistFactory.CreateRequest(name, category);
@@ -38,6 +41,13 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
         return await response.ReadContentAsync<GenreResponse>();
     }
 
+    protected async Task<Event> CreateEventAsync(string? name = null, string? description = null, EventScope? scope = EventScope.National)
+    {
+        var request = EventFactory.CreateRequest(name, description, scope);
+        var response = await Client.PostAsJsonAsync(ApiRoutes.Events, request);
+        return await response.ReadContentAsync<Event>();
+    }
+
     protected async Task<VenueResponse> CreateVenueAsync(string? name = null)
     {
         var request = VenueFactory.CreateRequest(name);
@@ -50,5 +60,21 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
         var request = SeatingMapFactory.CreateRequest(venueId, name, isActive);
         var response = await Client.PostAsJsonAsync(BaseUrlSeatingMaps, request);
         return await response.ReadContentAsync<SeatingMapResponse>();
+    }
+
+    protected async Task<EventVenueResponse> CreateEventVenueAsync()
+    {
+        var eventResponse = await CreateEventAsync();
+        var venueResponse = await CreateVenueAsync();
+
+        var request = new CreateEventVenueRequest
+        {
+            EventId = eventResponse.Id,
+            VenueId = venueResponse.Id,
+            Status = EventVenueStatus.Active
+        };
+
+        var response = await Client.PostAsJsonAsync(BaseUrlEventVenues, request);
+        return await response.ReadContentAsync<EventVenueResponse>();
     }
 }

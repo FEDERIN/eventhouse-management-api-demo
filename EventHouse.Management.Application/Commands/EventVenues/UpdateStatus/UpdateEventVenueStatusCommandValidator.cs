@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿
+using FluentValidation;
 
 namespace EventHouse.Management.Application.Commands.EventVenues.UpdateStatus;
 
@@ -8,6 +9,8 @@ internal class UpdateEventVenueStatusCommandValidator
     public UpdateEventVenueStatusCommandValidator()
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Id no puede ser Guid.Empty.");
+            .NotEmpty().WithMessage("Id must be a non-empty GUID.");
+
+        ApplyEventVenueRules(x => x.Status);
     }
 }
