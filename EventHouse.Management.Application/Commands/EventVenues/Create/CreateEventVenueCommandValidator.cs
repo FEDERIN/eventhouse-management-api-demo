@@ -8,10 +8,10 @@ internal sealed class CreateEventVenueCommandValidator
     public CreateEventVenueCommandValidator()
     {
         RuleFor(x => x.EventId)
-            .NotEmpty().WithMessage("EventId no puede ser Guid.Empty.");
-
+            .NotEmpty().WithMessage("The EventId cannot be empty.");
         RuleFor(x => x.VenueId)
-            .NotEmpty().WithMessage("VenueId no puede ser Guid.Empty.");
+            .NotEmpty().WithMessage("The VenueId cannot be empty.");
+        ApplyEventVenueRules(x => x.Status);
     }
 }
 
