@@ -33,6 +33,14 @@ curl http://localhost:5185/health
 curl http://localhost:5185/ready
 
 
+##📖 Repository Design Standards
+
+    - The interfaces and implementations of our repositories follow a strict Lifecycle-Based Ordering, aligned with ISO/IEC 25010 maintainability principles:
+    - Commands First (Add/Update): We prioritize the methods that alter the system state, reflecting the repositories role as a persistent collection.
+    - Queries Second (Get/Paged): Data retrieval methods follow, defining how entities are accessed once they exist.
+    - Validation & Existence: Specialized methods like ExistsAsync are grouped to support clean "Fail-Fast" logic in the Application Layer.
+    - Analyzability: This consistent structure reduces cognitive load for developers, ensuring that the persistence contract is predictable across all modules.
+
 # Tests Standards & Principles
     - Fail-Fast Approach: Tests are ordered by "depth" in the tech stack so failures occur as early as possible in the pipeline.
     - RFC 9110 Compliance: Strict adherence to HTTP semantics: 201 Created (with Location header), 204 No Content (updates/deletes), 409 Conflict (state collisions), and 404 Not Found.
