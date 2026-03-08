@@ -1,4 +1,5 @@
 ﻿using EventHouse.Management.Api.Contracts.SeatingMaps;
+using EventHouse.Management.Api.Swagger.Examples.Data;
 using Swashbuckle.AspNetCore.Filters;
 using System.Diagnostics.CodeAnalysis;
 
