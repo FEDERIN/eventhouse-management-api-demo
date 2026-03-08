@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.Events;
+using EventHouse.Management.Api.Swagger.Examples.Data;
 using Swashbuckle.AspNetCore.Filters;
 using System.Diagnostics.CodeAnalysis;
 
@@ -11,15 +12,7 @@ internal sealed class EventPagedResultExample : IExamplesProvider<PagedResult<Ev
     public PagedResult<EventResponse> GetExamples() => new()
     {
         Items =
-        [
-            new()
-            {
-                Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-                Name = "Summer Music Festival",
-                Description = "An exciting outdoor music festival featuring various artists.",
-                Scope = EventScope.National
-            }
-        ],
+        [EventExampleData.Result()],
         TotalCount = 1,
         Page = 1,
         PageSize = 20,
