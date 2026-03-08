@@ -7,125 +7,123 @@ using EventHouse.Management.Infrastructure.Persistence;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventHouse.Management.Infrastructure.Repositories
+namespace EventHouse.Management.Infrastructure.Repositories;
+internal class VenueRepository(ManagementDbContext context) :
+    BaseRepository(context), IVenueRepository
 {
-    internal class VenueRepository(ManagementDbContext context) :
-        BaseRepository(context), IVenueRepository
+    private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
     {
-        private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
+        { "Venues.Name", ("VENUE_NAME_ALREADY_EXISTS", "The name already exists in another venue.", false) }
+    };
+
+    public async Task AddAsync(Venue entity, CancellationToken cancellationToken = default)
+    {
+        await _context.Venues.AddAsync(entity, cancellationToken);
+        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
+    }
+
+    public async Task UpdateAsync(Venue entity, CancellationToken cancellationToken = default)
+    {
+    if (_context.Entry(entity).State == EntityState.Detached)
+        throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
+
+        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
+    }
+
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var entity = await GetTrackedByIdAsync(id, cancellationToken);
+
+        if (entity is null)
+            return false;
+
+        _context.Venues.Remove(entity);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
+
+    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await ExistsAsync<Venue>(id, cancellationToken);
+    }
+
+    public async Task<Venue?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Venues.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+    }
+
+    public async Task<Venue?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Venues.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+    }
+
+    public async Task<PagedResultDto<Venue>> GetPagedAsync(
+        VenueQueryCriteria criteria,
+        CancellationToken cancellationToken = default)
+    {
+        IQueryable<Venue> query = _context.Venues.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(criteria.Name))
+            query = query.Where(v => EF.Functions.Like(v.Name, $"%{criteria.Name}%"));
+            
+        if (!string.IsNullOrWhiteSpace(criteria.Address))
+            query = query.Where(v => EF.Functions.Like(v.Address, $"%{criteria.Address}%"));
+
+        if (!string.IsNullOrWhiteSpace(criteria.City))
+            query = query.Where(v => v.City != null && v.City == criteria.City);
+
+        if (!string.IsNullOrWhiteSpace(criteria.Region))
+            query = query.Where(v => v.Region != null && v.Region == criteria.Region);
+
+        if (!string.IsNullOrWhiteSpace(criteria.CountryCode))
+            query = query.Where(v => v.CountryCode != null && v.CountryCode == criteria.CountryCode);
+
+        if(criteria.Capacity.HasValue)
+            query = query.Where(v => v.Capacity.HasValue && v.Capacity.Value >= criteria.Capacity.Value);
+
+        if (criteria.IsActive is not null)
+            query = query.Where(v => v.IsActive == criteria.IsActive.Value);
+
+        query = ApplyVenueSorting(query, criteria.SortBy, criteria.SortDirection);
+
+        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
+    }
+
+    private static IQueryable<Venue> ApplyVenueSorting(
+        IQueryable<Venue> query,
+        VenueSortField? venueSortField,
+        SortDirection sortDirection)
+    {
+
+        bool asc = sortDirection == SortDirection.Asc;
+
+        query = venueSortField switch
         {
-            { "Venues.Name", ("VENUE_NAME_ALREADY_EXISTS", "The name already exists in another venue.", false) }
+            VenueSortField.Name =>
+                asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name),
+
+            VenueSortField.Address =>
+                asc ? query.OrderBy(x => x.Address) : query.OrderByDescending(x => x.Address),
+
+            VenueSortField.City =>
+                asc ? query.OrderBy(x => x.City) : query.OrderByDescending(x => x.City),
+
+            VenueSortField.Region =>
+                asc ? query.OrderBy(x => x.Region) : query.OrderByDescending(x => x.Region),
+
+            VenueSortField.CountryCode =>
+                asc ? query.OrderBy(x => x.CountryCode) : query.OrderByDescending(x => x.CountryCode),
+
+            VenueSortField.Capacity =>
+                asc ? query.OrderBy(x => x.Capacity) : query.OrderByDescending(x => x.Capacity),
+
+            VenueSortField.IsActive =>
+                asc ? query.OrderBy(x => x.IsActive) : query.OrderByDescending(x => x.IsActive),
+
+            _ => asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name)
         };
 
-        public async Task AddAsync(Venue entity, CancellationToken cancellationToken = default)
-        {
-            await _context.Venues.AddAsync(entity, cancellationToken);
-            await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
-        }
-
-        public async Task UpdateAsync(Venue entity, CancellationToken cancellationToken = default)
-        {
-        if (_context.Entry(entity).State == EntityState.Detached)
-            throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
-
-            await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
-        }
-
-        public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
-        {
-            var entity = await GetTrackedByIdAsync(id, cancellationToken);
-
-            if (entity is null)
-                return false;
-
-            _context.Venues.Remove(entity);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return true;
-        }
-
-        public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
-        {
-            return await ExistsAsync<Venue>(id, cancellationToken);
-        }
-
-        public async Task<Venue?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-        {
-            return await _context.Venues.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-        }
-
-        public async Task<Venue?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
-        {
-            return await _context.Venues.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-        }
-
-        public async Task<PagedResultDto<Venue>> GetPagedAsync(
-            VenueQueryCriteria criteria,
-            CancellationToken cancellationToken = default)
-        {
-            IQueryable<Venue> query = _context.Venues.AsNoTracking();
-
-            if (!string.IsNullOrWhiteSpace(criteria.Name))
-                query = query.Where(v => EF.Functions.Like(v.Name, $"%{criteria.Name}%"));
-            
-            if (!string.IsNullOrWhiteSpace(criteria.Address))
-                query = query.Where(v => EF.Functions.Like(v.Address, $"%{criteria.Address}%"));
-
-            if (!string.IsNullOrWhiteSpace(criteria.City))
-                query = query.Where(v => v.City != null && v.City == criteria.City);
-
-            if (!string.IsNullOrWhiteSpace(criteria.Region))
-                query = query.Where(v => v.Region != null && v.Region == criteria.Region);
-
-            if (!string.IsNullOrWhiteSpace(criteria.CountryCode))
-                query = query.Where(v => v.CountryCode != null && v.CountryCode == criteria.CountryCode);
-
-            if(criteria.Capacity.HasValue)
-                query = query.Where(v => v.Capacity.HasValue && v.Capacity.Value >= criteria.Capacity.Value);
-
-            if (criteria.IsActive is not null)
-                query = query.Where(v => v.IsActive == criteria.IsActive.Value);
-
-            query = ApplyVenueSorting(query, criteria.SortBy, criteria.SortDirection);
-
-            return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
-        }
-
-        private static IQueryable<Venue> ApplyVenueSorting(
-            IQueryable<Venue> query,
-            VenueSortField? venueSortField,
-            SortDirection sortDirection)
-        {
-
-            bool asc = sortDirection == SortDirection.Asc;
-
-            query = venueSortField switch
-            {
-                VenueSortField.Name =>
-                    asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name),
-
-                VenueSortField.Address =>
-                    asc ? query.OrderBy(x => x.Address) : query.OrderByDescending(x => x.Address),
-
-                VenueSortField.City =>
-                    asc ? query.OrderBy(x => x.City) : query.OrderByDescending(x => x.City),
-
-                VenueSortField.Region =>
-                    asc ? query.OrderBy(x => x.Region) : query.OrderByDescending(x => x.Region),
-
-                VenueSortField.CountryCode =>
-                    asc ? query.OrderBy(x => x.CountryCode) : query.OrderByDescending(x => x.CountryCode),
-
-                VenueSortField.Capacity =>
-                    asc ? query.OrderBy(x => x.Capacity) : query.OrderByDescending(x => x.Capacity),
-
-                VenueSortField.IsActive =>
-                    asc ? query.OrderBy(x => x.IsActive) : query.OrderByDescending(x => x.IsActive),
-
-                _ => asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name)
-            };
-
-            return query;
-        }
+        return query;
     }
 }
