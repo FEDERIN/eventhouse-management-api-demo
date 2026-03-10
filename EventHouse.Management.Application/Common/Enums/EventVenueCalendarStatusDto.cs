@@ -1,7 +1,7 @@
 ﻿
 namespace EventHouse.Management.Application.Common.Enums;
 
-public enum EventVenueCalendarStatus
+public enum EventVenueCalendarStatusDto
 {
     Draft = 1,
     Published = 2,
