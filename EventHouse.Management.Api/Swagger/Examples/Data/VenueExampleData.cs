@@ -15,7 +15,7 @@ internal static class VenueExampleData
     private static readonly string CountryCode = "US";
     private static readonly decimal Latitude = 40.7505m;
     private static readonly decimal Longitude = -73.9934m;
-    private static readonly string TimeZoneId = "America/New_York";
+    private static readonly string TimeZoneId = ExampleConstants.TimeZoneId;
     private static readonly int Capacity = 20000;
     private static readonly bool IsActive = true;
 

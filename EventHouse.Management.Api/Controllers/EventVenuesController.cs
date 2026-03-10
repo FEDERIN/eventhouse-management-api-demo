@@ -45,7 +45,6 @@ public sealed class EventVenuesController(IMediator mediator) : BaseApiControlle
         Summary = "List event venues with optional filtering, sorting, and pagination.")]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(EventVenuePagedResultExample))]
     [SwaggerRequestExample(typeof(GetEventVenuesRequest), typeof(GetEventVenuesRequestExample))]
-
     [ProducesOkAttribute<PagedResult<EventVenueResponse>>]
     [ProducesValidationProblemAttribute]
     [ProducesTooManyRequestsProblemAttribute]

@@ -7,7 +7,7 @@ namespace EventHouse.Management.Api.Swagger.Examples.Data;
 [ExcludeFromCodeCoverage]
 internal static class EventVenueExampleData
 {
-    private static readonly Guid EventVenueId = Guid.Parse("a123b456-7c89-0d12-3e45-6f7890123456");
+    private static readonly Guid EventVenueId = ExampleConstants.EventVenueId;
     private static readonly Guid EventId = ExampleConstants.EventId;
     private static readonly Guid VenueId = ExampleConstants.VenueId;
     private static readonly string EventName = ExampleConstants.EventName;
