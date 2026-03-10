@@ -17,6 +17,7 @@ public class SeatingMapRepository(ManagementDbContext context) :
         { "SeatingMaps.Name", ("SEATING_MAP_ALREADY_EXISTS_IN_VENUE", "The name already exists in another seating map for the venue.", false) }
     };
 
+    #region WRITE
     public async Task AddAsync(SeatingMap entity, CancellationToken cancellationToken = default)
     {
         await _context.SeatingMaps.AddAsync(entity, cancellationToken);
@@ -43,7 +44,9 @@ public class SeatingMapRepository(ManagementDbContext context) :
 
         return true;
     }
+    #endregion
 
+    #region READ
     public async Task<SeatingMap?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.SeatingMaps.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
@@ -71,7 +74,16 @@ public class SeatingMapRepository(ManagementDbContext context) :
 
         return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
     }
+    #endregion
 
+    #region VALIDATIONS
+    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await ExistsAsync<SeatingMap>(id, cancellationToken);
+    }
+    #endregion
+
+    #region PRIVATE
     private static IQueryable<SeatingMap> ApplySeatingMapSorting(IQueryable<SeatingMap> query,
             SeatingMapSortField? sortBy,
             SortDirection sortDirection)
@@ -93,4 +105,5 @@ public class SeatingMapRepository(ManagementDbContext context) :
         };
         return query;
     }
+    #endregion
 }
