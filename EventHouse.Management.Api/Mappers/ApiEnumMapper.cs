@@ -1,6 +1,6 @@
 ﻿namespace EventHouse.Management.Api.Mappers;
 
-public static class ApiEnumMapper<TContract, TDto>
+internal static class ApiEnumMapper<TContract, TDto>
     where TContract : struct, Enum
     where TDto : struct, Enum
 {

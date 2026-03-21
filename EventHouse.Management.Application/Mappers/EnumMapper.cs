@@ -1,6 +1,6 @@
 ﻿namespace EventHouse.Management.Application.Mappers;
 
-public static class EnumMapper<TDomain, TDto>
+internal static class EnumMapper<TDomain, TDto>
     where TDomain : struct, Enum
     where TDto : struct, Enum
 {
