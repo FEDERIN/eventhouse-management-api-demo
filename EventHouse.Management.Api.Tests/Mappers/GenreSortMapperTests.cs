@@ -5,7 +5,7 @@ using EventHouse.Management.Application.Queries.Genres.GetAll;
 namespace EventHouse.Management.Api.Tests.Mappers;
 
 public sealed class GenreSortMapperTests
-    : ApiEnumMapperTestBase<GenreSortBy, GenreSortField>
+    : ApiEnumMapperUnidirectionalTestBase<GenreSortBy, GenreSortField>
 {
     protected override GenreSortField ToApplicationRequired(GenreSortBy contract) =>
         GenreSortMapper.ToApplication(contract)
@@ -13,9 +13,4 @@ public sealed class GenreSortMapperTests
 
     protected override GenreSortField? ToApplicationOptional(GenreSortBy? contract) =>
         GenreSortMapper.ToApplication(contract);
-
-    protected override GenreSortBy ToContractRequired(GenreSortField dto)
-    {
-        throw new NotImplementedException("Sort mapping is unidirectional (Contract to App).");
-    }
 }
