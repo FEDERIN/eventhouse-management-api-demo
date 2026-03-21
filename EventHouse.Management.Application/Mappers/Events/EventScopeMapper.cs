@@ -3,7 +3,7 @@ using EventHouse.Management.Domain.Enums;
 
 namespace EventHouse.Management.Application.Mappers.Events;
 
-public static class EventScopeMapper
+internal static class EventScopeMapper
 {
     public static EventScope ToDomainRequired(EventScopeDto scope) =>
         EnumMapper<EventScope, EventScopeDto>.ToDomainRequired(scope);
