@@ -22,7 +22,13 @@ dotnet ef database update ` --project EventHouse.Management.Infrastructure --sta
 
 
 
+
+
 ## Tests and code coverage (local)
+#dotnet test EventHouse.Management.Infrastructure.Tests\EventHouse.Management.Infrastructure.Tests.csproj --collect:"XPlat Code Coverage"
+#dotnet test EventHouse.Management.Domain.Tests\EventHouse.Management.Domain.Tests.csproj --collect:"XPlat Code Coverage"
+#dotnet test EventHouse.Management.Api.Tests\EventHouse.Management.Api.Tests.csproj --collect:"XPlat Code Coverage"
+#dotnet test EventHouse.Management.Application.Tests\EventHouse.Management.Application.Tests.csproj --collect:"XPlat Code Coverage"
 dotnet test EventHouse.sln --collect:"XPlat Code Coverage"
 
 
