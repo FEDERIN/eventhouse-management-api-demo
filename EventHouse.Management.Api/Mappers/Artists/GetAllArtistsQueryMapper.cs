@@ -1,5 +1,4 @@
 ﻿using EventHouse.Management.Api.Contracts.Artists;
-using EventHouse.Management.Api.Mappers.Enums;
 using EventHouse.Management.Application.Queries.Artists.GetAll;
 
 namespace EventHouse.Management.Api.Mappers.Artists;

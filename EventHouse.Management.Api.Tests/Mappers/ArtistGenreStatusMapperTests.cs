@@ -1,5 +1,5 @@
 ﻿using EventHouse.Management.Api.Contracts.Artists;
-using EventHouse.Management.Api.Mappers.Enums;
+using EventHouse.Management.Api.Mappers.Artists;
 using EventHouse.Management.Application.Common.Enums;
 
 namespace EventHouse.Management.Api.Tests.Mappers;

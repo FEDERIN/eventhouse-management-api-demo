@@ -2,7 +2,6 @@ using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Contracts.Artists;
 using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Mappers.Artists;
-using EventHouse.Management.Api.Mappers.Enums;
 using EventHouse.Management.Api.Swagger;
 using EventHouse.Management.Api.Swagger.Examples.Contracts.Artists;
 using EventHouse.Management.Api.Swagger.Examples.Requests.Artists;
