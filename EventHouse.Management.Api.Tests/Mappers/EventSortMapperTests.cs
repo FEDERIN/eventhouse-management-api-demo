@@ -5,7 +5,7 @@ using EventHouse.Management.Application.Queries.Events.GetAll;
 namespace EventHouse.Management.Api.Tests.Mappers;
 
 public sealed class EventSortMapperTests
-    : ApiEnumMapperTestBase<EventSortBy, EventSortField>
+    : ApiEnumMapperUnidirectionalTestBase<EventSortBy, EventSortField>
 {
     protected override EventSortField ToApplicationRequired(EventSortBy contract) =>
         EventSortMapper.ToApplication(contract)
@@ -13,9 +13,4 @@ public sealed class EventSortMapperTests
 
     protected override EventSortField? ToApplicationOptional(EventSortBy? contract) =>
         EventSortMapper.ToApplication(contract);
-
-    protected override EventSortBy ToContractRequired(EventSortField dto)
-    {
-         throw new NotImplementedException("Sort mapping is unidirectional (Contract to App).");
-    }
 }
