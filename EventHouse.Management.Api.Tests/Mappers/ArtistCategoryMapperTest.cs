@@ -1,6 +1,6 @@
-﻿using EventHouse.Management.Api.Mappers.Enums;
-using Contract = EventHouse.Management.Api.Contracts.Artists.ArtistCategory;
+﻿using Contract = EventHouse.Management.Api.Contracts.Artists.ArtistCategory;
 using EventHouse.Management.Application.Common.Enums;
+using EventHouse.Management.Api.Mappers.Artists;
 
 namespace EventHouse.Management.Api.Tests.Mappers;
 

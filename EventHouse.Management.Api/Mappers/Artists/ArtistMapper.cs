@@ -1,7 +1,6 @@
 ﻿using EventHouse.Management.Api.Contracts.Artists;
 using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Mappers.Common;
-using EventHouse.Management.Api.Mappers.Enums;
 using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.DTOs;
 
