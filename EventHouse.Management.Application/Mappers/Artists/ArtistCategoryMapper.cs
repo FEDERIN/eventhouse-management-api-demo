@@ -4,7 +4,7 @@ using EventHouse.Management.Domain.Enums;
 
 namespace EventHouse.Management.Application.Mappers.Artists;
 
-public static class ArtistCategoryMapper
+internal static class ArtistCategoryMapper
 {
     public static ArtistCategory ToDomainRequired(ArtistCategoryDto category) =>
         EnumMapper<ArtistCategory, ArtistCategoryDto>.ToDomainRequired(category);
