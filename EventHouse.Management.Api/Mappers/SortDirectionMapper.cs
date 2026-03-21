@@ -5,10 +5,6 @@ namespace EventHouse.Management.Api.Mappers;
 
 public static class SortDirectionMapper
 {
-    public static AppSortDirection ToApplication(ApiSortDirection direction)
-        => direction switch
-        {
-            ApiSortDirection.Desc => AppSortDirection.Desc,
-            _ => AppSortDirection.Asc
-        };
+    public static AppSortDirection ToApplication(ApiSortDirection direction) =>
+        ApiEnumMapper<ApiSortDirection, AppSortDirection>.ToApplicationRequired(direction);
 }
