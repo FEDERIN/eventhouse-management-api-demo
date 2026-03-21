@@ -23,6 +23,14 @@ public class EventVenueCalendar : Entity
         string timeZoneId,
         EventVenueCalendarStatus status)
     {
+        if (id == Guid.Empty)
+            throw new ArgumentException("Id cannot be empty.", nameof(id));
+        if (eventVenueId == Guid.Empty)
+            throw new ArgumentException("EventVenueId cannot be empty.", nameof(eventVenueId));
+        if (seatingMapId == Guid.Empty)
+            throw new ArgumentException("SeatingMapId cannot be empty.", nameof(seatingMapId));
+
+
         Id = id;
         EventVenueId = eventVenueId;
         SeatingMapId = seatingMapId;

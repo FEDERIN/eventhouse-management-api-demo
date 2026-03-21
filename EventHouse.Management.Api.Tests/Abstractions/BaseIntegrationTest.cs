@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Api.Contracts.Artists;
 using EventHouse.Management.Api.Contracts.Events;
+using EventHouse.Management.Api.Contracts.EventVenueCalendars;
 using EventHouse.Management.Api.Contracts.EventVenues;
 using EventHouse.Management.Api.Contracts.Genres;
 using EventHouse.Management.Api.Contracts.SeatingMaps;
@@ -22,6 +23,7 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
     protected const string BaseUrlVenues = ApiRoutes.Venues;
     protected const string BaseUrlSeatingMaps = ApiRoutes.SeatingMaps;
     protected const string BaseUrlEventVenues = ApiRoutes.EventVenues;
+    protected const string BaseUrlEventVenueCalendars = ApiRoutes.EventVenueCalendars;
     protected async Task<ArtistDetail> CreateArtistAsync(string? name = null, ArtistCategory? category = null)
     {
         var request = ArtistFactory.CreateRequest(name, category);
@@ -76,5 +78,43 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
 
         var response = await Client.PostAsJsonAsync(BaseUrlEventVenues, request);
         return await response.ReadContentAsync<EventVenueResponse>();
+    }
+
+    protected async Task<EventVenueCalendarResponse> CreateEventVenueCalendarAsync()
+    {
+        CreateEventVenueCalendarRequest request = await CreateEventVenueCalendarRequestAsync();
+
+        var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request);
+        return await response.ReadContentAsync<EventVenueCalendarResponse>();
+    }
+
+    protected async Task<CreateEventVenueCalendarRequest> CreateEventVenueCalendarRequestAsync(Guid? eventVenueId = null, Guid? seatingMapId = null)
+    {
+
+        var venueId = new Guid();
+
+        if (eventVenueId == null || !eventVenueId.HasValue)
+        {
+            var eventVenue = await CreateEventVenueAsync();
+            eventVenueId = eventVenue.Id;
+            venueId = eventVenue.VenueId;
+        }
+
+        if (seatingMapId == null || !seatingMapId.HasValue) {
+            var seatingMap = await CreateSeatingMapAsync(venueId: venueId);
+            seatingMapId = seatingMap.Id;
+        }
+
+        var request = new CreateEventVenueCalendarRequest
+        {
+            EventVenueId = eventVenueId.GetValueOrDefault(),
+            SeatingMapId = seatingMapId.GetValueOrDefault(),
+            Status = EventVenueCalendarStatus.Draft,
+            StartDate = DateTime.UtcNow,
+            EndDate = DateTime.UtcNow.AddHours(1),
+            TimeZoneId = "America/New_York",
+        };
+
+        return request;
     }
 }
