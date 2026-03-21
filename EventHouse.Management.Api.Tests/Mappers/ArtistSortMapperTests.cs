@@ -5,28 +5,17 @@ using EventHouse.Management.Application.Queries.Artists.GetAll;
 namespace EventHouse.Management.Api.Tests.Mappers;
 
 public sealed class ArtistSortMapperTests
+    : ApiEnumMapperTestBase<ArtistSortBy, ArtistSortField>
 {
-    [Theory]
-    [InlineData(ArtistSortBy.Name, ArtistSortField.Name)]
-    [InlineData(ArtistSortBy.Category, ArtistSortField.Category)]
-    public void ToApplication_WhenSortByIsValid_ReturnsMappedField(
-        ArtistSortBy input,
-        ArtistSortField expected)
+    protected override ArtistSortField ToApplicationRequired(ArtistSortBy contract) =>
+        ArtistSortMapper.ToApplication(contract)
+        ?? throw new ArgumentNullException(nameof(contract), "Mapping failed unexpectedly.");
+
+    protected override ArtistSortField? ToApplicationOptional(ArtistSortBy? contract) =>
+        ArtistSortMapper.ToApplication(contract);
+
+    protected override ArtistSortBy ToContractRequired(ArtistSortField dto)
     {
-        // Act
-        var result = ArtistSortMapper.ToApplication(input);
-
-        // Assert
-        Assert.Equal(expected, result);
-    }
-
-    [Fact]
-    public void ToApplication_WhenSortByIsNull_ReturnsNull()
-    {
-        // Act
-        var result = ArtistSortMapper.ToApplication(null);
-
-        // Assert
-        Assert.Null(result);
+         throw new NotImplementedException("Sort mapping is unidirectional (Contract to App).");
     }
 }
