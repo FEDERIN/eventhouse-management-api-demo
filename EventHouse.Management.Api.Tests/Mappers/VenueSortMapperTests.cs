@@ -5,33 +5,17 @@ using EventHouse.Management.Application.Queries.Venues.GetAll;
 namespace EventHouse.Management.Api.Tests.Mappers;
 
 public sealed class VenueSortMapperTests
+    : ApiEnumMapperTestBase<VenueSortBy, VenueSortField>
 {
-    [Theory]
-    [InlineData(VenueSortBy.Name, VenueSortField.Name)]
-    [InlineData(VenueSortBy.Address, VenueSortField.Address)]
-    [InlineData(VenueSortBy.City, VenueSortField.City)]
-    [InlineData(VenueSortBy.Region, VenueSortField.Region)]
-    [InlineData(VenueSortBy.CountryCode, VenueSortField.CountryCode)]
-    [InlineData(VenueSortBy.Capacity, VenueSortField.Capacity)]
-    [InlineData(VenueSortBy.IsActive, VenueSortField.IsActive)]
-    public void ToApplication_WhenSortByIsValid_ReturnsMappedField(
-        VenueSortBy input,
-        VenueSortField expected)
+    protected override VenueSortField ToApplicationRequired(VenueSortBy contract) =>
+        VenueSortMapper.ToApplication(contract)
+        ?? throw new ArgumentNullException(nameof(contract), "Mapping failed unexpectedly.");
+
+    protected override VenueSortField? ToApplicationOptional(VenueSortBy? contract) =>
+        VenueSortMapper.ToApplication(contract);
+
+    protected override VenueSortBy ToContractRequired(VenueSortField dto)
     {
-        // Act
-        var result = VenueSortMapper.ToApplication(input);
-
-        // Assert
-        Assert.Equal(expected, result);
-    }
-
-    [Fact]
-    public void ToApplication_WhenSortByIsNull_ReturnsNull()
-    {
-        // Act
-        var result = VenueSortMapper.ToApplication(null);
-
-        // Assert
-        Assert.Null(result);
+        throw new NotImplementedException("Sort mapping is unidirectional (Contract to App).");
     }
 }
