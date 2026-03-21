@@ -3,12 +3,8 @@ using EventHouse.Management.Application.Queries.Genres.GetAll;
 
 namespace EventHouse.Management.Api.Mappers.Genres;
 
-public static class GenreSortMapper
+internal static class GenreSortMapper
 {
-    public static GenreSortField? ToApplication(GenreSortBy? sortBy)
-        => sortBy switch
-        {
-            GenreSortBy.Name => GenreSortField.Name,
-            _ => null
-        };
+    public static GenreSortField? ToApplication(GenreSortBy? sortBy) =>
+        ApiEnumMapper<GenreSortBy, GenreSortField>.ToApplicationOptional(sortBy);
 }
