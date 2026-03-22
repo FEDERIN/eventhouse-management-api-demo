@@ -10,8 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Contracts\**" />
     <Compile Remove="NewFolder\**" />
+    <EmbeddedResource Remove="Contracts\**" />
     <EmbeddedResource Remove="NewFolder\**" />
+    <None Remove="Contracts\**" />
     <None Remove="NewFolder\**" />
   </ItemGroup>
 
@@ -38,10 +41,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EventHouse.Management.Api\EventHouse.Management.Api.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Contracts\" />
   </ItemGroup>
 
 </Project>
