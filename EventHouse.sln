@@ -21,13 +21,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Api.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Infrastructure.Tests", "EventHouse.Management.Infrastructure.Tests\EventHouse.Management.Infrastructure.Tests.csproj", "{7EFCB89C-3FB0-45E9-9470-9E6A8169416C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.TestUtils", "EventHouse.Management.TestUtils\EventHouse.Management.TestUtils.csproj", "{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{F0664617-8F2E-4AA9-A919-51F190FF4037}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -66,5 +65,12 @@ Global
 		{7EFCB89C-3FB0-45E9-9470-9E6A8169416C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7EFCB89C-3FB0-45E9-9470-9E6A8169416C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7EFCB89C-3FB0-45E9-9470-9E6A8169416C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
