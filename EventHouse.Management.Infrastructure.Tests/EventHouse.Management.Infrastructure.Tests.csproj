@@ -37,6 +37,7 @@
   <ItemGroup>
     <ProjectReference Include="..\EventHouse.Management.Infrastructure\EventHouse.Management.Infrastructure.csproj" />
     <ProjectReference Include="..\EventHouse.Management.Domain\EventHouse.Management.Domain.csproj" />
+    <ProjectReference Include="..\EventHouse.Management.TestUtils\EventHouse.Management.TestUtils.csproj" />
   </ItemGroup>
 
 </Project>
