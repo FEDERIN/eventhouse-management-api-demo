@@ -1,8 +1,8 @@
 ﻿using EventHouse.Management.Application.Common.Sorting;
 using EventHouse.Management.Application.Queries.Genres.GetAll;
-using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Repositories;
 using EventHouse.Management.Infrastructure.Tests.Persistence;
+using EventHouse.Management.TestUtils.Factories;
 using FluentAssertions;
 
 namespace EventHouse.Management.Infrastructure.Tests.Repositories;
@@ -20,7 +20,7 @@ public class GenreRepositoryTests : BasePersistenceTest
     public async Task UpdateAsync_ShouldThrowInvalidOperationException_WhenEntityIsDetached()
     {
         // Arrange
-        var genre = CreateValidGenre("Rock");
+        var genre = TestEntityFactory.CreateGenre(name: "Rock");
 
         // Act
         var act = async () => await _repository.UpdateAsync(genre, TestContext.Current.CancellationToken);
@@ -35,15 +35,15 @@ public class GenreRepositoryTests : BasePersistenceTest
     {
         // Arrange
         await SeedAsync(
-            CreateValidGenre("Rock"),
-            CreateValidGenre("Pop")
+            TestEntityFactory.CreateGenre(name: "Rock"),
+            TestEntityFactory.CreateGenre(name: "Pop")
         );
         var criteria = new GenreQueryCriteria { Name = "oc" };
         // Act
         var result = await _repository.GetPagedAsync(criteria, TestContext.Current.CancellationToken);
         // Assert
         result.Items.Should().ContainSingle();
-        result.Items[0].Name.Should().Be("Rock");
+        result.Items[0].Name.Should().StartWith("Rock");
     }
 
     [Theory]
@@ -58,19 +58,13 @@ public class GenreRepositoryTests : BasePersistenceTest
     {
          // Arrange
         await SeedAsync(
-            CreateValidGenre("Rock"),
-            CreateValidGenre("Vallenato")
+            TestEntityFactory.CreateGenre(name: "Rock"),
+            TestEntityFactory.CreateGenre(name: "Vallenato")
         );
         var criteria = new GenreQueryCriteria { SortBy = sortField, SortDirection = direction };
         // Act
         var result = await _repository.GetPagedAsync(criteria, TestContext.Current.CancellationToken);
         // Assert
-        result.Items[0].Name.Should().Be(expectedFirstName);
+        result.Items[0].Name.Should().StartWith(expectedFirstName);
     }
-
-    private static Genre CreateValidGenre(string name)
-    {
-        return new Genre(Guid.NewGuid(), name);
-    }
-
 }

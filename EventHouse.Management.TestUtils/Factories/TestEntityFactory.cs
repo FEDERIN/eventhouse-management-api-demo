@@ -16,21 +16,6 @@ public static class TestEntityFactory
         return new Genre(genreId, uniqueName);
     }
 
-    /// Creates a valid ArtistGenre entity for testing purposes.
-    /// </summary>
-    public static ArtistGenre CreateArtistGenre(
-        Guid? artistId = null,
-        Guid? genreId = null,
-        ArtistGenreStatus status = ArtistGenreStatus.Active,
-        bool isPrimary = false)
-    {
-        return new ArtistGenre(
-            artistId ?? Guid.NewGuid(),
-            genreId ?? Guid.NewGuid(),
-            status,
-            isPrimary);
-    }
-
     /// <summary>
     /// Creates a Venue entity that satisfies all domain validations.
     /// </summary>
