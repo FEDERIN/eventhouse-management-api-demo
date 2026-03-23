@@ -30,6 +30,10 @@
 		<_Parameter1>EventHouse.Management.Api.Tests</_Parameter1>
 	</AssemblyAttribute>
   </ItemGroup>
+  
+    <ItemGroup>
+      <Folder Include="Mappers\Enums\" />
+    </ItemGroup>
 
 
 </Project>

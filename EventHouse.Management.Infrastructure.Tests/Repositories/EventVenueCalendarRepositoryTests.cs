@@ -23,12 +23,12 @@ public sealed class EventVenueCalendarRepositoryTests : BasePersistenceTest
     {
         // Arrange
         var calendar = TestEntityFactory.CreateEventVenueCalendar(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
-
-        // Act
+       
         var act = async () => await _repository.UpdateAsync(calendar, TestContext.Current.CancellationToken);
 
-        // Assert
         await act.ShouldThrowDetachedException();
+
+
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public sealed class EventVenueCalendarRepositoryTests : BasePersistenceTest
     {
         // Arrange
         var deps1 = await SeedDependenciesAsync();
-        var (_, _, EventVenueId, SeatingMapId) = await SeedDependenciesAsync(); // Dependencias para el segundo EventVenue
+        var (_, _, EventVenueId, SeatingMapId) = await SeedDependenciesAsync();
 
         await SeedAsync(
             TestEntityFactory.CreateEventVenueCalendar(Guid.NewGuid(), deps1.EventVenueId, deps1.SeatingMapId),

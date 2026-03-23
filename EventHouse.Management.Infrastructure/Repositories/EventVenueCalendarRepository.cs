@@ -20,11 +20,13 @@ public class EventVenueCalendarRepository(ManagementDbContext context)
     public async Task AddAsync(EventVenueCalendar entity, CancellationToken cancellationToken = default)
     {
         await _context.EventVenueCalendars.AddAsync(entity, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        await SaveChangesWithUniqueCheckAsync(EventVenueCalendarMappings, cancellationToken);
     }
     public async Task UpdateAsync(EventVenueCalendar entity, CancellationToken cancellationToken = default)
     {
-        await _context.EventVenueCalendars.AddAsync(entity, cancellationToken);
+        if (_context.Entry(entity).State == EntityState.Detached)
+            throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
+
         await SaveChangesWithUniqueCheckAsync(EventVenueCalendarMappings, cancellationToken);
     }
     #endregion

@@ -1,5 +1,4 @@
 ﻿using EventHouse.Management.Api.Contracts.EventVenueCalendars;
-using EventHouse.Management.Api.Mappers.Enums;
 using EventHouse.Management.Application.Queries.EventVenueCalendars.GetAll;
 
 namespace EventHouse.Management.Api.Mappers.EventVenueCalendars;
