@@ -35,7 +35,7 @@ internal sealed class GetAllVenuesQueryHandler(IVenueRepository venueRepository)
 
         return new PagedResultDto<VenueDto>
         {
-            Items = VenuesMapper.ToDto(result.Items),
+            Items = VenueMapper.ToDto(result.Items),
             TotalCount = result.TotalCount,
             Page = result.Page,
             PageSize = result.PageSize

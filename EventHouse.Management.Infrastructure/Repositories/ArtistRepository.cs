@@ -11,14 +11,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories;
 
-internal class ArtistRepository(ManagementDbContext context) : IArtistRepository
+internal class ArtistRepository(ManagementDbContext context) :
+    BaseRepository(context), IArtistRepository
 {
-    private readonly ManagementDbContext _context = context;
+    private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> ArtistMappings = new()
+    {
+        { "Artists.Name", ("ARTIST_NAME_ALREADY_EXISTS", "Artist name already exists.", false) },    
+        { "UX_ArtistGenres_Artist_Genre", (null, null, true) }
+    };
 
     public async Task AddAsync(Artist entity, CancellationToken cancellationToken = default)
     {
         await _context.Artists.AddAsync(entity, cancellationToken);
-        await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+        await SaveChangesWithUniqueCheckAsync(ArtistMappings, cancellationToken);
     }
 
     public async Task UpdateAsync(Artist entity, CancellationToken cancellationToken = default)
@@ -26,7 +31,7 @@ internal class ArtistRepository(ManagementDbContext context) : IArtistRepository
         if (_context.Entry(entity).State == EntityState.Detached)
             throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
-        await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+        await SaveChangesWithUniqueCheckAsync(ArtistMappings, cancellationToken);
     }
 
     public async Task SetPrimaryGenreAsync(Guid artistId, Guid genreOldId, Guid genreId, CancellationToken ct)

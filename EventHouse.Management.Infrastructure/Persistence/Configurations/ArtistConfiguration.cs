@@ -25,6 +25,6 @@ internal class ArtistConfiguration : IEntityTypeConfiguration<Artist>
 
         builder.HasIndex(e => e.Name)
             .IsUnique()
-            .HasDatabaseName("IX_Artists_Name");
+            .HasDatabaseName("UX_Artists_Name");
     }
 }

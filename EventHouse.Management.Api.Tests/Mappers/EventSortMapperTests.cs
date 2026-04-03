@@ -1,6 +1,7 @@
-﻿using EventHouse.Management.Api.Contracts.Events;
-using EventHouse.Management.Api.Mappers.Events;
+﻿using EventHouse.Management.Api.Mappers.Events;
+using EventHouse.Management.Api.Contracts.Events;
 using EventHouse.Management.Application.Queries.Events.GetAll;
+
 
 namespace EventHouse.Management.Api.Tests.Mappers;
 

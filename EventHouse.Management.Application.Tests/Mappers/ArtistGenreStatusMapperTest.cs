@@ -4,7 +4,7 @@ using EventHouse.Management.Application.Mappers.Artists;
 
 namespace EventHouse.Management.Application.Tests.Mappers;
 
-public sealed class ArtistGenreStatusMapperTest 
+public sealed class ArtistGenreStatusMapperTest
     : EnumMapperTestBase<ArtistGenreStatus, ArtistGenreStatusDto>
 {
     protected override ArtistGenreStatus ToDomainRequired(ArtistGenreStatusDto dto) =>
