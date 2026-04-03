@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Application.Common.Sorting;
 using EventHouse.Management.Application.Queries.Venues.GetAll;
+using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Repositories;
 using EventHouse.Management.Infrastructure.Tests.Persistence;
 using EventHouse.Management.TestUtils.Factories;
@@ -57,7 +58,7 @@ public sealed class VenueRepositoryTests : BasePersistenceTest
             TestEntityFactory.CreateVenue(name: "Arena 1", city: "Miami", isActive: true),
             TestEntityFactory.CreateVenue(name: "Arena 2", city: "Orlando", isActive: true),
             TestEntityFactory.CreateVenue(name: "Arena 3", city: "Miami", isActive: false)
-        );
+            );
 
         var criteria = new VenueQueryCriteria { City = "Miami", IsActive = true };
 
@@ -137,13 +138,15 @@ public sealed class VenueRepositoryTests : BasePersistenceTest
     [InlineData(VenueSortField.CountryCode, SortDirection.Asc, "Z-Arena")]
     [InlineData(VenueSortField.CountryCode, SortDirection.Desc, "A-Arena")]
     [InlineData(VenueSortField.Capacity, SortDirection.Asc, "A-Arena")]
+    [InlineData(VenueSortField.Capacity, SortDirection.Desc, "Z-Arena")]
     [InlineData(VenueSortField.IsActive, SortDirection.Asc, "Z-Arena")]
+    [InlineData(VenueSortField.IsActive, SortDirection.Desc, "A-Arena")]
     [InlineData(null, SortDirection.Asc, "A-Arena")]
     [InlineData(null, SortDirection.Desc, "Z-Arena")]
     public async Task GetPagedAsync_ShouldApplyCorrectSorting(
-    VenueSortField? sortField,
-    SortDirection direction,
-    string expectedFirstName)
+        VenueSortField? sortField,
+        SortDirection direction,
+        string expectedFirstName)
     {
         // Arrange
         await SeedAsync(

@@ -11,14 +11,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories
 {
-    internal class GenreRepository(ManagementDbContext context) : IGenreRepository
+    internal class GenreRepository(ManagementDbContext context) : 
+        BaseRepository(context), IGenreRepository
     {
-        private readonly ManagementDbContext _context = context;
+        private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
+        {
+            { "Genres.Name", ("GENRE_NAME_ALREADY_EXISTS", "The name already exists in another genre.", false) }
+        };
 
         public async Task AddAsync(Genre entity, CancellationToken cancellationToken = default)
         {
             await _context.Genres.AddAsync(entity, cancellationToken);
-            await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+            await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
         }
 
         public async Task UpdateAsync(Genre entity, CancellationToken cancellationToken = default)
@@ -26,7 +30,7 @@ namespace EventHouse.Management.Infrastructure.Repositories
             if (_context.Entry(entity).State == EntityState.Detached)
                 throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
-            await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+            await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
         }
 
         public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)

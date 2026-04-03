@@ -4,6 +4,7 @@ using EventHouse.Management.Api.Mappers.Artists;
 
 namespace EventHouse.Management.Api.Tests.Mappers;
 
+
 public sealed class ArtistCategoryMapperTests
     : ApiEnumMapperTestBase<ArtistCategory, ArtistCategoryDto>
 {
