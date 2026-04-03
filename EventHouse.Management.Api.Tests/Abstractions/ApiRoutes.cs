@@ -9,4 +9,5 @@ internal static class ApiRoutes
     public const string Venues = $"{Base}/venues";
     public const string Events = $"{Base}/events";
     public const string SeatingMaps = $"{Base}/seatingmaps";
+    public const string EventVenues = $"{Base}/event-venues";
 }
