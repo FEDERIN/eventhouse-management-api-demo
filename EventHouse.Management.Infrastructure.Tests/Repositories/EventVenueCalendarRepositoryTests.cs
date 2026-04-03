@@ -3,8 +3,8 @@ using EventHouse.Management.Application.Queries.EventVenueCalendars.GetAll;
 using EventHouse.Management.Domain.Enums;
 using EventHouse.Management.Infrastructure.Repositories;
 using EventHouse.Management.Infrastructure.Tests.Extensions;
-using EventHouse.Management.Infrastructure.Tests.Factories;
 using EventHouse.Management.Infrastructure.Tests.Persistence;
+using EventHouse.Management.TestUtils.Factories;
 using FluentAssertions;
 
 namespace EventHouse.Management.Infrastructure.Tests.Repositories;

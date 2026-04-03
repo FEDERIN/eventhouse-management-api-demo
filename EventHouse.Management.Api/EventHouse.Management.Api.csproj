@@ -9,6 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Mappers\Enums\**" />
+    <Content Remove="Mappers\Enums\**" />
+    <EmbeddedResource Remove="Mappers\Enums\**" />
+    <None Remove="Mappers\Enums\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.*">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -30,10 +37,6 @@
 		<_Parameter1>EventHouse.Management.Api.Tests</_Parameter1>
 	</AssemblyAttribute>
   </ItemGroup>
-  
-    <ItemGroup>
-      <Folder Include="Mappers\Enums\" />
-    </ItemGroup>
 
 
 </Project>

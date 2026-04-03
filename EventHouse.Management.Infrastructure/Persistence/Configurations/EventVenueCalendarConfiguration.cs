@@ -23,7 +23,7 @@ public class EventVenueCalendarConfiguration : IEntityTypeConfiguration<EventVen
         builder.Property(e => e.EndDate);
         builder.Property(e => e.Status).IsRequired();
 
-        builder.HasOne<EventVenue>()
+        builder.HasOne(e=> e.EventVenue)
                .WithMany()
                .HasForeignKey(e => e.EventVenueId)
                .OnDelete(DeleteBehavior.Cascade);

@@ -76,14 +76,23 @@ public class EventVenueCalendarRepository(ManagementDbContext context)
     #region VALIDATIONS
     public async Task<bool> IsSlotOccupiedAsync(Guid eventVenueId, DateTime startUtc, DateTime endUtc, Guid? excludeId = null, CancellationToken cancellationToken = default)
     {
+        var targetVenueId = await _context.EventVenues
+            .Where(ev => ev.Id == eventVenueId)
+            .Select(ev => ev.VenueId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (targetVenueId == Guid.Empty) return false;
+
         return await _context.EventVenueCalendars
             .AsNoTracking()
-            .AnyAsync(e =>
-                e.EventVenueId == eventVenueId &&
-                e.Id != excludeId &&
-                e.Status != EventVenueCalendarStatus.Cancelled &&
-                e.StartDate < endUtc &&
-                e.EndDate > startUtc,
+            .AnyAsync(c =>
+                c.EventVenue != null &&
+                c.EventVenue.VenueId == targetVenueId &&
+                c.EventVenue.Status == EventVenueStatus.Active &&
+                c.Id != excludeId &&
+                c.Status != EventVenueCalendarStatus.Cancelled &&
+                c.StartDate < endUtc &&
+                c.EndDate > startUtc,
                 cancellationToken);
     }
     #endregion

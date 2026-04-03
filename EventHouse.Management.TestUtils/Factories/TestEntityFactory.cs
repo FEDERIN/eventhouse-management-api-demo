@@ -45,4 +45,38 @@ public static class TestEntityFactory
             capacity,
             isActive);
     }
+
+    public static Event CreateEvent(Guid id, string name = "Test Event", EventScope scope = EventScope.Local)
+    {
+        return new Event(id, $"{name} {Guid.NewGuid().ToString()[..4]}", "Description", scope);
+    }
+
+    public static SeatingMap CreateSeatingMap(Guid id, Guid venueId, string name = "Main Map", int version = 1, bool isActive = true)
+    {
+        return new SeatingMap(id, venueId, name, version, isActive);
+    }
+
+    public static EventVenue CreateEventVenue(Guid id, Guid eventId, Guid venueId, EventVenueStatus status = EventVenueStatus.Active)
+    {
+        return new EventVenue(id, eventId, venueId, status);
+    }
+
+    public static EventVenueCalendar CreateEventVenueCalendar(
+    Guid id,
+    Guid eventVenueId,
+    Guid seatingMapId,
+    DateTimeOffset? startLocal = null,
+    DateTimeOffset? endLocal = null,
+    string timeZoneId = "UTC",
+    EventVenueCalendarStatus status = EventVenueCalendarStatus.Published)
+    {
+        return new EventVenueCalendar(
+            id,
+            eventVenueId,
+            seatingMapId,
+            startLocal ?? DateTimeOffset.UtcNow,
+            endLocal,
+            timeZoneId,
+            status);
+    }
 }

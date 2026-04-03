@@ -11,6 +11,7 @@ public class EventVenueCalendar : Entity
     public DateTime? EndDate { get; private set; }
     public string TimeZoneId { get; private set; } = "UTC";
     public EventVenueCalendarStatus Status { get; private set; }
+    public virtual EventVenue? EventVenue { get; private set; }
 
     private EventVenueCalendar() { }
 

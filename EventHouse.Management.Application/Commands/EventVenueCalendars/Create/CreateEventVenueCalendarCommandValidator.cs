@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿
+using FluentValidation;
 using TimeZoneConverter;
 
 namespace EventHouse.Management.Application.Commands.EventVenueCalendars.Create;
@@ -9,10 +10,11 @@ internal sealed class CreateEventVenueCalendarCommandValidator
     public CreateEventVenueCalendarCommandValidator()
     {
         RuleFor(x => x.EventVenueId)
-            .NotEmpty().WithMessage("EventVenue identifier must not be empty.");
+            .NotEmpty()
+            .WithMessage("EventVenue identifier is required.");
 
         RuleFor(x => x.SeatingMapId)
-            .NotEmpty().WithMessage("SeatingMap identifier must not be empty.");
+            .NotEmpty().WithMessage("SeatingMap identifier is required.");
 
         RuleFor(x => x.TimeZoneId)
             .NotEmpty().WithMessage("TimeZone identifier is required.")

@@ -3,6 +3,7 @@ using System;
 using EventHouse.Management.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ManagementDbContext))]
-    partial class ManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260403185236_updateEventVennueCaledars1")]
+    partial class updateEventVennueCaledars1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.25");
@@ -157,6 +160,9 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("EventVenueId")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("EventVenueId1")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("SeatingMapId")
                         .HasColumnType("TEXT");
 
@@ -171,6 +177,8 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EventVenueId1");
 
                     b.HasIndex("SeatingMapId");
 
@@ -345,11 +353,15 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("EventHouse.Management.Domain.Entities.EventVenueCalendar", b =>
                 {
-                    b.HasOne("EventHouse.Management.Domain.Entities.EventVenue", "EventVenue")
+                    b.HasOne("EventHouse.Management.Domain.Entities.EventVenue", null)
                         .WithMany()
                         .HasForeignKey("EventVenueId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("EventHouse.Management.Domain.Entities.EventVenue", "EventVenue")
+                        .WithMany()
+                        .HasForeignKey("EventVenueId1");
 
                     b.HasOne("EventHouse.Management.Domain.Entities.SeatingMap", null)
                         .WithMany()

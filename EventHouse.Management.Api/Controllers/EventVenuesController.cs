@@ -1,7 +1,6 @@
 ﻿using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.EventVenues;
-using EventHouse.Management.Api.Mappers.Enums;
 using EventHouse.Management.Api.Mappers.EventVenues;
 using EventHouse.Management.Api.Swagger;
 using EventHouse.Management.Api.Swagger.Examples.Contracts.EventVenues;

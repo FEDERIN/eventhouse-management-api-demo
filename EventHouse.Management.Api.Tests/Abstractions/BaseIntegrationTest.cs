@@ -80,15 +80,15 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
         return await response.ReadContentAsync<EventVenueResponse>();
     }
 
-    protected async Task<EventVenueCalendarResponse> CreateEventVenueCalendarAsync()
+    protected async Task<EventVenueCalendarResponse> CreateEventVenueCalendarAsync(Guid? eventVenueId = null, Guid? seatingMapId = null, DateTimeOffset ? startDate = null, DateTimeOffset? endDate = null)
     {
-        CreateEventVenueCalendarRequest request = await CreateEventVenueCalendarRequestAsync();
+        CreateEventVenueCalendarRequest request = await CreateEventVenueCalendarRequestAsync(eventVenueId: eventVenueId, seatingMapId: seatingMapId, startDate: startDate, endDate: endDate);
 
         var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request);
         return await response.ReadContentAsync<EventVenueCalendarResponse>();
     }
 
-    protected async Task<CreateEventVenueCalendarRequest> CreateEventVenueCalendarRequestAsync(Guid? eventVenueId = null, Guid? seatingMapId = null)
+    protected async Task<CreateEventVenueCalendarRequest> CreateEventVenueCalendarRequestAsync(Guid? eventVenueId = null, Guid? seatingMapId = null, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
 
         var venueId = new Guid();
@@ -105,13 +105,15 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
             seatingMapId = seatingMap.Id;
         }
 
+        endDate =  endDate ?? (startDate.HasValue ? startDate.Value.AddHours(1) : DateTime.UtcNow.AddHours(1));
+
         var request = new CreateEventVenueCalendarRequest
         {
             EventVenueId = eventVenueId.GetValueOrDefault(),
             SeatingMapId = seatingMapId.GetValueOrDefault(),
             Status = EventVenueCalendarStatus.Draft,
-            StartDate = DateTime.UtcNow,
-            EndDate = DateTime.UtcNow.AddHours(1),
+            StartDate = startDate ?? DateTime.UtcNow,
+            EndDate = endDate,
             TimeZoneId = "America/New_York",
         };
 

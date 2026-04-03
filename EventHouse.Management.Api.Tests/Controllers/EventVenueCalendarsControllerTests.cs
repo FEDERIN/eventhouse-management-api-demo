@@ -82,14 +82,18 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         created.Should().BeEquivalentTo(request, opt => opt.ExcludingMissingMembers());
     }
 
+
     [Fact]
-    public async Task Create_WhenEventVenueMissing_Returns404NotFound()
+    public async Task Create_WhenEventVenueNotFoundInHandler_Returns404NotFound()
     {
+        var nonExistentVenueId = Guid.NewGuid();
+        var request = await CreateEventVenueCalendarRequestAsync(eventVenueId: nonExistentVenueId);
 
-        var request = await CreateEventVenueCalendarRequestAsync(eventVenueId: Guid.Empty);
+        // Act
+        var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request);
 
-        var res2 = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request);
-        await res2.ShouldBeProblemJson(HttpStatusCode.NotFound);
+        // Assert
+        await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -101,6 +105,53 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         var res2 = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request);
         await res2.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
+
+    [Fact]
+    public async Task Create_WhenSlotIsOccupied_Returns409Conflict()
+    {
+        var existing = await CreateEventVenueCalendarAsync();
+
+        var request = new CreateEventVenueCalendarRequest
+        {
+            EventVenueId = existing.EventVenueId,
+            SeatingMapId = existing.SeatingMapId,
+            Status = EventVenueCalendarStatus.Draft,
+            StartDate = existing.StartDate,
+            EndDate = existing.EndDate,
+            TimeZoneId = existing.TimeZoneId
+        };
+
+        // Act
+        var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request);
+
+        // Assert
+        await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "CALENDAR_SLOT_OCCUPIED");
+    }
+
+    [Fact]
+    public async Task Create_WhenSlotOverlapsPartially_Returns409Conflict()
+    {
+
+        var start = DateTimeOffset.UtcNow.AddDays(1).Date.AddHours(10);
+        var end = start.AddHours(2);
+        var existing = await CreateEventVenueCalendarAsync(startDate: start, endDate: end);
+
+        var request = new CreateEventVenueCalendarRequest {
+            EventVenueId = existing.EventVenueId,
+            SeatingMapId = existing.SeatingMapId,
+            Status = EventVenueCalendarStatus.Published,
+            StartDate = start.AddHours(1),
+            EndDate = end.AddHours(1),
+            TimeZoneId = existing.TimeZoneId
+        };
+
+        // Act
+        var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request);
+
+        // Assert
+        await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
+    }
+
     #endregion
 
     #region UPDATE (PUT)
@@ -136,5 +187,57 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
+    [Fact]
+    public async Task Update_WhenNewSlotIsOccupiedByAnother_Returns409Conflict()
+    {
+        // Arrange: Creamos dos calendarios en horarios distintos
+        var first = await CreateEventVenueCalendarAsync(
+            startDate: DateTimeOffset.UtcNow.AddDays(1),
+            endDate: DateTimeOffset.UtcNow.AddDays(1).AddHours(2));
+
+        var second = await CreateEventVenueCalendarAsync(
+            eventVenueId: first.EventVenueId,
+            seatingMapId: first.SeatingMapId,
+            startDate: DateTimeOffset.UtcNow.AddDays(4),
+            endDate: DateTimeOffset.UtcNow.AddDays(4).AddHours(2));
+
+        // Intentamos mover el segundo al horario del primero
+        var updateRequest = new UpdateEventVenueCalendarRequest
+        {
+            StartDate = first.StartDate,
+            EndDate = first.EndDate,
+            Status = EventVenueCalendarStatus.Published
+        };
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenueCalendars}/{second.Id}", updateRequest);
+
+        // Assert
+        await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "CALENDAR_SLOT_OCCUPIED");
+    }
+
+    [Fact]
+    public async Task Update_SameSlot_Returns204NoContent()
+    {
+        // Arrange: Creamos un calendario
+        var existing = await CreateEventVenueCalendarAsync();
+
+        // Enviamos el mismo horario (el repositorio debe excluir este ID de la validación)
+        var updateRequest = new UpdateEventVenueCalendarRequest
+        {
+            StartDate = existing.StartDate,
+            EndDate = existing.EndDate,
+            Status = EventVenueCalendarStatus.Cancelled
+        };
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenueCalendars}/{existing.Id}", updateRequest);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
     #endregion
+
+
 }
