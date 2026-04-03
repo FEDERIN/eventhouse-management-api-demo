@@ -2,7 +2,6 @@
 using EventHouse.Management.Api.Mappers.Genres;
 using EventHouse.Management.Application.Queries.Genres.GetAll;
 
-
 namespace EventHouse.Management.Api.Tests.Mappers;
 
 public sealed class GenreSortMapperTests
