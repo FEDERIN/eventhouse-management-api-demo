@@ -33,5 +33,11 @@ public class EventVenueConfiguration : IEntityTypeConfiguration<EventVenue>
 
         builder.Property(e => e.Status)
                .IsRequired();
+
+        builder.HasMany<EventVenueCalendar>()
+               .WithOne(c => c.EventVenue)
+               .HasForeignKey(c => c.EventVenueId)
+               .OnDelete(DeleteBehavior.Cascade);
+
     }
 }

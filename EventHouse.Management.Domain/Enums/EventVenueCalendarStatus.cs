@@ -1,5 +1,5 @@
 ﻿
-namespace EventHouse.Management.Application.Common.Enums;
+namespace EventHouse.Management.Domain.Enums;
 
 public enum EventVenueCalendarStatus
 {

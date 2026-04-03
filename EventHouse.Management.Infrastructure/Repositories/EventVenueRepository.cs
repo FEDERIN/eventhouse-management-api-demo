@@ -17,7 +17,7 @@ internal class EventVenueRepository(ManagementDbContext context) :
         { "EventVenues.EventId, EventVenues.VenueId", ("EVENT_ALREADY_ASSIGNED", "This event is already assigned to this venue.", false) }
     };
 
-    #region WRITE (Commands)
+    #region WRITE
     public async Task AddAsync(EventVenue entity, CancellationToken cancellationToken = default)
     {
         await _context.EventVenues.AddAsync(entity, cancellationToken);
@@ -33,7 +33,7 @@ internal class EventVenueRepository(ManagementDbContext context) :
     }
     #endregion
 
-    #region READ (Queries)
+    #region READ
     public async Task<EventVenue?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.EventVenues
@@ -84,6 +84,14 @@ internal class EventVenueRepository(ManagementDbContext context) :
             criteria.PageSize,
             cancellationToken
         );
+    }
+    #endregion
+
+
+    #region VALIDATIONS
+    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await ExistsAsync<EventVenue>(id, cancellationToken);
     }
     #endregion
 }
