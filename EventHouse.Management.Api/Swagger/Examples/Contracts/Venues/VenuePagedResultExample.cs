@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.Venues;
+using EventHouse.Management.Api.Swagger.Examples.Data;
 using Swashbuckle.AspNetCore.Filters;
 using System.Diagnostics.CodeAnalysis;
 
@@ -10,7 +11,7 @@ internal class VenuePagedResultExample : IExamplesProvider<PagedResult<VenueResp
 {
     public PagedResult<VenueResponse> GetExamples() => new()
     {
-        Items = [VenueExampleData.MadisonSquareGarden()],
+        Items = [VenueExampleData.Result()],
         TotalCount = 1,
         Page = 1,
         PageSize = 20,
