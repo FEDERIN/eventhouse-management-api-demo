@@ -17,7 +17,7 @@ internal static class EventVenueMapper
             VenueId = entity.VenueId,
             EventName = prefetchedEventName ?? entity.Event?.Name,
             VenueName = prefetchedVenueName ?? entity.Venue?.Name,
-            Status = entity.Status.ToApplicationRequired()
+            Status = EventVenueStatusMapper.ToApplicationRequired(entity.Status)
         };
     }
 

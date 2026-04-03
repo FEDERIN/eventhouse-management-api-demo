@@ -5,10 +5,6 @@ namespace EventHouse.Management.Api.Mappers.EventVenues;
 
 public static class EventVenueSortMapper
 {
-    public static EventVenueSortField? ToApplication(EventVenueSortBy? sortBy)
-        => sortBy switch
-        {
-            EventVenueSortBy.Status => EventVenueSortField.Status,
-            _ => null
-        };
+    public static EventVenueSortField? ToApplication(EventVenueSortBy? sortBy) =>
+    ApiEnumMapper<EventVenueSortBy, EventVenueSortField>.ToApplicationOptional(sortBy);
 }
