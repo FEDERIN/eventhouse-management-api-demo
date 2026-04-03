@@ -11,14 +11,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories
 {
-    internal class VenueRepository(ManagementDbContext context) : IVenueRepository
+    internal class VenueRepository(ManagementDbContext context) :
+        BaseRepository(context), IVenueRepository
     {
-        private readonly ManagementDbContext _context = context;
+        private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
+        {
+            { "Venues.Name", ("VENUE_NAME_ALREADY_EXISTS", "The name already exists in another venue.", false) }
+        };
 
         public async Task AddAsync(Venue entity, CancellationToken cancellationToken = default)
         {
             await _context.Venues.AddAsync(entity, cancellationToken);
-            await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+            await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
         }
 
         public async Task UpdateAsync(Venue entity, CancellationToken cancellationToken = default)
@@ -26,7 +30,7 @@ namespace EventHouse.Management.Infrastructure.Repositories
         if (_context.Entry(entity).State == EntityState.Detached)
             throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
-            await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+            await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
         }
 
         public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
@@ -40,6 +44,11 @@ namespace EventHouse.Management.Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
 
             return true;
+        }
+
+        public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await ExistsAsync<Venue>(id, cancellationToken);
         }
 
         public async Task<Venue?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

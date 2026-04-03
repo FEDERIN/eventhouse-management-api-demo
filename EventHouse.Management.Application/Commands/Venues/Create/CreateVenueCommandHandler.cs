@@ -29,6 +29,6 @@ internal sealed class CreateVenueCommandHandler(IVenueRepository venueRepository
 
         await _venueRepository.AddAsync(entity, cancellationToken);
 
-        return VenuesMapper.ToDto(entity);
+        return VenueMapper.ToDto(entity);
     }
 }

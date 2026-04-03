@@ -12,15 +12,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories;
 
-internal class EventRepository(ManagementDbContext context) : IEventRepository
+internal class EventRepository(ManagementDbContext context) :
+    BaseRepository(context), IEventRepository
 {
-    private readonly ManagementDbContext _context = context;
+    private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
+    {
+        { "Events.Name", ("EVENT_NAME_ALREADY_EXISTS", "The name already exists in another event.", false) }
+    };
 
     public async Task AddAsync(Event entity, CancellationToken cancellationToken = default)
     {
         await _context.Events.AddAsync(entity, cancellationToken);
 
-        await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
     }
 
     public async Task UpdateAsync(Event entity, CancellationToken cancellationToken = default)
@@ -28,7 +32,7 @@ internal class EventRepository(ManagementDbContext context) : IEventRepository
         if (_context.Entry(entity).State == EntityState.Detached)
             throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
-        await SaveChangesWithUniqueCheckAsync(entity, cancellationToken);
+        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)

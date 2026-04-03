@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace EventHouse.Management.Infrastructure.Persistences
+namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class AddArtistGenre : Migration

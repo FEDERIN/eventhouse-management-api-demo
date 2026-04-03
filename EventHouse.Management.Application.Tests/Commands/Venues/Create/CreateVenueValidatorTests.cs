@@ -7,20 +7,6 @@ public sealed class CreateVenueValidatorTests
 {
     private readonly CreateVenueCommandValidator _validator = new();
 
-    private static CreateVenueCommand ValidCommand() =>
-        new(
-            Name: "Palace Theatre",
-            Address: "123 Main St",
-            City: "Valletta",
-            Region: "Malta",
-            CountryCode: "MT",
-            Latitude: 35.8989m,
-            Longitude: 14.5146m,
-            TimeZoneId: "Europe/Malta",
-            Capacity: 500,
-            true
-        );
-
     [Fact]
     public void Should_fail_when_name_is_empty()
     {
@@ -113,4 +99,18 @@ public sealed class CreateVenueValidatorTests
 
         result.IsValid.Should().BeTrue();
     }
+
+    private static CreateVenueCommand ValidCommand() =>
+    new(
+        Name: "Palace Theatre",
+        Address: "123 Main St",
+        City: "Valletta",
+        Region: "Malta",
+        CountryCode: "MT",
+        Latitude: 35.8989m,
+        Longitude: 14.5146m,
+        TimeZoneId: "Europe/Malta",
+        Capacity: 500,
+        true
+    );
 }
