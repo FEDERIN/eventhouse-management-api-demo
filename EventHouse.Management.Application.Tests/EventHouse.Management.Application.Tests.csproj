@@ -11,8 +11,11 @@
 
   <ItemGroup>
     <Compile Remove="Artists\**" />
+    <Compile Remove="Commands\Genres\Delete\**" />
     <EmbeddedResource Remove="Artists\**" />
+    <EmbeddedResource Remove="Commands\Genres\Delete\**" />
     <None Remove="Artists\**" />
+    <None Remove="Commands\Genres\Delete\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,10 +45,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EventHouse.Management.Application\EventHouse.Management.Application.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Commands\Genres\Delete\" />
   </ItemGroup>
 
 </Project>
