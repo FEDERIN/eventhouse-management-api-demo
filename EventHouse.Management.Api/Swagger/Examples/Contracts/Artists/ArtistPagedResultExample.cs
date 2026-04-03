@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Api.Contracts.Artists;
 using EventHouse.Management.Api.Contracts.Common;
+using EventHouse.Management.Api.Swagger.Examples.Data;
 using Swashbuckle.AspNetCore.Filters;
 using System.Diagnostics.CodeAnalysis;
 
@@ -11,13 +12,7 @@ internal sealed class ArtistPagedResultExample : IExamplesProvider<PagedResult<A
     public PagedResult<ArtistSummary> GetExamples() => new()
     {
         Items =
-        [
-            new() {
-                Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                Name = "The Rolling Stones",
-                Category = ArtistCategory.Band
-            }
-        ],
+        [ArtistExampleData.ResultSumary()],
         TotalCount = 1,
         Page = 1,
         PageSize = 20,

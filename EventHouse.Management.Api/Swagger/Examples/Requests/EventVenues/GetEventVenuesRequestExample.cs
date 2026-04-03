@@ -1,5 +1,5 @@
 ﻿using EventHouse.Management.Api.Contracts.EventVenues;
-using EventHouse.Management.Api.Swagger.Examples.Contracts.EventVenues;
+using EventHouse.Management.Api.Swagger.Examples.Data;
 using Swashbuckle.AspNetCore.Filters;
 using System.Diagnostics.CodeAnalysis;
 

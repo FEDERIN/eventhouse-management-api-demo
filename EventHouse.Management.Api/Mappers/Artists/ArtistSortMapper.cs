@@ -8,4 +8,3 @@ internal static class ArtistSortMapper
     public static ArtistSortField? ToApplication(ArtistSortBy? sortBy) =>
         ApiEnumMapper<ArtistSortBy, ArtistSortField>.ToApplicationOptional(sortBy);
 }
-

@@ -1,5 +1,4 @@
 ﻿using EventHouse.Management.Api.Mappers;
-
 using ApiSortDirection = EventHouse.Management.Api.Contracts.Common.SortDirection;
 using AppSortDirection = EventHouse.Management.Application.Common.Sorting.SortDirection;
 
@@ -13,6 +12,4 @@ public sealed class SortDirectionMapperTests
 
     protected override AppSortDirection? ToApplicationOptional(ApiSortDirection? contract) =>
         contract.HasValue ? SortDirectionMapper.ToApplication(contract.Value) : null;
-
-
 }
