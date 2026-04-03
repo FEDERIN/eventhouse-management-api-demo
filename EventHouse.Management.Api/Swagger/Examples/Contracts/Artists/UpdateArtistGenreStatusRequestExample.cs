@@ -1,4 +1,5 @@
 ﻿using EventHouse.Management.Api.Contracts.Artists;
+using EventHouse.Management.Api.Swagger.Examples.Data;
 using Swashbuckle.AspNetCore.Filters;
 using System.Diagnostics.CodeAnalysis;
 
@@ -8,11 +9,5 @@ namespace EventHouse.Management.Api.Swagger.Examples.Contracts.Artists;
 internal sealed class UpdateArtistGenreStatusRequestExample
     : IExamplesProvider<UpdateArtistGenreStatusRequest>
 {
-    public UpdateArtistGenreStatusRequest GetExamples()
-    {
-        return new UpdateArtistGenreStatusRequest
-        {
-            Status = ArtistGenreStatus.Active
-        };
-    }
+    public UpdateArtistGenreStatusRequest GetExamples() => ArtistExampleData.UpdateGenreStatus();
 }

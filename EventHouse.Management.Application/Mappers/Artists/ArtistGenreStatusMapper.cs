@@ -1,5 +1,4 @@
-﻿using EventHouse.Management.Domain.Enums;
-using EventHouse.Management.Application.Common.Enums;
+﻿using EventHouse.Management.Application.Common.Enums;
 using EventHouse.Management.Domain.Enums;
 
 namespace EventHouse.Management.Application.Mappers.Artists;

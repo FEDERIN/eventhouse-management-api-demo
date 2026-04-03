@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.Genres;
+using EventHouse.Management.Api.Swagger.Examples.Data;
 using Swashbuckle.AspNetCore.Filters;
 using System.Diagnostics.CodeAnalysis;
 
@@ -10,14 +11,7 @@ internal class GenrePagedResultExample : IExamplesProvider<PagedResult<GenreResp
 {
     public PagedResult<GenreResponse> GetExamples() => new()
     {
-        Items =
-        [
-            new()
-            {
-                Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                Name = "Rock"
-            }
-        ],
+        Items = [GenreExampleData.Result()],
         TotalCount = 1,
         Page = 1,
         PageSize = 20,
