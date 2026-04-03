@@ -1,6 +1,7 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.DTOs;
+using EventHouse.Management.Application.Mappers.Genres;
 using MediatR;
 
 namespace EventHouse.Management.Application.Queries.Genres.GetAll;
@@ -26,15 +27,9 @@ internal sealed class GetAllGenresQueryHandler(IGenreRepository genreRepository)
             cancellationToken
         );
 
-        var dtoList = result.Items.Select(e => new GenreDto
-        {
-            Id = e.Id,
-            Name = e.Name
-        }).ToList();
-
         return new PagedResultDto<GenreDto>
         {
-            Items = dtoList,
+            Items = GenreMapper.ToDto(result.Items),
             TotalCount = result.TotalCount,
             Page = result.Page,
             PageSize = result.PageSize

@@ -8,17 +8,17 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace EventHouse.Management.Infrastructure.Persistences
+namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ManagementDbContext))]
-    [Migration("20260126132801_UpdateIndexArtistGenrePrimary")]
-    partial class UpdateIndexArtistGenrePrimary
+    [Migration("20260304083917_addIsConcurrencyToken")]
+    partial class addIsConcurrencyToken
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.23");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.24");
 
             modelBuilder.Entity("EventHouse.Management.Domain.Entities.Artist", b =>
                 {
@@ -38,7 +38,7 @@ namespace EventHouse.Management.Infrastructure.Persistences
 
                     b.HasIndex("Name")
                         .IsUnique()
-                        .HasDatabaseName("IX_Artists_Name");
+                        .HasDatabaseName("UX_Artists_Name");
 
                     b.ToTable("Artists", null, t =>
                         {
@@ -140,6 +140,46 @@ namespace EventHouse.Management.Infrastructure.Persistences
                         });
                 });
 
+            modelBuilder.Entity("EventHouse.Management.Domain.Entities.SeatingMap", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("VenueId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VenueId");
+
+                    b.HasIndex("VenueId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("UX_SeatingMap_VenueId_Name");
+
+                    b.ToTable("SeatingMaps", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SeatingMap_VenueId_NotEmpty", "VenueId <> '00000000-0000-0000-0000-000000000000'");
+                        });
+                });
+
             modelBuilder.Entity("EventHouse.Management.Domain.Entities.Venue", b =>
                 {
                     b.Property<Guid>("Id")
@@ -212,6 +252,15 @@ namespace EventHouse.Management.Infrastructure.Persistences
                     b.HasOne("EventHouse.Management.Domain.Entities.Genre", null)
                         .WithMany()
                         .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EventHouse.Management.Domain.Entities.SeatingMap", b =>
+                {
+                    b.HasOne("EventHouse.Management.Domain.Entities.Venue", null)
+                        .WithMany()
+                        .HasForeignKey("VenueId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

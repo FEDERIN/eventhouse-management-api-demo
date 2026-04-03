@@ -6,11 +6,11 @@ using MediatR;
 namespace EventHouse.Management.Application.Commands.Events.Delete;
 
 internal sealed class DeleteEventCommandHandler(IEventRepository repository)
-            : IRequestHandler<DeleteEventCommand, DeleteResult>
+            : IRequestHandler<DeleteEventCommand>
 {
     private readonly IEventRepository _repository = repository;
 
-    public async Task<DeleteResult> Handle(
+    public async Task Handle(
         DeleteEventCommand request,
         CancellationToken cancellationToken)
     {
@@ -18,7 +18,5 @@ internal sealed class DeleteEventCommandHandler(IEventRepository repository)
         
         if(result is false)
             throw new NotFoundException("Event", request.Id);
-
-        return DeleteResult.Ok();
     }
 }

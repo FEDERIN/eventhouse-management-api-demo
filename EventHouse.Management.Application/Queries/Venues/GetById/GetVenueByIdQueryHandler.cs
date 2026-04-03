@@ -16,6 +16,6 @@ internal sealed class GetVenueByIdQueryHandler(IVenueRepository repository)
         var entity = await _repository.GetByIdAsync(request.Id, cancellationToken)
             ?? throw new NotFoundException("Venue", request.Id);
 
-        return VenuesMapper.ToDto(entity);
+        return VenueMapper.ToDto(entity);
     }
 }
