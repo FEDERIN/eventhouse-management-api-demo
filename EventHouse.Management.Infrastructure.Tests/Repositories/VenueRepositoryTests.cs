@@ -2,6 +2,7 @@
 using EventHouse.Management.Application.Queries.Venues.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Repositories;
+using EventHouse.Management.Infrastructure.Tests.Extensions;
 using EventHouse.Management.Infrastructure.Tests.Persistence;
 using EventHouse.Management.TestUtils.Factories;
 using FluentAssertions;
@@ -27,8 +28,7 @@ public sealed class VenueRepositoryTests : BasePersistenceTest
         var act = async () => await _repository.UpdateAsync(venue, TestContext.Current.CancellationToken);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
+        await act.ShouldThrowDetachedException();
     }
 
     [Fact]
