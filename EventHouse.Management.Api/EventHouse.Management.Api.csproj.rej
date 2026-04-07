@@ -1,0 +1,9 @@
+diff a/EventHouse.Management.Api/EventHouse.Management.Api.csproj b/EventHouse.Management.Api/EventHouse.Management.Api.csproj	(rejected hunks)
+@@ -16,6 +16,7 @@
+   </ItemGroup>
+ 
+   <ItemGroup>
++    <PackageReference Include="Core.Observability" Version="1.0.0" />
+     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.*">
+       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

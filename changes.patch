@@ -1,0 +1,692 @@
+From b91de02a0a79da976a4afa5fb96078f6a4b421d1 Mon Sep 17 00:00:00 2001
+From: fpgutierrez <federingutierrez@gmail.com>
+Date: Tue, 7 Apr 2026 10:17:54 +0200
+Subject: [PATCH] feat: setup docker orchestration and opentelemetry
+ observability
+
+- Add multi-stage Dockerfile for multi-project solution
+- Configure docker-compose with Jaeger, Prometheus and Grafana
+- Fix JWT HS256 key size requirements
+- Inject local NuGet observability packages into container
+- Ensure SQLite persistence with volume permissions
+---
+ .gitignore                                    |   1 +
+ ...use.Management.Api.Tests.csproj.Backup.tmp |  28 ----
+ EventHouse.Management.Api/Dockerfile          |  46 ++++++
+ .../EventHouse.Management.Api.csproj          |   1 +
+ ...ventHouse.Management.Api.csproj.Backup.tmp |  27 ----
+ EventHouse.Management.Api/Program.cs          |  54 ++-----
+ EventHouse.Management.Api/appsettings.json    |  14 ++
+ EventHouse.Management.Api/docker-compose.yml  |  60 ++++++++
+ EventHouse.Management.Api/prometheus.yml      |   7 +
+ ...gement.Application.Tests.csproj.Backup.tmp |  39 -----
+ ...e.Management.Application.csproj.Backup.tmp |  18 ---
+ ...ent.Infrastructure.Tests.csproj.Backup.tmp |  23 ---
+ EventHouse.sln                                |   6 +-
+ README.md                                     | 135 ++++++++++++++----
+ nuget.config                                  |   7 +
+ 15 files changed, 260 insertions(+), 206 deletions(-)
+ delete mode 100644 EventHouse.Management.Api.Tests/EventHouse.Management.Api.Tests.csproj.Backup.tmp
+ create mode 100644 EventHouse.Management.Api/Dockerfile
+ delete mode 100644 EventHouse.Management.Api/EventHouse.Management.Api.csproj.Backup.tmp
+ create mode 100644 EventHouse.Management.Api/docker-compose.yml
+ create mode 100644 EventHouse.Management.Api/prometheus.yml
+ delete mode 100644 EventHouse.Management.Application.Tests/EventHouse.Management.Application.Tests.csproj.Backup.tmp
+ delete mode 100644 EventHouse.Management.Application/EventHouse.Management.Application.csproj.Backup.tmp
+ delete mode 100644 EventHouse.Management.Infrastructure.Tests/EventHouse.Management.Infrastructure.Tests.csproj.Backup.tmp
+ create mode 100644 nuget.config
+
+diff --git a/.gitignore b/.gitignore
+index 9317e1b..71da6fa 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -2,6 +2,7 @@
+ bin/
+ obj/
+ 
++
+ # User-specific files
+ .vs/
+ .vscode/
+diff --git a/EventHouse.Management.Api.Tests/EventHouse.Management.Api.Tests.csproj.Backup.tmp b/EventHouse.Management.Api.Tests/EventHouse.Management.Api.Tests.csproj.Backup.tmp
+deleted file mode 100644
+index 61d415f..0000000
+--- a/EventHouse.Management.Api.Tests/EventHouse.Management.Api.Tests.csproj.Backup.tmp
++++ /dev/null
+@@ -1,28 +0,0 @@
+-<Project Sdk="Microsoft.NET.Sdk">
+-
+-  <PropertyGroup>
+-    <TargetFramework>net8.0</TargetFramework>
+-    <ImplicitUsings>enable</ImplicitUsings>
+-    <Nullable>enable</Nullable>
+-
+-    <IsPackable>false</IsPackable>
+-    <IsTestProject>true</IsTestProject>
+-  </PropertyGroup>
+-
+-  <ItemGroup>
+-    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.*" />
+-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+-    <PackageReference Include="xunit" Version="2.5.3" />
+-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+-  </ItemGroup>
+-
+-  <ItemGroup>
+-    <Using Include="Xunit" />
+-  </ItemGroup>
+-
+-  <ItemGroup>
+-    <ProjectReference Include="..\EventHouse.Management.Api\EventHouse.Management.Api.csproj" />
+-  </ItemGroup>
+-
+-</Project>
+diff --git a/EventHouse.Management.Api/Dockerfile b/EventHouse.Management.Api/Dockerfile
+new file mode 100644
+index 0000000..0ef0ca5
+--- /dev/null
++++ b/EventHouse.Management.Api/Dockerfile
+@@ -0,0 +1,46 @@
++# 1. Build Stage
++FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
++WORKDIR /src
++
++# Copy NuGetLocal to the root
++COPY ["NuGetLocal/", "/NuGetLocal/"]
++
++# Copy project files
++COPY ["eventhouse-management-api/EventHouse.Management.Api/EventHouse.Management.Api.csproj", "eventhouse-management-api/EventHouse.Management.Api/"]
++COPY ["eventhouse-management-api/EventHouse.Management.Application/EventHouse.Management.Application.csproj", "eventhouse-management-api/EventHouse.Management.Application/"]
++COPY ["eventhouse-management-api/EventHouse.Management.Domain/EventHouse.Management.Domain.csproj", "eventhouse-management-api/EventHouse.Management.Domain/"]
++COPY ["eventhouse-management-api/EventHouse.ShareKernel/EventHouse.ShareKernel.csproj", "eventhouse-management-api/EventHouse.ShareKernel/"]
++COPY ["eventhouse-management-api/EventHouse.Management.Infrastructure/EventHouse.Management.Infrastructure.csproj", "eventhouse-management-api/EventHouse.Management.Infrastructure/"]
++
++# Add local source
++RUN dotnet nuget add source /NuGetLocal --name LocalRepo
++
++# Restore
++RUN dotnet restore "eventhouse-management-api/EventHouse.Management.Api/EventHouse.Management.Api.csproj" --source "https://api.nuget.org/v3/index.json" --source "/NuGetLocal"
++
++# Copy everything
++COPY . .
++
++# --- CRITICAL FIX: Delete Windows-generated bin/obj folders ---
++RUN find . -type d \( -name "obj" -o -name "bin" \) -exec rm -rf {} +
++# Delete any existing nuget.config
++RUN find . -name "nuget.config" -type f -delete || true
++
++# Build
++WORKDIR "/src/eventhouse-management-api/EventHouse.Management.Api"
++# Note: Removed --no-restore because we cleaned the obj folders
++RUN dotnet build "EventHouse.Management.Api.csproj" -c Release -o /app/build
++
++# 2. Publish Stage
++FROM build AS publish
++RUN dotnet publish "EventHouse.Management.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
++
++# 3. Final Runtime Stage
++FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
++WORKDIR /app
++COPY --from=publish /app/publish .
++
++RUN mkdir -p /app/Data && chmod 777 /app/Data
++
++EXPOSE 8080
++ENTRYPOINT ["dotnet", "EventHouse.Management.Api.dll"]
+\ No newline at end of file
+diff --git a/EventHouse.Management.Api/EventHouse.Management.Api.csproj b/EventHouse.Management.Api/EventHouse.Management.Api.csproj
+index 58cb86f..8b92749 100644
+--- a/EventHouse.Management.Api/EventHouse.Management.Api.csproj
++++ b/EventHouse.Management.Api/EventHouse.Management.Api.csproj
+@@ -16,6 +16,7 @@
+   </ItemGroup>
+ 
+   <ItemGroup>
++    <PackageReference Include="Core.Observability" Version="1.0.0" />
+     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.*">
+       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+diff --git a/EventHouse.Management.Api/EventHouse.Management.Api.csproj.Backup.tmp b/EventHouse.Management.Api/EventHouse.Management.Api.csproj.Backup.tmp
+deleted file mode 100644
+index ba5d52a..0000000
+--- a/EventHouse.Management.Api/EventHouse.Management.Api.csproj.Backup.tmp
++++ /dev/null
+@@ -1,27 +0,0 @@
+-<Project Sdk="Microsoft.NET.Sdk.Web">
+-
+-  <PropertyGroup>
+-    <TargetFramework>net8.0</TargetFramework>
+-    <Nullable>enable</Nullable>
+-    <ImplicitUsings>enable</ImplicitUsings>
+-	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+-	<NoWarn>$(NoWarn);1591</NoWarn>
+-  </PropertyGroup>
+-
+-  <ItemGroup>
+-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.*">
+-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+-      <PrivateAssets>all</PrivateAssets>
+-    </PackageReference>
+-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="8.*" />
+-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.6.2" />
+-  </ItemGroup>
+-
+-  <ItemGroup>
+-    <ProjectReference Include="..\EventHouse.Management.Application\EventHouse.Management.Application.csproj" />
+-    <ProjectReference Include="..\EventHouse.Management.Infrastructure\EventHouse.Management.Infrastructure.csproj" />
+-  </ItemGroup>
+-
+-</Project>
+diff --git a/EventHouse.Management.Api/Program.cs b/EventHouse.Management.Api/Program.cs
+index 877e66d..5ffd216 100644
+--- a/EventHouse.Management.Api/Program.cs
++++ b/EventHouse.Management.Api/Program.cs
+@@ -1,3 +1,4 @@
++using Core.Observability;
+ using EventHouse.Management.Api.Common.Errors;
+ using EventHouse.Management.Api.Middlewares;
+ using EventHouse.Management.Api.Swagger;
+@@ -7,10 +8,8 @@ using EventHouse.Management.Infrastructure.DependencyInjection;
+ using EventHouse.Management.Infrastructure.Persistence;
+ using Microsoft.AspNetCore.Authentication.JwtBearer;
+ using Microsoft.AspNetCore.Authorization;
+-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+ using Microsoft.AspNetCore.Mvc.Authorization;
+ using Microsoft.EntityFrameworkCore;
+-using Microsoft.Extensions.Diagnostics.HealthChecks;
+ using Microsoft.IdentityModel.Tokens;
+ using Microsoft.OpenApi;
+ using Microsoft.OpenApi.Extensions;
+@@ -19,12 +18,19 @@ using Swashbuckle.AspNetCore.Filters;
+ using Swashbuckle.AspNetCore.Swagger;
+ using System.IdentityModel.Tokens.Jwt;
+ using System.Text;
+-using System.Text.Json;
+ using System.Text.Json.Serialization;
+ using System.Threading.RateLimiting;
+ 
+ var builder = WebApplication.CreateBuilder(args);
+ 
++// You can get these from builder.Configuration or set them manually
++string environment = builder.Environment.EnvironmentName;
++string serviceName = "EventHouse.Management.Api";
++string serviceNamespace = "EventHouse.Management";
++
++// 2. Call YOUR specific extension method
++builder.AddObservability(environment, serviceName, serviceNamespace);
++
+ //
+ // Controllers + JSON
+ //
+@@ -227,28 +233,8 @@ builder.Services.AddRateLimiter(options =>
+ 
+ var app = builder.Build();
+ 
+-//
+-// Health response writer (JSON)
+-//
+-static Task WriteHealthResponse(HttpContext context, HealthReport report)
+-{
+-    context.Response.ContentType = "application/json; charset=utf-8";
+-
+-    var payload = new
+-    {
+-        status = report.Status.ToString(),
+-        totalDurationMs = report.TotalDuration.TotalMilliseconds,
+-        checks = report.Entries.Select(e => new
+-        {
+-            name = e.Key,
+-            status = e.Value.Status.ToString(),
+-            durationMs = e.Value.Duration.TotalMilliseconds,
+-            description = e.Value.Description
+-        })
+-    };
+-
+-    return context.Response.WriteAsync(JsonSerializer.Serialize(payload));
+-}
++//Use YOUR custom endpoints (Prometheus + Serilog)
++app.UseObservabilityEndpoints();
+ 
+ //
+ // Pipeline
+@@ -290,24 +276,6 @@ app.UseAuthentication();
+ app.UseRateLimiter();
+ app.UseAuthorization();
+ 
+-// Health endpoints (liveness / readiness)
+-app.MapHealthChecks("/health", new HealthCheckOptions
+-{
+-    Predicate = _ => false, // no checks, solo "Alive"
+-    ResponseWriter = async (ctx, _) =>
+-    {
+-        ctx.Response.ContentType = "application/json; charset=utf-8";
+-        await ctx.Response.WriteAsync("""{"status":"Healthy"}""");
+-    }
+-}).DisableRateLimiting();
+-
+-app.MapHealthChecks("/ready", new HealthCheckOptions
+-{
+-    Predicate = _ => true, // incluye db
+-    ResponseWriter = WriteHealthResponse
+-}).DisableRateLimiting();
+-
+-
+ app.MapControllers();
+ 
+ app.Run();
+diff --git a/EventHouse.Management.Api/appsettings.json b/EventHouse.Management.Api/appsettings.json
+index afa41bc..92afa01 100644
+--- a/EventHouse.Management.Api/appsettings.json
++++ b/EventHouse.Management.Api/appsettings.json
+@@ -16,5 +16,19 @@
+   "RateLimiting": {
+     "PermitLimit": 100,
+     "WindowSeconds": 60
++  },
++  "OpenTelemetry": {
++    "Tracing": {
++      "Enabled": true,
++      "OtlpEndpoint": "http://jaeger:4317",
++      "SamplingProbability": 1.0
++    },
++    "Metrics": {
++      "Enabled": true
++    },
++    "Logging": {
++      "Enabled": true,
++      "OtlpEndpoint": "http://jaeger:4317"
++    }
+   }
+ }
+diff --git a/EventHouse.Management.Api/docker-compose.yml b/EventHouse.Management.Api/docker-compose.yml
+new file mode 100644
+index 0000000..3a06f23
+--- /dev/null
++++ b/EventHouse.Management.Api/docker-compose.yml
+@@ -0,0 +1,60 @@
++﻿services:
++  # 1. EventHouse Management API
++  eventhouse-api:
++    build:
++      context: ../../
++      dockerfile: eventhouse-management-api/EventHouse.Management.Api/Dockerfile
++    container_name: eventhouse-management-api
++    environment:
++      - ASPNETCORE_ENVIRONMENT=Development
++      - Auth__DevSecret=YourLongSecureSecretKeyHere123!_ExtraCharactersForSecurity
++      - OpenTelemetry__Tracing__Enabled=true
++      - OpenTelemetry__Tracing__OtlpEndpoint=http://jaeger:4317
++      - OpenTelemetry__Metrics__Enabled=true
++      - OpenTelemetry__Logging__Enabled=true
++      - OpenTelemetry__Logging__OtlpEndpoint=http://jaeger:4317
++    ports:
++      - "5185:8080"
++    networks:
++      - otel-network
++    depends_on:
++      - jaeger
++      - prometheus
++      - grafana
++
++  # 2. Jaeger (Tracing)
++  jaeger:
++    container_name: core-jaeger
++    image: jaegertracing/all-in-one:latest
++    ports:
++      - "16686:16686" # UI
++      - "4317:4317"   # OTLP gRPC endpoint
++    networks:
++      - otel-network
++
++  # 3. Prometheus (Metrics)
++  prometheus:
++    container_name: core-prometheus
++    image: prom/prometheus:latest
++    volumes:
++      - ./prometheus.yml:/etc/prometheus/prometheus.yml
++    ports:
++      - "9090:9090"
++    networks:
++      - otel-network
++
++  # 4. Grafana (Dashboards)
++  grafana:
++    container_name: core-grafana
++    image: grafana/grafana:latest
++    ports:
++      - "3000:3000"
++    environment:
++      - GF_SECURITY_ADMIN_PASSWORD=admin
++    networks:
++      - otel-network
++
++# --- CRITICAL SECTION: Define the network for all services ---
++networks:
++  otel-network:
++    driver: bridge
+\ No newline at end of file
+diff --git a/EventHouse.Management.Api/prometheus.yml b/EventHouse.Management.Api/prometheus.yml
+new file mode 100644
+index 0000000..084ae1a
+--- /dev/null
++++ b/EventHouse.Management.Api/prometheus.yml
+@@ -0,0 +1,7 @@
++﻿global:
++  scrape_interval: 15s
++
++scrape_configs:
++  - job_name: 'eventhouse-api'
++    static_configs:
++      - targets: ['eventhouse-api:8080'] # Using the service name from docker-compose
+\ No newline at end of file
+diff --git a/EventHouse.Management.Application.Tests/EventHouse.Management.Application.Tests.csproj.Backup.tmp b/EventHouse.Management.Application.Tests/EventHouse.Management.Application.Tests.csproj.Backup.tmp
+deleted file mode 100644
+index 54af3a6..0000000
+--- a/EventHouse.Management.Application.Tests/EventHouse.Management.Application.Tests.csproj.Backup.tmp
++++ /dev/null
+@@ -1,39 +0,0 @@
+-<Project Sdk="Microsoft.NET.Sdk">
+-
+-  <PropertyGroup>
+-    <TargetFramework>net8.0</TargetFramework>
+-    <ImplicitUsings>enable</ImplicitUsings>
+-    <Nullable>enable</Nullable>
+-
+-    <IsPackable>false</IsPackable>
+-    <IsTestProject>true</IsTestProject>
+-  </PropertyGroup>
+-
+-  <ItemGroup>
+-    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+-    <PackageReference Include="coverlet.msbuild" Version="6.0.4">
+-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+-      <PrivateAssets>all</PrivateAssets>
+-    </PackageReference>
+-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+-    <PackageReference Include="NSubstitute" Version="5.3.0" />
+-    <PackageReference Include="xunit.analyzers" Version="1.26.0">
+-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+-      <PrivateAssets>all</PrivateAssets>
+-    </PackageReference>
+-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+-      <PrivateAssets>all</PrivateAssets>
+-    </PackageReference>
+-    <PackageReference Include="xunit.v3" Version="3.2.1" />
+-  </ItemGroup>
+-
+-  <ItemGroup>
+-    <Using Include="Xunit" />
+-  </ItemGroup>
+-
+-  <ItemGroup>
+-    <ProjectReference Include="..\EventHouse.Management.Application\EventHouse.Management.Application.csproj" />
+-  </ItemGroup>
+-
+-</Project>
+diff --git a/EventHouse.Management.Application/EventHouse.Management.Application.csproj.Backup.tmp b/EventHouse.Management.Application/EventHouse.Management.Application.csproj.Backup.tmp
+deleted file mode 100644
+index 5358a85..0000000
+--- a/EventHouse.Management.Application/EventHouse.Management.Application.csproj.Backup.tmp
++++ /dev/null
+@@ -1,18 +0,0 @@
+-﻿<Project Sdk="Microsoft.NET.Sdk">
+-
+-  <ItemGroup>
+-    <ProjectReference Include="..\EventHouse.Management.Domain\EventHouse.Management.Domain.csproj" />
+-  </ItemGroup>
+-
+-  <ItemGroup>
+-    <PackageReference Include="FluentValidation" Version="11.*" />
+-    <PackageReference Include="MediatR" Version="12.*" />
+-  </ItemGroup>
+-
+-  <PropertyGroup>
+-    <TargetFramework>net8.0</TargetFramework>
+-    <ImplicitUsings>enable</ImplicitUsings>
+-    <Nullable>enable</Nullable>
+-  </PropertyGroup>
+-
+-</Project>
+diff --git a/EventHouse.Management.Infrastructure.Tests/EventHouse.Management.Infrastructure.Tests.csproj.Backup.tmp b/EventHouse.Management.Infrastructure.Tests/EventHouse.Management.Infrastructure.Tests.csproj.Backup.tmp
+deleted file mode 100644
+index 9c5b30a..0000000
+--- a/EventHouse.Management.Infrastructure.Tests/EventHouse.Management.Infrastructure.Tests.csproj.Backup.tmp
++++ /dev/null
+@@ -1,23 +0,0 @@
+-<Project Sdk="Microsoft.NET.Sdk">
+-
+-  <PropertyGroup>
+-    <TargetFramework>net8.0</TargetFramework>
+-    <ImplicitUsings>enable</ImplicitUsings>
+-    <Nullable>enable</Nullable>
+-
+-    <IsPackable>false</IsPackable>
+-    <IsTestProject>true</IsTestProject>
+-  </PropertyGroup>
+-
+-  <ItemGroup>
+-    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+-    <PackageReference Include="xunit" Version="2.5.3" />
+-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+-  </ItemGroup>
+-
+-  <ItemGroup>
+-    <Using Include="Xunit" />
+-  </ItemGroup>
+-
+-</Project>
+diff --git a/EventHouse.sln b/EventHouse.sln
+index b835ec8..be98703 100644
+--- a/EventHouse.sln
++++ b/EventHouse.sln
+@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Infra
+ EndProject
+ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.TestUtils", "EventHouse.Management.TestUtils\EventHouse.Management.TestUtils.csproj", "{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7}"
+ EndProject
++Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{D107F4C8-89CC-BEA8-D3D7-CA6B7733353D}"
++EndProject
+ Global
+ 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+ 		Debug|Any CPU = Debug|Any CPU
+@@ -73,7 +75,7 @@ Global
+ 	GlobalSection(SolutionProperties) = preSolution
+ 		HideSolutionNode = FALSE
+ 	EndGlobalSection
+-	GlobalSection(SolutionProperties) = preSolution
+-		HideSolutionNode = FALSE
++	GlobalSection(ExtensibilityGlobals) = postSolution
++		SolutionGuid = {E847F8CD-98B6-4209-B768-33CBAD7321B2}
+ 	EndGlobalSection
+ EndGlobal
+diff --git a/README.md b/README.md
+index 1959a46..bbd19da 100644
+--- a/README.md
++++ b/README.md
+@@ -1,56 +1,139 @@
+-# eventhouse-management-api-demo
++# 🎟️ EventHouse Management API (Demo)
+ 
+-Demo REST API applying DDD and Clean Architecture with .NET, JWT authentication, Swagger, and Azure-ready patterns.
++A demo REST API built with **.NET 8**, applying **Domain-Driven Design (DDD)** and **Clean Architecture** principles.
++
++Includes:
++
++- 🔐 JWT Authentication
++- 🧱 Layered Architecture (Domain, Application, Infrastructure, API)
++- 📊 Cloud-Native Observability (health checks, tracing, correlation IDs)
++- 🐳 Fully containerized environment (Docker)
++
++---
++
++## 🚀 Getting Started
++
++### ▶️ Run with Docker (Recommended)
++
++The full ecosystem (API + Database + Observability stack) is orchestrated via Docker.
++
++From the root directory:
++
++```powershell
++docker-compose -f .\eventhouse-management-api\EventHouse.Management.Api\docker-compose.yml up -d --build
++```
+ 
+ ---
+ 
+-## Run locally
++### 💻 Run Locally
+ 
+-### Set development secret
++#### 1. Set Development Secret
+ 
+ ```powershell
+ $Env:Auth__DevSecret="EVENTHOUSE_LOCAL_DEV_SECRET_32_CHARS_MINIMUM!!"
++```
+ 
++#### 2. Run the API
+ 
+-Run API
++```bash
+ dotnet run --project EventHouse.Management.Api
++```
+ 
+-### Update BD
+-dotnet ef migrations add addIsConcurrencyToken `--project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api --output-dir Persistence/Migrations
++---
+ 
++### 🗄️ Database Setup
+ 
+-dotnet ef database update ` --project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api
++#### Add Migration
+ 
+-## Observability
++```powershell
++dotnet ef migrations add addIsConcurrencyToken `
++--project EventHouse.Management.Infrastructure `
++--startup-project EventHouse.Management.Api `
++--output-dir Persistence/Migrations
++```
++
++#### Apply Migration
++
++```powershell
++dotnet ef database update `
++--project EventHouse.Management.Infrastructure `
++--startup-project EventHouse.Management.Api
++```
++
++---
++
++## 🔍 Observability
+ 
+ ### Correlation ID
+-All responses include the `X-Correlation-Id` header to enable end-to-end request tracing.
+-You can also provide your own correlation id in the request header:
++
++All responses include an `X-Correlation-Id` header for end-to-end tracing.
++
++You can also provide your own:
+ 
+ ```bash
+ curl -i -H "X-Correlation-Id: demo123" http://localhost:5185/api/v1/artists
+-curl http://localhost:5185/health
+-curl http://localhost:5185/ready
++```
++
++## 🧠 Repository Design Standards
++
++Repositories follow a **Lifecycle-Based Ordering** strategy aligned with **ISO/IEC 25010 maintainability principles**:
+ 
++1. **Commands First**
++   - Methods that modify state (`Add`, `Update`)
+ 
+-##📖 Repository Design Standards
++2. **Queries Second**
++   - Retrieval methods (`Get`, `Paged`)
+ 
+-    - The interfaces and implementations of our repositories follow a strict Lifecycle-Based Ordering, aligned with ISO/IEC 25010 maintainability principles:
+-    - Commands First (Add/Update): We prioritize the methods that alter the system state, reflecting the repositories role as a persistent collection.
+-    - Queries Second (Get/Paged): Data retrieval methods follow, defining how entities are accessed once they exist.
+-    - Validation & Existence: Specialized methods like ExistsAsync are grouped to support clean "Fail-Fast" logic in the Application Layer.
+-    - Analyzability: This consistent structure reduces cognitive load for developers, ensuring that the persistence contract is predictable across all modules.
++3. **Validation & Existence**
++   - Support methods like `ExistsAsync`
+ 
+-# Tests Standards & Principles
+-    - Fail-Fast Approach: Tests are ordered by "depth" in the tech stack so failures occur as early as possible in the pipeline.
+-    - RFC 9110 Compliance: Strict adherence to HTTP semantics: 201 Created (with Location header), 204 No Content (updates/deletes), 409 Conflict (state collisions), and 404 Not Found.
+-    - Clean Testing: Use of the Factory Pattern (via Bogus) to ensure test data is decoupled from test logic, adhering to the F.I.R.S.T. principles of testing.
++### 🎯 Benefits
+ 
+-## Tests and code coverage (local)
++- Predictable structure across modules
++- Reduced cognitive load
++- Improved maintainability
++
++---
++
++## 🧪 Testing Standards & Principles
++
++- ⚡ **Fail-Fast Approach**
++- 🌐 **RFC 9110 Compliance**
++- 🧼 **Clean Testing with Factory Pattern (Bogus)**
++
++---
++
++## 📊 Code Coverage
++
++### Run Tests with Coverage
++
++```bash
+ dotnet test EventHouse.sln --collect:"XPlat Code Coverage"
++```
++
++### Generate HTML Report
+ 
+-## Generate HTML coverage report
++```bash
+ reportgenerator -reports:"EventHouse.Management.Domain.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Application.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Api.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Infrastructure.Tests\TestResults\*\coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Html -filefilters:"-*\\obj\\*;-*RegexGenerator.g.cs"
++```
++
++### Open Report
+ 
+-## Open the report:
++```bash
+ start coverage-report/index.html
++```
++
++---
++
++## 🏗️ Architecture Highlights
++
++- Clean separation of concerns (DDD layers)
++- Strong testing discipline
++- Observability-first mindset
++- Production-ready patterns
++
++---
++
++## 📌 Notes
++
++This project is intended as a **portfolio demonstration** of backend architecture and best practices in modern .NET development.
+diff --git a/nuget.config b/nuget.config
+new file mode 100644
+index 0000000..cdc0ca8
+--- /dev/null
++++ b/nuget.config
+@@ -0,0 +1,7 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<configuration>
++	<packageSources>
++		<add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
++		<add key="MiRepoLocal" value="..\NuGetLocal" />
++	</packageSources>
++</configuration>
+\ No newline at end of file
+-- 
+2.39.1.windows.1
+

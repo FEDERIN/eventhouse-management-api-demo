@@ -1,0 +1,60 @@
+﻿services:
+  # 1. EventHouse Management API
+  eventhouse-api:
+    build:
+      context: ../../
+      dockerfile: eventhouse-management-api/EventHouse.Management.Api/Dockerfile
+    container_name: eventhouse-management-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Auth__DevSecret=YourLongSecureSecretKeyHere123!_ExtraCharactersForSecurity
+      - OpenTelemetry__Tracing__Enabled=true
+      - OpenTelemetry__Tracing__OtlpEndpoint=http://jaeger:4317
+      - OpenTelemetry__Metrics__Enabled=true
+      - OpenTelemetry__Logging__Enabled=true
+      - OpenTelemetry__Logging__OtlpEndpoint=http://jaeger:4317
+    ports:
+      - "5185:8080"
+    networks:
+      - otel-network
+    depends_on:
+      - jaeger
+      - prometheus
+      - grafana
+
+  # 2. Jaeger (Tracing)
+  jaeger:
+    container_name: core-jaeger
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # UI
+      - "4317:4317"   # OTLP gRPC endpoint
+    networks:
+      - otel-network
+
+  # 3. Prometheus (Metrics)
+  prometheus:
+    container_name: core-prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - otel-network
+
+  # 4. Grafana (Dashboards)
+  grafana:
+    container_name: core-grafana
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - otel-network
+
+# --- CRITICAL SECTION: Define the network for all services ---
+networks:
+  otel-network:
+    driver: bridge
