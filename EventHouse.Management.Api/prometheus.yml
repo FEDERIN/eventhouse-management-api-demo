@@ -1,0 +1,7 @@
+﻿global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'eventhouse-api'
+    static_configs:
+      - targets: ['eventhouse-api:8080'] # Using the service name from docker-compose
