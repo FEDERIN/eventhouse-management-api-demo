@@ -1,0 +1,167 @@
+diff a/README.md b/README.md	(rejected hunks)
+@@ -1,56 +1,139 @@
+-# eventhouse-management-api-demo
++# 🎟️ EventHouse Management API (Demo)
+ 
+-Demo REST API applying DDD and Clean Architecture with .NET, JWT authentication, Swagger, and Azure-ready patterns.
++A demo REST API built with **.NET 8**, applying **Domain-Driven Design (DDD)** and **Clean Architecture** principles.
++
++Includes:
++
++- 🔐 JWT Authentication
++- 🧱 Layered Architecture (Domain, Application, Infrastructure, API)
++- 📊 Cloud-Native Observability (health checks, tracing, correlation IDs)
++- 🐳 Fully containerized environment (Docker)
++
++---
++
++## 🚀 Getting Started
++
++### ▶️ Run with Docker (Recommended)
++
++The full ecosystem (API + Database + Observability stack) is orchestrated via Docker.
++
++From the root directory:
++
++```powershell
++docker-compose -f .\eventhouse-management-api\EventHouse.Management.Api\docker-compose.yml up -d --build
++```
+ 
+ ---
+ 
+-## Run locally
++### 💻 Run Locally
+ 
+-### Set development secret
++#### 1. Set Development Secret
+ 
+ ```powershell
+ $Env:Auth__DevSecret="EVENTHOUSE_LOCAL_DEV_SECRET_32_CHARS_MINIMUM!!"
++```
+ 
++#### 2. Run the API
+ 
+-Run API
++```bash
+ dotnet run --project EventHouse.Management.Api
++```
+ 
+-### Update BD
+-dotnet ef migrations add addIsConcurrencyToken `--project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api --output-dir Persistence/Migrations
++---
+ 
++### 🗄️ Database Setup
+ 
+-dotnet ef database update ` --project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api
++#### Add Migration
+ 
+-## Observability
++```powershell
++dotnet ef migrations add addIsConcurrencyToken `
++--project EventHouse.Management.Infrastructure `
++--startup-project EventHouse.Management.Api `
++--output-dir Persistence/Migrations
++```
++
++#### Apply Migration
++
++```powershell
++dotnet ef database update `
++--project EventHouse.Management.Infrastructure `
++--startup-project EventHouse.Management.Api
++```
++
++---
++
++## 🔍 Observability
+ 
+ ### Correlation ID
+-All responses include the `X-Correlation-Id` header to enable end-to-end request tracing.
+-You can also provide your own correlation id in the request header:
++
++All responses include an `X-Correlation-Id` header for end-to-end tracing.
++
++You can also provide your own:
+ 
+ ```bash
+ curl -i -H "X-Correlation-Id: demo123" http://localhost:5185/api/v1/artists
+-curl http://localhost:5185/health
+-curl http://localhost:5185/ready
++```
++
++## 🧠 Repository Design Standards
++
++Repositories follow a **Lifecycle-Based Ordering** strategy aligned with **ISO/IEC 25010 maintainability principles**:
+ 
++1. **Commands First**
++   - Methods that modify state (`Add`, `Update`)
+ 
+-##📖 Repository Design Standards
++2. **Queries Second**
++   - Retrieval methods (`Get`, `Paged`)
+ 
+-    - The interfaces and implementations of our repositories follow a strict Lifecycle-Based Ordering, aligned with ISO/IEC 25010 maintainability principles:
+-    - Commands First (Add/Update): We prioritize the methods that alter the system state, reflecting the repositories role as a persistent collection.
+-    - Queries Second (Get/Paged): Data retrieval methods follow, defining how entities are accessed once they exist.
+-    - Validation & Existence: Specialized methods like ExistsAsync are grouped to support clean "Fail-Fast" logic in the Application Layer.
+-    - Analyzability: This consistent structure reduces cognitive load for developers, ensuring that the persistence contract is predictable across all modules.
++3. **Validation & Existence**
++   - Support methods like `ExistsAsync`
+ 
+-# Tests Standards & Principles
+-    - Fail-Fast Approach: Tests are ordered by "depth" in the tech stack so failures occur as early as possible in the pipeline.
+-    - RFC 9110 Compliance: Strict adherence to HTTP semantics: 201 Created (with Location header), 204 No Content (updates/deletes), 409 Conflict (state collisions), and 404 Not Found.
+-    - Clean Testing: Use of the Factory Pattern (via Bogus) to ensure test data is decoupled from test logic, adhering to the F.I.R.S.T. principles of testing.
++### 🎯 Benefits
+ 
+-## Tests and code coverage (local)
++- Predictable structure across modules
++- Reduced cognitive load
++- Improved maintainability
++
++---
++
++## 🧪 Testing Standards & Principles
++
++- ⚡ **Fail-Fast Approach**
++- 🌐 **RFC 9110 Compliance**
++- 🧼 **Clean Testing with Factory Pattern (Bogus)**
++
++---
++
++## 📊 Code Coverage
++
++### Run Tests with Coverage
++
++```bash
+ dotnet test EventHouse.sln --collect:"XPlat Code Coverage"
++```
++
++### Generate HTML Report
+ 
+-## Generate HTML coverage report
++```bash
+ reportgenerator -reports:"EventHouse.Management.Domain.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Application.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Api.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Infrastructure.Tests\TestResults\*\coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Html -filefilters:"-*\\obj\\*;-*RegexGenerator.g.cs"
++```
++
++### Open Report
+ 
+-## Open the report:
++```bash
+ start coverage-report/index.html
++```
++
++---
++
++## 🏗️ Architecture Highlights
++
++- Clean separation of concerns (DDD layers)
++- Strong testing discipline
++- Observability-first mindset
++- Production-ready patterns
++
++---
++
++## 📌 Notes
++
++This project is intended as a **portfolio demonstration** of backend architecture and best practices in modern .NET development.

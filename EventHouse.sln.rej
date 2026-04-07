@@ -1,0 +1,11 @@
+diff a/EventHouse.sln b/EventHouse.sln	(rejected hunks)
+@@ -73,7 +75,7 @@ Global
+ 	GlobalSection(SolutionProperties) = preSolution
+ 		HideSolutionNode = FALSE
+ 	EndGlobalSection
+-	GlobalSection(SolutionProperties) = preSolution
+-		HideSolutionNode = FALSE
++	GlobalSection(ExtensibilityGlobals) = postSolution
++		SolutionGuid = {E847F8CD-98B6-4209-B768-33CBAD7321B2}
+ 	EndGlobalSection
+ EndGlobal
