@@ -8,8 +8,10 @@ using EventHouse.Management.Infrastructure.DependencyInjection;
 using EventHouse.Management.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Extensions;
@@ -18,6 +20,7 @@ using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.Swagger;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 
@@ -233,6 +236,29 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
+//
+// Health response writer (JSON)
+//
+static Task WriteHealthResponse(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json; charset=utf-8";
+
+    var payload = new
+    {
+        status = report.Status.ToString(),
+        totalDurationMs = report.TotalDuration.TotalMilliseconds,
+        checks = report.Entries.Select(e => new
+        {
+            name = e.Key,
+            status = e.Value.Status.ToString(),
+            durationMs = e.Value.Duration.TotalMilliseconds,
+            description = e.Value.Description
+        })
+    };
+
+    return context.Response.WriteAsync(JsonSerializer.Serialize(payload));
+}
+
 //Use YOUR custom endpoints (Prometheus + Serilog)
 app.UseObservabilityEndpoints();
 
@@ -280,5 +306,4 @@ app.MapControllers();
 
 app.Run();
 
-// Para tests de integración (opcional, pero útil)
 public partial class Program { }

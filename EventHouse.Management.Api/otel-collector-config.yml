@@ -1,0 +1,32 @@
+﻿receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+exporters:
+  # send traces to Jaeger (you can also add an exporter for metrics if you want to send them to Prometheus or another backend)
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+  # Expose an endpoint for Prometheus to scrape metrics
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+  # Useful for debugging: you'll see the data passing through in the Docker console
+  debug:
+    verbosity: normal
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [otlp/jaeger, debug]
+    metrics:
+      receivers: [otlp]
+      exporters: [prometheus, debug]
+    logs:
+      receivers: [otlp]
+      exporters: [debug] # You can add a log exporter here, such as Loki or Elastic

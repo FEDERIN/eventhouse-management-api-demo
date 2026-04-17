@@ -1,13 +1,28 @@
-# 🎟️ EventHouse Management API (Demo)
+# 🎟️ EventHouse Management API (Cloud-Native Demo)
 
-A demo REST API built with **.NET 8**, applying **Domain-Driven Design (DDD)** and **Clean Architecture** principles.
+![CI Build & Test](https://github.com/TU_USUARIO/TU_REPO/actions/workflows/ci.yml/badge.svg)  
+![.NET](https://img.shields.io/badge/.NET-8.0-512bd4.svg)  
+![Docker](https://img.shields.io/badge/Docker-Container-2496ed.svg)
 
-Includes:
+A professional-grade REST API built with **.NET 8**, applying **Domain-Driven Design (DDD)**, **Clean Architecture**, and an **Observability-First** approach.
 
-- 🔐 JWT Authentication
-- 🧱 Layered Architecture (Domain, Application, Infrastructure, API)
-- 📊 Cloud-Native Observability (health checks, tracing, correlation IDs)
-- 🐳 Fully containerized environment (Docker)
+---
+
+## 🏗️ Architecture & Patterns
+
+- 🧱 **Clean Architecture:** Clear separation between Domain, Application, Infrastructure, and API layers  
+- 🧠 **DDD & CQRS:** Business logic isolated in the Domain; state changes handled via **MediatR**  
+- 🧪 **Testing Excellence:** Unit & Integration tests with **xUnit** and **Bogus**  
+- 🛡️ **Robustness:** Validation via **FluentValidation** and standardized errors (**RFC 9457**)
+
+---
+
+## 📊 Observability & Monitoring
+
+- 🛰️ **Distributed Tracing:** Integrated with **OpenTelemetry** and **Jaeger**  
+- 📈 **Metrics:** Monitoring via **Prometheus** and **Grafana**  
+- 🩺 **Health Checks:** Available at `/health`  
+- 🆔 **Correlation IDs:** End-to-end tracing via `X-Correlation-Id` header  
 
 ---
 
@@ -15,15 +30,12 @@ Includes:
 
 ### ▶️ Run with Docker (Recommended)
 
-The full ecosystem (API + Database + Observability stack) is orchestrated via Docker.
+Full environment (**API + Database + Observability stack**) with Docker:
 
-From the root directory:
-
-```powershell
-docker-compose -f .\eventhouse-management-api\EventHouse.Management.Api\docker-compose.yml up -d --build
+```bash
+Copy-Item ".\Data\management.db" ".\sqlite_data\EventHouse.db" -Force
+docker-compose -f docker-compose.yml up -d --build
 ```
-
----
 
 ### 💻 Run Locally
 
@@ -41,9 +53,9 @@ dotnet run --project EventHouse.Management.Api
 
 ---
 
-### 🗄️ Database Setup
+## 🗄️ Database Setup
 
-#### Add Migration
+### Add Migration
 
 ```powershell
 dotnet ef migrations add addIsConcurrencyToken `
@@ -52,7 +64,7 @@ dotnet ef migrations add addIsConcurrencyToken `
 --output-dir Persistence/Migrations
 ```
 
-#### Apply Migration
+### Apply Migration
 
 ```powershell
 dotnet ef database update `
@@ -62,56 +74,49 @@ dotnet ef database update `
 
 ---
 
-## 🔍 Observability
+## 🔍 Observability Usage
 
-### Correlation ID
-
-All responses include an `X-Correlation-Id` header for end-to-end tracing.
-
-You can also provide your own:
+### Correlation ID Example
 
 ```bash
 curl -i -H "X-Correlation-Id: demo123" http://localhost:5185/api/v1/artists
 ```
 
+---
+
 ## 🧠 Repository Design Standards
 
-Repositories follow a **Lifecycle-Based Ordering** strategy aligned with **ISO/IEC 25010 maintainability principles**:
+Repositories follow a **Lifecycle-Based Ordering** approach:
 
-1. **Commands First**
-   - Methods that modify state (`Add`, `Update`)
-
-2. **Queries Second**
-   - Retrieval methods (`Get`, `Paged`)
-
-3. **Validation & Existence**
-   - Support methods like `ExistsAsync`
+1. **Commands First** → (`Add`, `Update`)  
+2. **Queries Second** → (`Get`, `Paged`)  
+3. **Validation Methods** → (`ExistsAsync`)  
 
 ### 🎯 Benefits
 
-- Predictable structure across modules
-- Reduced cognitive load
-- Improved maintainability
+- Predictable structure  
+- Reduced cognitive load  
+- Improved maintainability  
 
 ---
 
-## 🧪 Testing Standards & Principles
+## 🧪 Testing Standards
 
-- ⚡ **Fail-Fast Approach**
-- 🌐 **RFC 9110 Compliance**
-- 🧼 **Clean Testing with Factory Pattern (Bogus)**
+- ⚡ Fail-fast approach  
+- 🌐 RFC 9110 compliance  
+- 🧼 Factory-based test data (Bogus)  
 
 ---
 
 ## 📊 Code Coverage
 
-### Run Tests with Coverage
+### Run Tests
 
 ```bash
 dotnet test EventHouse.sln --collect:"XPlat Code Coverage"
 ```
 
-### Generate HTML Report
+### Generate Report
 
 ```bash
 reportgenerator -reports:"EventHouse.Management.Domain.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Application.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Api.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Infrastructure.Tests\TestResults\*\coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Html -filefilters:"-*\\obj\\*;-*RegexGenerator.g.cs"
@@ -125,15 +130,6 @@ start coverage-report/index.html
 
 ---
 
-## 🏗️ Architecture Highlights
-
-- Clean separation of concerns (DDD layers)
-- Strong testing discipline
-- Observability-first mindset
-- Production-ready patterns
-
----
-
 ## 📌 Notes
 
-This project is intended as a **portfolio demonstration** of backend architecture and best practices in modern .NET development.
+This project is a **portfolio demonstration** showcasing modern backend architecture and best practices in .NET development.
