@@ -1,0 +1,7 @@
+﻿global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'eventhouse-api'
+    static_configs:
+      - targets: ['otel-collector:8889'] # The port should match the one defined in the OpenTelemetry Collector configuration for the Prometheus exporter

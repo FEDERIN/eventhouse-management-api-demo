@@ -1,0 +1,83 @@
+﻿services:
+  # 1. EventHouse Management API
+  eventhouse-api:
+    build:
+      context: ..
+      dockerfile: EventHouse.Management.Api/Dockerfile
+    container_name: eventhouse-management-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Auth__DevSecret=YourLongSecureSecretKeyHere123!_ExtraCharactersForSecurity
+      # Overriding settings for Docker network (using service names)
+      - OpenTelemetry__Tracing__OtlpEndpoint=http://otel-collector:4317
+      - OpenTelemetry__Logging__OtlpEndpoint=http://otel-collector:4317
+      - OpenTelemetry__Metrics__Enabled=true
+      - OpenTelemetry__Tracing__Enabled=true
+      - OpenTelemetry__Logging__Enabled=true
+      - ConnectionStrings__ManagementConnection=Data Source=/app/Persistence/EventHouse.db
+    ports:
+      - "5185:8080"
+    networks:
+      - otel-network
+    volumes:
+      - ./sqlite_data:/app/Persistence
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - otel-collector
+
+  # 2. The Collector (all-in-one Collector that sends to Jaeger and exposes metrics for Prometheus)
+  otel-collector:
+    container_name: core-otel-collector
+    image: otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-col/config.yml
+    command: ["--config=/etc/otel-col/config.yml"]
+    ports:
+      - "4317:4317" # Receive gRPC from the Minimal API
+      - "8889:8889" # Exhibit metrics for Prometheus
+    networks:
+      - otel-network
+    depends_on:
+      - jaeger
+
+  # 3. Jaeger (Visualizer of traces)
+  jaeger:
+    container_name: core-jaeger
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # UI
+    networks:
+      - otel-network
+
+  # 4. Prometheus (Scrapes the Collector)
+  prometheus:
+    container_name: core-prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - otel-network
+
+  # 5. Grafana (Dashboards)
+  grafana:
+    container_name: core-grafana
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - otel-network
+
+# --- CRITICAL SECTION: Define the network for all services ---
+networks:
+  otel-network:
+    driver: bridge
