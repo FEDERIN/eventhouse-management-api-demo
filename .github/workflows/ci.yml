@@ -1,0 +1,40 @@
+﻿name: CI Build & Test
+
+# Trigger the workflow on push or pull request to the main branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build, Test and Docker Validation
+    runs-on: ubuntu-latest
+
+    steps:
+    # Check out the repository code to the runner
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # Setup the .NET SDK version 8.0
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    # Restore NuGet packages
+    - name: Restore Dependencies
+      run: dotnet restore EventHouse.sln
+
+    # Build the project in Release mode without re-restoring
+    - name: Build Solution
+      run: dotnet build EventHouse.sln --configuration Release --no-restore
+
+    # Run Unit and Integration tests
+    - name: Run Tests
+      run: dotnet test EventHouse.sln --configuration Release --no-build --verbosity normal
+
+    # Validate that the Dockerfile builds correctly (Smoke Test)
+    - name: Build Docker Image
+      run: docker build -t eventhouse-api:test -f EventHouse.Management.Api/Dockerfile .
