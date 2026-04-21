@@ -2,7 +2,6 @@
 using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Application.Mappers.Genres;
 using EventHouse.Management.Domain.Entities;
-using EventHouse.Management.Application.Common.Interfaces;
 using MediatR;
 
 namespace EventHouse.Management.Application.Commands.Genres.Create;
