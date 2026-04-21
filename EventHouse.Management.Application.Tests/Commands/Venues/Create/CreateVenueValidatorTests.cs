@@ -113,4 +113,5 @@ public sealed class CreateVenueValidatorTests
         Capacity: 500,
         true
     );
+
 }

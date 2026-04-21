@@ -1,5 +1,4 @@
-﻿using EventHouse.Management.Application.Common;
-using MediatR;
+﻿using MediatR;
 
 namespace EventHouse.Management.Application.Commands.Events.Delete;
 

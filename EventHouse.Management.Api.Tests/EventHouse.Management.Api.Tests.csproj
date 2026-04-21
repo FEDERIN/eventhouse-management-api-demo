@@ -43,8 +43,4 @@
     <ProjectReference Include="..\EventHouse.Management.Api\EventHouse.Management.Api.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Contracts\" />
-  </ItemGroup>
-
 </Project>

@@ -145,6 +145,46 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("EventHouse.Management.Domain.Entities.EventVenueCalendar", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("EventVenueId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SeatingMapId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeatingMapId");
+
+                    b.HasIndex("EventVenueId", "StartDate");
+
+                    b.HasIndex("EventVenueId", "StartDate", "EndDate")
+                        .HasDatabaseName("IX_EventVenueCalendar_Overlap_Search");
+
+                    b.ToTable("EventVenueCalendars", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_EventVenueCalendar_EndDate", "(EndDate IS NULL OR EndDate >= StartDate)");
+                        });
+                });
+
             modelBuilder.Entity("EventHouse.Management.Domain.Entities.Genre", b =>
                 {
                     b.Property<Guid>("Id")
@@ -200,7 +240,7 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("VenueId", "Name")
                         .IsUnique()
-                        .HasDatabaseName("UX_SeatingMap_VenueId_Name");
+                        .HasDatabaseName("UX_SeatingMap_Venue_Name");
 
                     b.ToTable("SeatingMaps", null, t =>
                         {
@@ -301,6 +341,23 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                     b.Navigation("Event");
 
                     b.Navigation("Venue");
+                });
+
+            modelBuilder.Entity("EventHouse.Management.Domain.Entities.EventVenueCalendar", b =>
+                {
+                    b.HasOne("EventHouse.Management.Domain.Entities.EventVenue", "EventVenue")
+                        .WithMany()
+                        .HasForeignKey("EventVenueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EventHouse.Management.Domain.Entities.SeatingMap", null)
+                        .WithMany()
+                        .HasForeignKey("SeatingMapId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("EventVenue");
                 });
 
             modelBuilder.Entity("EventHouse.Management.Domain.Entities.SeatingMap", b =>

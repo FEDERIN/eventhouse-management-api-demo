@@ -1,6 +1,5 @@
 ﻿using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.SeatingMaps;
-using EventHouse.Management.Api.Contracts.Venues;
 using EventHouse.Management.Api.Mappers.Common;
 using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.DTOs;

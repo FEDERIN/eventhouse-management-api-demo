@@ -5,7 +5,6 @@ using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Queries.Artists.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
-using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -119,26 +118,5 @@ internal class ArtistRepository(ManagementDbContext context) :
         };
 
         return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
-    }
-
-    private async Task SaveChangesWithUniqueCheckAsync(Artist entity, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await _context.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateException ex) when (ex.IsUniqueViolation("IX_Artists_Name"))
-        {
-            throw new ConflictException(
-                code: "ARTIST_NAME_ALREADY_EXISTS",
-                title: "Unique constraint violated",
-                detail: $"Artist with name '{entity.Name}' already exists."
-            );
-        }
-        catch (DbUpdateException ex) when (ex.IsUniqueViolation("IX_ArtistGenres_ArtistId_GenreId"))
-        {
-            _context.ChangeTracker.Clear();
-            return;
-        }
     }
 }

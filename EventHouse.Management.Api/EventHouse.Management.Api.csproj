@@ -9,6 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Mappers\Enums\**" />
+    <Content Remove="Mappers\Enums\**" />
+    <EmbeddedResource Remove="Mappers\Enums\**" />
+    <None Remove="Mappers\Enums\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="FGutierrez.Core.Observability" Version="1.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.*">

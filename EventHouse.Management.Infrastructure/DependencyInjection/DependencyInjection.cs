@@ -15,6 +15,7 @@ public static class DependencyInjection
         services.AddScoped<IVenueRepository, VenueRepository>();
         services.AddScoped<ISeatingMapRepository, SeatingMapRepository>();
         services.AddScoped<IEventVenueRepository, EventVenueRepository>();
+        services.AddScoped<IEventVenueCalendarRepository, EventVenueCalendarRepository>();
 
         return services;
     }

@@ -1,5 +1,5 @@
 ﻿using EventHouse.Management.Api.Contracts.EventVenues;
-using EventHouse.Management.Api.Mappers.Enums;
+using EventHouse.Management.Api.Mappers.EventVenues;
 using EventHouse.Management.Application.Common.Enums;
 
 namespace EventHouse.Management.Api.Tests.Mappers;
