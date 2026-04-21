@@ -2,43 +2,45 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EventHouse.Management.Infrastructure.Persistence.Configurations
+namespace EventHouse.Management.Infrastructure.Persistence.Configurations;
+
+public class SeatingMapConfiguration : IEntityTypeConfiguration<SeatingMap>
 {
-    public class SeatingMapConfiguration : IEntityTypeConfiguration<SeatingMap>
+    public void Configure(EntityTypeBuilder<SeatingMap> builder)
     {
-        public void Configure(EntityTypeBuilder<SeatingMap> builder)
+        builder.ToTable("SeatingMaps", t =>
         {
-            builder.ToTable("SeatingMaps", t =>
-            {
-                t.HasCheckConstraint("CK_SeatingMap_VenueId_NotEmpty", "VenueId <> '00000000-0000-0000-0000-000000000000'");
-            });
+            t.HasCheckConstraint("CK_SeatingMap_VenueId_NotEmpty", "VenueId <> '00000000-0000-0000-0000-000000000000'");
+        });
 
-            builder.HasKey(e => e.Id);
+        builder.HasKey(e => e.Id);
 
-            builder.HasOne<Venue>()
-                   .WithMany()
-                   .HasForeignKey(e => e.VenueId)
-                   .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Venue>()
+               .WithMany()
+               .HasForeignKey(e => e.VenueId)
+               .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Property(e => e.Name)
-                .IsRequired()
-                .HasMaxLength(200);
+        builder.Property(e => e.Name)
+            .IsRequired()
+            .HasMaxLength(200);
 
-            builder.Property(e => e.Version)
-                   .IsRequired()
-                   .IsConcurrencyToken()
-                   .HasDefaultValue(1);
+        builder.Property(e => e.Version)
+               .IsRequired()
+               .IsConcurrencyToken()
+               .HasDefaultValue(1);
 
-            builder.Property(e => e.IsActive)
-                .IsRequired();
+        builder.Property(e => e.IsActive)
+            .IsRequired();
 
-            builder.HasIndex(e => e.VenueId);
+        builder.HasIndex(e => e.VenueId);
 
-            builder.HasIndex(e => new { e.VenueId, e.Name })
-                   .IsUnique()
-                   .HasDatabaseName("UX_SeatingMap_VenueId_Name");
+        builder.HasMany<EventVenueCalendar>()
+           .WithOne()
+           .HasForeignKey(c => c.SeatingMapId)
+           .OnDelete(DeleteBehavior.Restrict);
 
-
-        }
+        builder.HasIndex(e => new { e.VenueId, e.Name })
+               .IsUnique()
+               .HasDatabaseName("UX_SeatingMap_Venue_Name");
     }
 }

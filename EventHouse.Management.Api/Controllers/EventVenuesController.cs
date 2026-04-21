@@ -1,7 +1,6 @@
 ﻿using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.EventVenues;
-using EventHouse.Management.Api.Mappers.Enums;
 using EventHouse.Management.Api.Mappers.EventVenues;
 using EventHouse.Management.Api.Swagger;
 using EventHouse.Management.Api.Swagger.Examples.Contracts.EventVenues;
@@ -45,7 +44,6 @@ public sealed class EventVenuesController(IMediator mediator) : BaseApiControlle
         Summary = "List event venues with optional filtering, sorting, and pagination.")]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(EventVenuePagedResultExample))]
     [SwaggerRequestExample(typeof(GetEventVenuesRequest), typeof(GetEventVenuesRequestExample))]
-
     [ProducesOkAttribute<PagedResult<EventVenueResponse>>]
     [ProducesValidationProblemAttribute]
     [ProducesTooManyRequestsProblemAttribute]

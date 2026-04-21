@@ -1,8 +1,7 @@
-﻿
-using EventHouse.Management.Api.Contracts.EventVenues;
+﻿using EventHouse.Management.Api.Contracts.EventVenues;
 using EventHouse.Management.Application.Common.Enums;
 
-namespace EventHouse.Management.Api.Mappers.Enums;
+namespace EventHouse.Management.Api.Mappers.EventVenues;
 
 public static class EventVenueStatusMapper
 {

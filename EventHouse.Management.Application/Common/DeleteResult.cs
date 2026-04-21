@@ -10,7 +10,6 @@ namespace EventHouse.Management.Application.Common
         }
 
         public static DeleteResult Ok() => new(DeleteStatus.Ok);
-        public static DeleteResult NotFoundResult() => new(DeleteStatus.NotFound);
     }
 
     public enum DeleteStatus
