@@ -8,7 +8,6 @@ using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories;
-
 internal class VenueRepository(ManagementDbContext context) :
     BaseRepository(context), IVenueRepository
 {
@@ -25,8 +24,8 @@ internal class VenueRepository(ManagementDbContext context) :
 
     public async Task UpdateAsync(Venue entity, CancellationToken cancellationToken = default)
     {
-        if (_context.Entry(entity).State == EntityState.Detached)
-            throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
+    if (_context.Entry(entity).State == EntityState.Detached)
+        throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
 
         await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
     }
@@ -67,7 +66,7 @@ internal class VenueRepository(ManagementDbContext context) :
 
         if (!string.IsNullOrWhiteSpace(criteria.Name))
             query = query.Where(v => EF.Functions.Like(v.Name, $"%{criteria.Name}%"));
-
+            
         if (!string.IsNullOrWhiteSpace(criteria.Address))
             query = query.Where(v => EF.Functions.Like(v.Address, $"%{criteria.Address}%"));
 
@@ -80,7 +79,7 @@ internal class VenueRepository(ManagementDbContext context) :
         if (!string.IsNullOrWhiteSpace(criteria.CountryCode))
             query = query.Where(v => v.CountryCode != null && v.CountryCode == criteria.CountryCode);
 
-        if (criteria.Capacity.HasValue)
+        if(criteria.Capacity.HasValue)
             query = query.Where(v => v.Capacity.HasValue && v.Capacity.Value >= criteria.Capacity.Value);
 
         if (criteria.IsActive is not null)
