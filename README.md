@@ -1,76 +1,135 @@
-# eventhouse-management-api-demo
+# 🎟️ EventHouse Management API (Cloud-Native Demo)
 
-Demo REST API applying DDD and Clean Architecture with .NET, JWT authentication, Swagger, and Azure-ready patterns.
+![CI Build & Test](https://github.com/TU_USUARIO/TU_REPO/actions/workflows/ci.yml/badge.svg)  
+![.NET](https://img.shields.io/badge/.NET-8.0-512bd4.svg)  
+![Docker](https://img.shields.io/badge/Docker-Container-2496ed.svg)
+
+A professional-grade REST API built with **.NET 8**, applying **Domain-Driven Design (DDD)**, **Clean Architecture**, and an **Observability-First** approach.
 
 ---
 
-## Run locally
+## 🏗️ Architecture & Patterns
 
-### Set development secret
+- 🧱 **Clean Architecture:** Clear separation between Domain, Application, Infrastructure, and API layers  
+- 🧠 **DDD & CQRS:** Business logic isolated in the Domain; state changes handled via **MediatR**  
+- 🧪 **Testing Excellence:** Unit & Integration tests with **xUnit** and **Bogus**  
+- 🛡️ **Robustness:** Validation via **FluentValidation** and standardized errors (**RFC 9457**)
+
+---
+
+## 📊 Observability & Monitoring
+
+- 🛰️ **Distributed Tracing:** Integrated with **OpenTelemetry** and **Jaeger**  
+- 📈 **Metrics:** Monitoring via **Prometheus** and **Grafana**  
+- 🩺 **Health Checks:** Available at `/health`  
+- 🆔 **Correlation IDs:** End-to-end tracing via `X-Correlation-Id` header  
+
+---
+
+## 🚀 Getting Started
+
+### ▶️ Run with Docker (Recommended)
+
+Full environment (**API + Database + Observability stack**) with Docker:
+
+```bash
+Copy-Item ".\Data\management.db" ".\sqlite_data\EventHouse.db" -Force
+docker-compose -f docker-compose.yml up -d --build
+```
+
+### 💻 Run Locally
+
+#### 1. Set Development Secret
 
 ```powershell
 $Env:Auth__DevSecret="EVENTHOUSE_LOCAL_DEV_SECRET_32_CHARS_MINIMUM!!"
+```
 
+#### 2. Run the API
 
-Run API
+```bash
 dotnet run --project EventHouse.Management.Api
+```
 
-### Update BD
+---
 
+## 🗄️ Database Setup
 
-dotnet ef database update ` --project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api
+### Add Migration
 
-## Observability
+```powershell
+dotnet ef migrations add addIsConcurrencyToken `
+--project EventHouse.Management.Infrastructure `
+--startup-project EventHouse.Management.Api `
+--output-dir Persistence/Migrations
+```
 
-### Correlation ID
-All responses include the `X-Correlation-Id` header to enable end-to-end request tracing.
-You can also provide your own correlation id in the request header:
+### Apply Migration
+
+```powershell
+dotnet ef database update `
+--project EventHouse.Management.Infrastructure `
+--startup-project EventHouse.Management.Api
+```
+
+---
+
+## 🔍 Observability Usage
+
+### Correlation ID Example
 
 ```bash
 curl -i -H "X-Correlation-Id: demo123" http://localhost:5185/api/v1/artists
-curl http://localhost:5185/health
-curl http://localhost:5185/ready
+```
 
+---
 
-##📖 Repository Design Standards
+## 🧠 Repository Design Standards
 
-    - The interfaces and implementations of our repositories follow a strict Lifecycle-Based Ordering, aligned with ISO/IEC 25010 maintainability principles:
-    - Commands First (Add/Update): We prioritize the methods that alter the system state, reflecting the repositories role as a persistent collection.
-    - Queries Second (Get/Paged): Data retrieval methods follow, defining how entities are accessed once they exist.
-    - Validation & Existence: Specialized methods like ExistsAsync are grouped to support clean "Fail-Fast" logic in the Application Layer.
-    - Analyzability: This consistent structure reduces cognitive load for developers, ensuring that the persistence contract is predictable across all modules.
+Repositories follow a **Lifecycle-Based Ordering** approach:
 
-# Tests Standards & Principles
-    - Fail-Fast Approach: Tests are ordered by "depth" in the tech stack so failures occur as early as possible in the pipeline.
-    - RFC 9110 Compliance: Strict adherence to HTTP semantics: 201 Created (with Location header), 204 No Content (updates/deletes), 409 Conflict (state collisions), and 404 Not Found.
-    - Clean Testing: Use of the Factory Pattern (via Bogus) to ensure test data is decoupled from test logic, adhering to the F.I.R.S.T. principles of testing.
+1. **Commands First** → (`Add`, `Update`)  
+2. **Queries Second** → (`Get`, `Paged`)  
+3. **Validation Methods** → (`ExistsAsync`)  
 
-## Tests and code coverage (local)
-#dotnet test EventHouse.Management.Infrastructure.Tests\EventHouse.Management.Infrastructure.Tests.csproj --collect:"XPlat Code Coverage"
-#dotnet test EventHouse.Management.Domain.Tests\EventHouse.Management.Domain.Tests.csproj --collect:"XPlat Code Coverage"
-#dotnet test EventHouse.Management.Api.Tests\EventHouse.Management.Api.Tests.csproj --collect:"XPlat Code Coverage"
-#dotnet test EventHouse.Management.Application.Tests\EventHouse.Management.Application.Tests.csproj --collect:"XPlat Code Coverage"
+### 🎯 Benefits
+
+- Predictable structure  
+- Reduced cognitive load  
+- Improved maintainability  
+
+---
+
+## 🧪 Testing Standards
+
+- ⚡ Fail-fast approach  
+- 🌐 RFC 9110 compliance  
+- 🧼 Factory-based test data (Bogus)  
+
+---
+
+## 📊 Code Coverage
+
+### Run Tests
+
+```bash
 dotnet test EventHouse.sln --collect:"XPlat Code Coverage"
+```
 
-
-## Generate HTML coverage report
-reportgenerator -reports:"EventHouse.Management.Domain.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Application.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Api.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Infrastructure.Tests\TestResults\*\coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Html -filefilters:"-*\\obj\\*;-*RegexGenerator.g.cs"
-
-
-
-## Open the report:
-start coverage-report/index.html
-
-
-## Observability
-
-### Correlation ID
-All responses include the `X-Correlation-Id` header to enable end-to-end request tracing.
-
-You can also provide your own correlation id in the request header:
+### Generate Report
 
 ```bash
-curl -i -H "X-Correlation-Id: demo123" http://localhost:5185/api/v1/artists
-curl http://localhost:5185/health
-curl http://localhost:5185/ready
+reportgenerator -reports:"EventHouse.Management.Domain.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Application.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Api.Tests\TestResults\*\coverage.cobertura.xml;EventHouse.Management.Infrastructure.Tests\TestResults\*\coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Html -filefilters:"-*\\obj\\*;-*RegexGenerator.g.cs"
+```
 
+### Open Report
+
+```bash
+start coverage-report/index.html
+```
+
+---
+
+## 📌 Notes
+
+This project is a **portfolio demonstration** showcasing modern backend architecture and best practices in .NET development.

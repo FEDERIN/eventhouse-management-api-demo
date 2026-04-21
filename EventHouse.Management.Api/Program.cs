@@ -1,3 +1,4 @@
+using Core.Observability;
 using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Middlewares;
 using EventHouse.Management.Api.Swagger;
@@ -7,10 +8,8 @@ using EventHouse.Management.Infrastructure.DependencyInjection;
 using EventHouse.Management.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Extensions;
@@ -19,11 +18,18 @@ using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.Swagger;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// You can get these from builder.Configuration or set them manually
+string environment = builder.Environment.EnvironmentName;
+string serviceName = "EventHouse.Management.Api";
+string serviceNamespace = "EventHouse.Management";
+
+// 2. Call YOUR specific extension method
+builder.AddObservability(environment, serviceName, serviceNamespace);
 
 //
 // Controllers + JSON
@@ -227,28 +233,8 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-//
-// Health response writer (JSON)
-//
-static Task WriteHealthResponse(HttpContext context, HealthReport report)
-{
-    context.Response.ContentType = "application/json; charset=utf-8";
-
-    var payload = new
-    {
-        status = report.Status.ToString(),
-        totalDurationMs = report.TotalDuration.TotalMilliseconds,
-        checks = report.Entries.Select(e => new
-        {
-            name = e.Key,
-            status = e.Value.Status.ToString(),
-            durationMs = e.Value.Duration.TotalMilliseconds,
-            description = e.Value.Description
-        })
-    };
-
-    return context.Response.WriteAsync(JsonSerializer.Serialize(payload));
-}
+//Use YOUR custom endpoints (Prometheus + Serilog)
+app.UseObservabilityEndpoints();
 
 //
 // Pipeline
@@ -290,27 +276,7 @@ app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
 
-// Health endpoints (liveness / readiness)
-app.MapHealthChecks("/health", new HealthCheckOptions
-{
-    Predicate = _ => false, // no checks, solo "Alive"
-    ResponseWriter = async (ctx, _) =>
-    {
-        ctx.Response.ContentType = "application/json; charset=utf-8";
-        await ctx.Response.WriteAsync("""{"status":"Healthy"}""");
-    }
-}).DisableRateLimiting();
-
-app.MapHealthChecks("/ready", new HealthCheckOptions
-{
-    Predicate = _ => true, // incluye db
-    ResponseWriter = WriteHealthResponse
-}).DisableRateLimiting();
-
-
 app.MapControllers();
-
 app.Run();
 
-// Para tests de integración (opcional, pero útil)
 public partial class Program { }

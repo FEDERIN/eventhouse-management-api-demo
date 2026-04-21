@@ -1,0 +1,30 @@
+﻿apiVersion: 1
+
+datasources:
+  # Conection of Prometheus (To visualize the metrics sent by the Collector)
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      httpMethod: POST
+      # Enlace a Jaeger desde las métricas (opcional pero pro)
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: jaeger-datasource-uid
+
+  # Conection of Jaeger (To visualize the traces sent by the Collector)
+  - name: Jaeger
+    uid: jaeger-datasource-uid
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    editable: true
+    jsonData:
+      nodeGraph:
+        enabled: true
+      # If you use logs in the future, this helps link them
+      tracesToLogs:
+        datasourceUid: 'loki' # Only if you add logs later
