@@ -1,4 +1,4 @@
-﻿
+﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Persistence.Exceptions;
@@ -16,6 +16,6 @@ public static class DbUpdateExceptionExtensions
 
         var message = ex.InnerException?.Message ?? string.Empty;
 
-        return message.Contains(indexOrColumnName, StringComparison.OrdinalIgnoreCase);
+         return message.Contains(indexOrColumnName, StringComparison.OrdinalIgnoreCase);
     }
 }

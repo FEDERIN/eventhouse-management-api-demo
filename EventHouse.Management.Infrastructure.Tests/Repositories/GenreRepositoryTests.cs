@@ -1,6 +1,5 @@
 ﻿using EventHouse.Management.Application.Common.Sorting;
 using EventHouse.Management.Application.Queries.Genres.GetAll;
-using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Repositories;
 using EventHouse.Management.Infrastructure.Tests.Persistence;
 using EventHouse.Management.TestUtils.Factories;
@@ -68,5 +67,4 @@ public class GenreRepositoryTests : BasePersistenceTest
         // Assert
         result.Items[0].Name.Should().StartWith(expectedFirstName);
     }
-
 }

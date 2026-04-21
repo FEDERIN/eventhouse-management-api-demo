@@ -72,7 +72,6 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next)
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "application/problem+json; charset=utf-8";
 
-            // usar las mismas opciones JSON de ASP.NET (camelCase, etc.)
             var jsonOptions = context.RequestServices
                 .GetRequiredService<IOptions<JsonOptions>>()
                 .Value

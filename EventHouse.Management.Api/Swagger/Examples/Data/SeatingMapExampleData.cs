@@ -7,7 +7,7 @@ namespace EventHouse.Management.Api.Swagger.Examples.Data;
 [ExcludeFromCodeCoverage]
 internal static class SeatingMapExampleData
 {
-    private static readonly Guid SeatingMapId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+    private static readonly Guid SeatingMapId = ExampleConstants.SeatingMapId;
     private static readonly Guid VenueId = ExampleConstants.VenueId;
     private static readonly string Name = "Main Floor Seating";
     private static readonly bool IsActive = true;
