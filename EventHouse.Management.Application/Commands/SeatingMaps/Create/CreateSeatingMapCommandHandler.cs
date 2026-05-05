@@ -1,7 +1,7 @@
 ﻿
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.DTOs;
-using EventHouse.Management.Domain.Exceptions;
+using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Mappers.SeatingMaps;
 using EventHouse.Management.Domain.Entities;
 using MediatR;

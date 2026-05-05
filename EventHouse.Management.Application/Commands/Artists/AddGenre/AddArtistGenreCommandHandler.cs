@@ -1,5 +1,5 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
-using EventHouse.Management.Domain.Exceptions;
+using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Mappers.Artists;
 using MediatR;
 using static EventHouse.Management.Domain.Entities.Artist;
