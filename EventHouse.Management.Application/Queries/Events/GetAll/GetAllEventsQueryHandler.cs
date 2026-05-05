@@ -29,12 +29,7 @@ internal sealed class GetAllEventsQueryHandler(IEventRepository eventRepository)
             cancellationToken
         );
 
-        return new PagedResultDto<EventDto>
-        {
-            Items = EventsMapper.ToDto(result.Items),
-            TotalCount = result.TotalCount,
-            Page = result.Page,
-            PageSize = result.PageSize
-        };
+
+        return result.MapTo(EventsMapper.ToDto);
     }
 }
