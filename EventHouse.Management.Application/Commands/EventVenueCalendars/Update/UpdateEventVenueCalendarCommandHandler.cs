@@ -1,6 +1,7 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
-using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Mappers.EventVenueCalendars;
+using EventHouse.Management.Application.Exceptions;
+using EventHouse.Management.Domain.Exceptions;
 using MediatR;
 
 
