@@ -27,12 +27,6 @@ internal sealed class GetAllSeatingMapsQueryHandler(ISeatingMapRepository seatin
             cancellationToken
         );
 
-        return new PagedResultDto<SeatingMapDto>
-        {
-            Items = SeatingMapMapper.ToDto(result.Items),
-            TotalCount = result.TotalCount,
-            Page = result.Page,
-            PageSize = result.PageSize
-        };
+        return result.MapTo(SeatingMapMapper.ToDto);
     }
 }

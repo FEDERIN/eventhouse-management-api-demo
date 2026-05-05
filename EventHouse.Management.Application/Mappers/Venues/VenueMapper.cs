@@ -23,8 +23,5 @@ internal class VenueMapper
         };
     }
 
-    public static IReadOnlyList<VenueDto> ToDto(IReadOnlyList<Venue> venues)
-    {
-        return [.. venues.Select(ToDto)];
-    }
+    public static IEnumerable<VenueDto> ToDto(IEnumerable<Venue> venues) => venues.Select(ToDto);
 }
