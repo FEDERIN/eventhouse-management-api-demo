@@ -1,5 +1,4 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
-using EventHouse.Management.Infrastructure.Errors;
 using EventHouse.Management.Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +16,7 @@ public static class DependencyInjection
         services.AddScoped<ISeatingMapRepository, SeatingMapRepository>();
         services.AddScoped<IEventVenueRepository, EventVenueRepository>();
         services.AddScoped<IEventVenueCalendarRepository, EventVenueCalendarRepository>();
-        services.AddSingleton<IExceptionMapper, ExceptionMapper>();
+
         return services;
     }
 }
