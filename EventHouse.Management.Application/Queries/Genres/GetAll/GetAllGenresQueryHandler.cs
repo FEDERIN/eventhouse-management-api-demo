@@ -27,12 +27,6 @@ internal sealed class GetAllGenresQueryHandler(IGenreRepository genreRepository)
             cancellationToken
         );
 
-        return new PagedResultDto<GenreDto>
-        {
-            Items = GenreMapper.ToDto(result.Items),
-            TotalCount = result.TotalCount,
-            Page = result.Page,
-            PageSize = result.PageSize
-        };
+        return result.MapTo(GenreMapper.ToDto);
     }
 }

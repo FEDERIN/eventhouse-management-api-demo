@@ -33,12 +33,6 @@ internal sealed class GetAllVenuesQueryHandler(IVenueRepository venueRepository)
             cancellationToken
         );
 
-        return new PagedResultDto<VenueDto>
-        {
-            Items = VenueMapper.ToDto(result.Items),
-            TotalCount = result.TotalCount,
-            Page = result.Page,
-            PageSize = result.PageSize
-        };
+        return result.MapTo(VenueMapper.ToDto);
     }
 }

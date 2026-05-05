@@ -15,8 +15,5 @@ internal sealed class GenreMapper
         };
     }
 
-    public static IReadOnlyList<GenreDto> ToDto(IReadOnlyList<Genre> genres)
-    {
-        return [.. genres.Select(ToDto)];
-    }
+    public static IEnumerable<GenreDto> ToDto(IEnumerable<Genre> genres) => genres.Select(ToDto);
 }
