@@ -1,8 +1,8 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.DTOs;
-using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Mappers.EventVenues;
+using EventHouse.Management.Domain.Exceptions;
 using MediatR;
 
 namespace EventHouse.Management.Application.Queries.EventVenues.GetAll;

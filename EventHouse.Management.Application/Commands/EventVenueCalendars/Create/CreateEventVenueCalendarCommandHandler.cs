@@ -3,8 +3,8 @@ using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Mappers.EventVenueCalendars;
 using EventHouse.Management.Domain.Entities;
+using EventHouse.Management.Domain.Exceptions;
 using MediatR;
-
 namespace EventHouse.Management.Application.Commands.EventVenueCalendars.Create;
 
 internal sealed class CreateEventVenueCalendarCommandHandler(
