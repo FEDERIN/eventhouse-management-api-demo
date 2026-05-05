@@ -28,12 +28,6 @@ internal sealed class GetAllArtistsQueryHandler(IArtistRepository artistReposito
             cancellationToken
             );
 
-        return new PagedResultDto<ArtistDto>
-        {
-            Items = ArtistMapper.ToDto(result.Items),
-            TotalCount = result.TotalCount,
-            Page = result.Page,
-            PageSize = result.PageSize
-        };
+        return result.MapTo(ArtistMapper.ToDto);
     }
 }

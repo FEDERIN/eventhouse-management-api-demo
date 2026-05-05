@@ -236,29 +236,6 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-//
-// Health response writer (JSON)
-//
-static Task WriteHealthResponse(HttpContext context, HealthReport report)
-{
-    context.Response.ContentType = "application/json; charset=utf-8";
-
-    var payload = new
-    {
-        status = report.Status.ToString(),
-        totalDurationMs = report.TotalDuration.TotalMilliseconds,
-        checks = report.Entries.Select(e => new
-        {
-            name = e.Key,
-            status = e.Value.Status.ToString(),
-            durationMs = e.Value.Duration.TotalMilliseconds,
-            description = e.Value.Description
-        })
-    };
-
-    return context.Response.WriteAsync(JsonSerializer.Serialize(payload));
-}
-
 //Use YOUR custom endpoints (Prometheus + Serilog)
 app.UseObservabilityEndpoints();
 

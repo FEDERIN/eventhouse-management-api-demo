@@ -19,8 +19,5 @@ internal sealed class SeatingMapMapper
         };
     }
 
-    public static IReadOnlyList<SeatingMapDto> ToDto(IReadOnlyList<SeatingMap> seatingMaps)
-    {
-        return [.. seatingMaps.Select(ToDto)];
-    }
+    public static IEnumerable<SeatingMapDto> ToDto(IEnumerable<SeatingMap> seatingMaps) => seatingMaps.Select(ToDto);
 }

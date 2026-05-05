@@ -26,12 +26,6 @@ internal sealed class GetAllEventVenueCalendarsQueryHandler(IEventVenueCalendarR
 
         var result = await repository.GetPagedAsync(criteria, cancellationToken);
 
-        return new PagedResultDto<EventVenueCalendarDto>
-        {
-            Items = EventVenueCalendarMapper.ToDtoList(result.Items),
-            TotalCount = result.TotalCount,
-            Page = result.Page,
-            PageSize = result.PageSize
-        };
+        return result.MapTo(EventVenueCalendarMapper.ToDto);
     }
 }

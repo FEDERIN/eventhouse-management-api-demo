@@ -31,8 +31,6 @@ internal sealed class EventVenueCalendarMapper
         };
     }
 
-    public static IReadOnlyList<EventVenueCalendarDto> ToDtoList(IReadOnlyList<EventVenueCalendar> entities)
-    {
-        return [.. entities.Select(ToDto)];
-    }
+    public static IEnumerable<EventVenueCalendarDto> ToDto(IEnumerable<EventVenueCalendar> entities)
+        => entities.Select(ToDto);
 }
