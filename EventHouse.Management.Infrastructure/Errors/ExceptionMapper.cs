@@ -1,6 +1,7 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Domain.Exceptions;
+
 namespace EventHouse.Management.Infrastructure.Errors;
 
 internal sealed class ExceptionMapper : IExceptionMapper

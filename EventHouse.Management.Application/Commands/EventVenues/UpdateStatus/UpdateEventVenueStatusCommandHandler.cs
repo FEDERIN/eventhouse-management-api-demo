@@ -1,6 +1,6 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
-using EventHouse.Management.Domain.Exceptions;
 using EventHouse.Management.Application.Mappers.EventVenues;
+using EventHouse.Management.Domain.Exceptions;
 using MediatR;
 
 namespace EventHouse.Management.Application.Commands.EventVenues.UpdateStatus;
