@@ -17,7 +17,9 @@ public static class DependencyInjection
         services.AddScoped<ISeatingMapRepository, SeatingMapRepository>();
         services.AddScoped<IEventVenueRepository, EventVenueRepository>();
         services.AddScoped<IEventVenueCalendarRepository, EventVenueCalendarRepository>();
+        services.AddScoped<IArtistPerformanceRepository, ArtistPerformanceRepository>();
         services.AddSingleton<IExceptionMapper, ExceptionMapper>();
+
         return services;
     }
 }

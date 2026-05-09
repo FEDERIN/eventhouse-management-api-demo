@@ -6,6 +6,7 @@ namespace EventHouse.Management.Api.Swagger.Examples.Data;
 [ExcludeFromCodeCoverage]
 internal static class EventVenueCalendarExampleData
 {
+
     private static readonly Guid SeatingMapId = ExampleConstants.SeatingMapId;
     private static readonly Guid EventVenueId = ExampleConstants.EventVenueId;
     private static readonly string TimeZoneId = ExampleConstants.TimeZoneId;
@@ -29,7 +30,7 @@ internal static class EventVenueCalendarExampleData
 
     internal static EventVenueCalendarResponse Result() => new()
     {
-        Id = Guid.NewGuid(),
+        Id = ExampleConstants.EventVenueCalendarId,
         EventVenueId = EventVenueId,
         SeatingMapId = SeatingMapId,
         StartDate = new DateTimeOffset(2026, 12, 6, 20, 0, 0, TimeSpan.FromHours(1)),

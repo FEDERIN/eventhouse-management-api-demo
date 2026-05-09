@@ -12,11 +12,6 @@ namespace EventHouse.Management.Domain.Entities
 
         public bool IsPrimary { get; private set; }
 
-        private ArtistGenre(Guid artistId)
-        {
-            ArtistId = artistId;
-        }
-
         internal ArtistGenre(Guid artistId, Guid genreId, ArtistGenreStatus status, bool isPrimary)
         {
             if (artistId == Guid.Empty)

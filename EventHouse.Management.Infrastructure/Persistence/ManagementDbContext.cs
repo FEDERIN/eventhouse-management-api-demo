@@ -13,6 +13,7 @@ namespace EventHouse.Management.Infrastructure.Persistence
         public DbSet<SeatingMap> SeatingMaps { get; set; }
         public DbSet<EventVenue> EventVenues { get; set; }
         public DbSet<EventVenueCalendar> EventVenueCalendars { get; set; }
+        public DbSet<ArtistPerformance> ArtistPerformances { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

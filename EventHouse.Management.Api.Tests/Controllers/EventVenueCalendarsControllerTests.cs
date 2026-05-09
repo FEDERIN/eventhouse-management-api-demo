@@ -1,4 +1,5 @@
-﻿using EventHouse.Management.Api.Contracts.Common;
+﻿using EventHouse.Management.Api.Contracts.ArtistPerformances;
+using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.EventVenueCalendars;
 using EventHouse.Management.Api.Tests.Abstractions;
 using EventHouse.Management.Api.Tests.Common;
@@ -14,10 +15,10 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
     #region SECURITY
 
     [Fact]
-    public async Task GetAll_WithoutToken_Returns401Unauthorized()
+    public async Task GetArtistPerformances_WithoutToken_Returns401Unauthorized()
     {
         // Act
-        var request = new HttpRequestMessage(HttpMethod.Get, BaseUrlEventVenueCalendars).WithoutAuthentication();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{BaseUrlEventVenueCalendars}/{Guid.NewGuid()}/artist-performances").WithoutAuthentication();
 
         var res = await Client.SendAsync(request);
 
@@ -64,6 +65,40 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         pagedResult.Items.Should().HaveCountGreaterOrEqualTo(2);
         pagedResult.TotalCount.Should().BeGreaterOrEqualTo(2);
     }
+
+    [Fact]
+    public async Task GetArtistPerformances_WhenMultipleExist_Returns200OK_WithPagedResult()
+    {
+        var calendar = await CreateEventVenueCalendarAsync(startDate: DateTime.UtcNow, endDate: DateTime.UtcNow.AddHours(5));
+
+        await AddArtistToCalendarAsync(calendar.Id, isHeadliner: true,
+            start: calendar.StartDate, end: calendar.StartDate.AddHours(1));
+
+        await AddArtistToCalendarAsync(calendar.Id, isHeadliner: false,
+            start: calendar.StartDate.AddHours(1), end: calendar.StartDate.AddHours(2));
+
+        await AddArtistToCalendarAsync(calendar.Id, isHeadliner: false,
+            start: calendar.StartDate.AddHours(2), end: calendar.StartDate.AddHours(3));
+
+        var response = await Client.GetAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances?Page=1&PageSize=10");
+
+        var pagedResult = await response.ReadContentAsync<PagedResult<ArtistPerformanceResponse>>();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        pagedResult.Items.Should().HaveCount(3);
+        pagedResult.TotalCount.Should().Be(3);
+
+        pagedResult.Items.Should().ContainSingle(p => p.IsHeadliner);
+    }
+
+    [Fact]
+    public async Task GetArtistPerformances_WhenCalendarMissing_Returns404NotFound()
+    {
+        var response = await Client.GetAsync($"{BaseUrlEventVenueCalendars}/{Guid.NewGuid()}/artist-performances");
+
+        await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
+    }
+
     #endregion
 
     #region CREATE (POST)
@@ -190,7 +225,6 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
     [Fact]
     public async Task Update_WhenNewSlotIsOccupiedByAnother_Returns409Conflict()
     {
-        // Arrange: Creamos dos calendarios en horarios distintos
         var first = await CreateEventVenueCalendarAsync(
             startDate: DateTimeOffset.UtcNow.AddDays(1),
             endDate: DateTimeOffset.UtcNow.AddDays(1).AddHours(2));
@@ -201,7 +235,6 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
             startDate: DateTimeOffset.UtcNow.AddDays(4),
             endDate: DateTimeOffset.UtcNow.AddDays(4).AddHours(2));
 
-        // Intentamos mover el segundo al horario del primero
         var updateRequest = new UpdateEventVenueCalendarRequest
         {
             StartDate = first.StartDate,
@@ -219,10 +252,8 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
     [Fact]
     public async Task Update_SameSlot_Returns204NoContent()
     {
-        // Arrange: Creamos un calendario
         var existing = await CreateEventVenueCalendarAsync();
 
-        // Enviamos el mismo horario (el repositorio debe excluir este ID de la validación)
         var updateRequest = new UpdateEventVenueCalendarRequest
         {
             StartDate = existing.StartDate,
@@ -237,7 +268,249 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
+    [Fact]
+    public async Task Update_ToPublished_WhenArtistDatesAreMissing_Returns409Conflict()
+    {
+        var eventVenueCalendar = await CreateEventVenueCalendarAsync();
+
+        var artist = await CreateArtistAsync();
+        var addPerformanceRequest = new CreateArtistPerformanceRequest
+        {
+            ArtistId = artist.Id,
+            IsHeadliner = true,
+            SetStart = null,
+            SetEnd = null
+        };
+
+        var addResponse = await Client.PostAsJsonAsync(
+            $"{BaseUrlEventVenueCalendars}/{eventVenueCalendar.Id}/artist-performances",
+            addPerformanceRequest);
+        addResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var updateRequest = new UpdateEventVenueCalendarRequest
+        {
+            StartDate = eventVenueCalendar.StartDate,
+            EndDate = eventVenueCalendar.EndDate,
+            Status = EventVenueCalendarStatus.Published
+        };
+
+        var response = await Client.PutAsJsonAsync(
+            $"{BaseUrlEventVenueCalendars}/{eventVenueCalendar.Id}",
+            updateRequest);
+
+        await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "REQUIRED_DATES");
+    }
     #endregion
 
+    #region ARTIST PERFORMANCES (POST & PATCH)
 
+    [Fact]
+    public async Task AddPerformance_WhenValid_Returns201Created()
+    {
+        // Arrange
+        var calendar = await CreateEventVenueCalendarAsync(startDate: DateTimeOffset.UtcNow.AddDays(4), endDate: DateTimeOffset.UtcNow.AddDays(4).AddHours(5));
+
+        var artist = await CreateArtistAsync();
+
+        var request = new CreateArtistPerformanceRequest
+        {
+            ArtistId = artist.Id,
+            IsHeadliner = true,
+            SetStart = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(15),
+            SetEnd = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(30)
+        };
+
+        // Act
+        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var created = await response.ReadContentAsync<ArtistPerformanceResponse>();
+        created.ArtistId.Should().Be(artist.Id);
+        created.IsHeadliner.Should().BeTrue();
+
+        response.Headers.Location.Should().NotBeNull();
+        response.Headers.Location.ToString().Should().Contain($"api/v1/artist-performances/");
+    }
+
+    [Fact]
+    public async Task AddPerformance_WhenOverlapInSameCalendar_Returns409Conflict()
+    {
+        var calendar = await CreateEventVenueCalendarAsync(startDate: DateTimeOffset.UtcNow.AddDays(4), endDate: DateTimeOffset.UtcNow.AddDays(4).AddHours(5));
+        await AddArtistToCalendarAsync(calendar.Id, isHeadliner: true,
+            start: DateTimeOffset.UtcNow.AddDays(4), end: DateTimeOffset.UtcNow.AddDays(4).AddHours(1));
+
+        var artist = await CreateArtistAsync();
+
+        var request = new CreateArtistPerformanceRequest
+        {
+            ArtistId = artist.Id,
+            SetStart = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(15),
+            SetEnd = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(30)
+        };
+        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request);
+
+        // Assert
+        await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task AddPerformance_WhenPublishedAndDatesMissing_Returns409Conflict()
+    {
+        var calendar = await CreateEventVenueCalendarAsync(startDate: DateTimeOffset.UtcNow.AddDays(1), status: EventVenueCalendarStatus.Published);
+        var artist = await CreateArtistAsync();
+
+        var request = new CreateArtistPerformanceRequest
+        {
+            ArtistId = artist.Id,
+            IsHeadliner = false,
+            SetStart = null,
+            SetEnd = null
+        };
+
+        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request);
+
+        await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task AddPerformance_WhenArtistDuplicated_Returns409Conflict()
+    {
+        var calendar = await CreateEventVenueCalendarAsync(startDate: DateTimeOffset.UtcNow.AddDays(4), endDate: DateTimeOffset.UtcNow.AddDays(4).AddHours(5));
+        var artistPerformance = await AddArtistToCalendarAsync(calendar.Id, isHeadliner: true,
+            start: DateTimeOffset.UtcNow.AddDays(4), end: DateTimeOffset.UtcNow.AddDays(4).AddHours(1));
+
+        var request = new CreateArtistPerformanceRequest
+        {
+            ArtistId = artistPerformance.ArtistId,
+            IsHeadliner = false,
+            SetStart = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(15),
+            SetEnd = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(30)
+        };
+
+        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request);
+
+        // Assert
+        await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task AddPerformance_WhenDuplicateHeadlinerException_Returns409Conflict()
+    {
+        var calendar = await CreateEventVenueCalendarAsync(startDate: DateTimeOffset.UtcNow.AddDays(4), endDate: DateTimeOffset.UtcNow.AddDays(4).AddHours(5));
+        await AddArtistToCalendarAsync(calendar.Id, isHeadliner: true,
+            start: DateTimeOffset.UtcNow.AddDays(4), end: DateTimeOffset.UtcNow.AddDays(4).AddHours(1));
+        var anotherArtist = await CreateArtistAsync();
+        var request = new CreateArtistPerformanceRequest
+        {
+            ArtistId = anotherArtist.Id,
+            IsHeadliner = true,
+            SetStart = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(15),
+            SetEnd = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(30)
+        };
+        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request);
+        // Assert
+        await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "DUPLICATE_HEADLINER");
+    }
+
+
+    [Fact]
+    public async Task SwapHeadliner_WhenValid_Returns204NoContent()
+    {
+        // Arrange
+        var calendar = await CreateEventVenueCalendarAsync();
+        var headliner = await AddArtistToCalendarAsync(calendar.Id, isHeadliner: true);
+        var support = await AddArtistToCalendarAsync(calendar.Id, isHeadliner: false);
+
+        var request = new SwapHeadlinerRequest( headliner.ArtistId, support.ArtistId);
+
+        // Act
+        var response = await Client.PatchAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/swap-headliner", request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    #endregion
+
+    #region UPDATE PERFORMANCE TIMES (PATCH)
+
+    [Fact]
+    public async Task UpdatePerformanceTimes_WhenValid_Returns204NoContent()
+    {
+        var calendar = await CreateEventVenueCalendarAsync(startDate: DateTimeOffset.UtcNow.AddDays(1), endDate: DateTimeOffset.UtcNow.AddDays(10));
+        var performance = await AddArtistToCalendarAsync(calendar.Id,
+            start: calendar.StartDate,
+            end: calendar.StartDate.AddHours(1));
+
+        // Nuevo horario: 10:30 - 11:30
+        var newStart = calendar.StartDate.AddMinutes(30);
+        var newEnd = calendar.StartDate.AddMinutes(90);
+        var request = new UpdatePerformanceDatesRequest
+        {
+            SetStart = newStart,
+            SetEnd = newEnd
+        };
+
+        // 2. Act
+        var response = await Client.PatchAsJsonAsync(
+            $"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/{performance.ArtistId}/times",
+            request);
+
+        // 3. Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task UpdatePerformanceTimes_WhenOverlap_Returns409Conflict()
+    {
+        // 1. Arrange: Dos artistas en slots seguidos
+        var calendar = await CreateEventVenueCalendarAsync();
+
+        // Artista A: 10:00 - 11:00
+        var artistA = await AddArtistToCalendarAsync(calendar.Id,
+            start: calendar.StartDate, end: calendar.StartDate.AddHours(1));
+
+        // Artista B: 11:00 - 12:00
+        var artistB = await AddArtistToCalendarAsync(calendar.Id,
+            start: calendar.StartDate.AddHours(1), end: calendar.StartDate.AddHours(2));
+
+        // 2. Act: Intentamos mover al Artista B para que empiece a las 10:30 (Choca con A)
+        var request = new UpdatePerformanceDatesRequest
+        {
+            SetStart = calendar.StartDate.AddMinutes(30),
+            SetEnd = calendar.StartDate.AddHours(2)
+        };
+
+
+        var response = await Client.PatchAsJsonAsync(
+            $"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/{artistB.ArtistId}/times",
+            request);
+
+        await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "STAGE_OVERLAP");
+    }
+
+    [Fact]
+    public async Task UpdatePerformanceTimes_WhenExceedsCalendarBounds_Returns400BadRequest()
+    {
+        var start = DateTimeOffset.UtcNow.AddDays(1);
+        var end = start.AddHours(2);
+        var calendar = await CreateEventVenueCalendarAsync(startDate: start, endDate: end);
+        var performance = await AddArtistToCalendarAsync(calendar.Id, start: start, end: start.AddHours(1));
+
+        var request = new UpdatePerformanceDatesRequest
+        {
+            SetStart = start.AddHours(1),
+            SetEnd = start.AddHours(3)
+        };
+
+        var response = await Client.PatchAsJsonAsync(
+            $"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/{performance.ArtistId}/times",
+            request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    #endregion
 }
