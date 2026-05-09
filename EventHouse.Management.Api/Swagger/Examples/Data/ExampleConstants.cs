@@ -15,4 +15,8 @@ internal static class ExampleConstants
     public static readonly Guid GenreId = Guid.Parse("d290f1ee-6c54-4b01-90e6-d701748f0852");
     public static readonly Guid SeatingMapId = Guid.Parse("22222222-2222-2222-2222-222222222222");
     public static readonly Guid EventVenueId = Guid.Parse("a123b456-7c89-0d12-3e45-6f7890123456");
+
+    public static readonly Guid ArtistId = Guid.Parse("1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed");
+    public static readonly Guid EventVenueCalendarId = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6");
+    public static readonly Guid ArtistPerformanceId = Guid.Parse("7a123f64-5717-4562-b3fc-2c963f66afa6");
 }

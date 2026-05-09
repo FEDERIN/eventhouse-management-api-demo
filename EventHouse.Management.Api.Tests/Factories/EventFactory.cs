@@ -4,8 +4,8 @@ namespace EventHouse.Management.Api.Tests.Factories;
 
 internal static class EventFactory
 {
-    private static readonly (string Name, string Description)[] EventTemplates = new[]
-    {
+    private static readonly (string Name, string Description)[] EventTemplates =
+    [
         ("Midnight Rock Marathon", "A 12-hour non-stop rock festival featuring local and national bands."),
         ("Electronic Sunrise", "Experience the best techno and house music under the stars."),
         ("Laughter Night Live", "A stand-up comedy special with the most hilarious comedians in the country."),
@@ -16,7 +16,7 @@ internal static class EventFactory
         ("Salsa & Soul Festival", "A vibrant fusion of tropical rhythms and soul music."),
         ("Global DJ Masters", "The ultimate EDM experience with top-tier stage production."),
         ("Jazz in the Garden", "Relaxing afternoon featuring classical and contemporary jazz quartets.")
-    };
+    ];
 
     public static CreateEventRequest CreateRequest(string? name = null, string? description = null, EventScope? scope = EventScope.National)
     {

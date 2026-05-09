@@ -13,7 +13,7 @@ internal sealed class UpdateEventVenueCalendarCommandHandler(
 {
     public async Task Handle(UpdateEventVenueCalendarCommand request, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetTrackedByIdAsync(request.Id, cancellationToken)
+        var entity = await repository.GetByIdWithPerformancesAsync(request.Id, cancellationToken)
             ?? throw new NotFoundException("EventVenueCalendar", request.Id);
 
         var startUtc = request.StartDate.UtcDateTime;
