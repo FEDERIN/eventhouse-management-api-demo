@@ -1,4 +1,4 @@
-﻿name: CI Build & Test
+name: CI Build & Test
 
 # Trigger the workflow on push or pull request to the main branch
 on:
@@ -31,9 +31,23 @@ jobs:
     - name: Build Solution
       run: dotnet build EventHouse.sln --configuration Release --no-restore
 
-    # Run Unit and Integration tests
+    # Run Unit and Integration tests with Coverage
     - name: Run Tests
-      run: dotnet test EventHouse.sln --configuration Release --no-build --verbosity normal
+      run: dotnet test EventHouse.sln --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage"
+
+    # Generate Coverage Report
+    - name: Generate Coverage Report
+      run: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator -reports:"**/**/coverage.cobertura.xml" -targetdir:"coverage" -reporttypes:Html
+
+    # Upload Coverage Artifact
+    - name: Upload Coverage Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage/
+        retention-days: 30
 
     # Validate that the Dockerfile builds correctly (Smoke Test)
     - name: Build Docker Image
