@@ -20,11 +20,11 @@ public sealed class RateLimitingIntegrationTests(RateLimitingOnlyWebApplicationF
         {
             Username = "demo",
             Password = "demo"
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
 
         tokenResult.EnsureSuccessStatusCode();
 
-        var token = await tokenResult.Content.ReadFromJsonAsync<TokenResponse>();
+        var token = await tokenResult.Content.ReadFromJsonAsync<TokenResponse>(cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(token);
         Assert.False(string.IsNullOrWhiteSpace(token!.AccessToken));
 
@@ -39,7 +39,7 @@ public sealed class RateLimitingIntegrationTests(RateLimitingOnlyWebApplicationF
             if (last != null && last!.StatusCode.Equals(HttpStatusCode.TooManyRequests))
                 break;
 
-            last = await _client.GetAsync("/api/v1/artists?page=1&pageSize=1");
+            last = await _client.GetAsync("/api/v1/artists?page=1&pageSize=1", cancellationToken: TestContext.Current.CancellationToken);
         }
 
         // Assert
@@ -49,7 +49,7 @@ public sealed class RateLimitingIntegrationTests(RateLimitingOnlyWebApplicationF
         Assert.True(last.Headers.Contains("Retry-After"));
 
         AssertProblemMediaType(last);
-        var problem = await last.Content.ReadFromJsonAsync<EventHouseProblemDetails>();
+        var problem = await last.Content.ReadFromJsonAsync<EventHouseProblemDetails>(cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(problem);
 
         Assert.Equal("RATE_LIMIT_EXCEEDED", problem!.ErrorCode);

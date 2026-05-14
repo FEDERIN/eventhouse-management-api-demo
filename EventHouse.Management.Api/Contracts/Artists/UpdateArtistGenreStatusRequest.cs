@@ -6,7 +6,6 @@ namespace EventHouse.Management.Api.Contracts.Artists;
 public sealed record UpdateArtistGenreStatusRequest
 {
     /// <summary>The status of the artist-genre association.</summary>
-    /// <example>Active</example>
     [SwaggerSchema(
         Description = "Artist Genre Status. Serialized as string.")]
     [Required]
