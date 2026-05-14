@@ -11,4 +11,5 @@ internal static class ApiRoutes
     public const string SeatingMaps = $"{Base}/seatingmaps";
     public const string EventVenues = $"{Base}/event-venues";
     public const string EventVenueCalendars = $"{Base}/event-venue-calendars";
+    public const string ArtistPerformances = $"{Base}/artist-performances";
 }

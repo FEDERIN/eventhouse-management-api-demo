@@ -6,31 +6,45 @@ namespace EventHouse.Management.Api.Tests.Common;
 
 public static class AuthTestExtensions
 {
+    private static string? _cachedToken;
+    private static readonly SemaphoreSlim Lock = new(1, 1);
+
     public static async Task<string> GetBearerTokenAsync(this HttpClient client)
     {
-        var res = await client.PostAsJsonAsync("/auth/token", new TokenRequest
-        {
-            Username = "demo",
-            Password = "demo"
-        });
+        if (!string.IsNullOrEmpty(_cachedToken)) return _cachedToken;
 
-        if (!res.IsSuccessStatusCode)
+        await Lock.WaitAsync();
+        try
         {
-            var body = await res.Content.ReadAsStringAsync();
-            throw new InvalidOperationException(
-                $"Failed to obtain token. Status={(int)res.StatusCode} {res.StatusCode}. Body={body}");
+            if (!string.IsNullOrEmpty(_cachedToken)) return _cachedToken;
+
+            var res = await client.PostAsJsonAsync("/auth/token", new TokenRequest
+            {
+                Username = "demo",
+                Password = "demo"
+            });
+
+            if (!res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadAsStringAsync();
+                throw new InvalidOperationException(
+                    $"Failed to obtain token. Status={(int)res.StatusCode} {res.StatusCode}. Body={body}");
+            }
+
+            var token = await res.Content.ReadFromJsonAsync<TokenResponse>()
+                ?? throw new InvalidOperationException("TokenResponse was null");
+
+            if (string.IsNullOrWhiteSpace(token.AccessToken))
+                throw new InvalidOperationException("AccessToken was empty");
+
+            _cachedToken = $"{token.TokenType} {token.AccessToken}";
+            return _cachedToken;
         }
-
-        var token = await res.Content.ReadFromJsonAsync<TokenResponse>()
-            ?? throw new InvalidOperationException("TokenResponse was null");
-
-        if (string.IsNullOrWhiteSpace(token.AccessToken))
-            throw new InvalidOperationException("AccessToken was empty");
-
-        return $"{token.TokenType} {token.AccessToken}";
+        finally
+        {
+            Lock.Release();
+        }
     }
-
-
     public static HttpRequestMessage WithoutAuthentication(this HttpRequestMessage request)
     {
         request.Options.Set(AuthedHandler.SkipAuth, true);
