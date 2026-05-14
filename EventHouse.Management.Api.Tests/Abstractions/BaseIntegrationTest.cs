@@ -111,7 +111,7 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
             seatingMapId = seatingMap.Id;
         }
 
-        endDate =  endDate ?? (startDate.HasValue ? startDate.Value.AddHours(10) : DateTime.UtcNow.AddHours(10));
+        endDate ??=  (startDate.HasValue ? startDate.Value.AddHours(10) : DateTime.UtcNow.AddHours(10));
 
         var request = new CreateEventVenueCalendarRequest
         {
@@ -156,7 +156,11 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
 
     protected async Task<HttpResponseMessage> SwapHeadlinerAsync(Guid calendarId, Guid currentId, Guid newId)
     {
-        var request = new SwapHeadlinerRequest(currentId, newId);
+        var request = new SwapHeadlinerRequest()
+        {
+            NewArtistId = newId,
+            OldArtistId = currentId
+        };
 
         return await Client.PatchAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendarId}/artist-performances/swap-headliner", request);
     }

@@ -8,6 +8,7 @@ namespace EventHouse.Management.Api.Swagger.Examples.Data;
 internal static class ArtistPerformanceExampleData
 {
     private static readonly Guid ArtistId = ExampleConstants.ArtistId;
+    private static readonly Guid AnotherArtistId = Guid.Parse("1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed");
     private static readonly Guid ArtistPerformanceId = ExampleConstants.ArtistPerformanceId;
 
     internal static CreateArtistPerformanceRequest Create() => new()
@@ -34,7 +35,7 @@ internal static class ArtistPerformanceExampleData
         SetEnd = new DateTimeOffset(2026, 12, 6, 20, 30, 0, TimeSpan.Zero)
     };
 
-    internal static GetArtistPerformancesRequest Get() => new(){
+    internal static GetArtistPerformancesRequest Get() => new() {
         ArtistId = ArtistId,
         IsHeadliner = true,
         Page = 1,
@@ -43,5 +44,9 @@ internal static class ArtistPerformanceExampleData
         SortDirection = SortDirection.Asc
     };
 
-
+    internal static SwapHeadlinerRequest SwapHeadliner() => new()
+    {
+        NewArtistId = ArtistId,
+        OldArtistId = AnotherArtistId
+    };
 }

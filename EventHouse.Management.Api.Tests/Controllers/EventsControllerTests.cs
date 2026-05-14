@@ -19,7 +19,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
 
         var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl).WithoutAuthentication();
 
-        var res = await Client.SendAsync(request);
+        var res = await Client.SendAsync(request, TestContext.Current.CancellationToken);
 
         res.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -35,13 +35,13 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
         };
 
         // Act
-        var post = await Client.PostAsJsonAsync(BaseUrl, request);
+        var post = await Client.PostAsJsonAsync(BaseUrl, request, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert: 201
         post.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Assert: body
-        var created = await post.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
+        var created = await post.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
 
         created.Should().NotBeNull();
         created!.Id.Should().NotBeEmpty();
@@ -57,10 +57,10 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
         location.Should().EndWith(created.Id.ToString());
 
         // Roundtrip: GET by id returns 200 and same resource
-        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}");
+        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}", cancellationToken: TestContext.Current.CancellationToken);
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var fetched = await get.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
+        var fetched = await get.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
         fetched.Should().NotBeNull();
         fetched!.Id.Should().Be(created.Id);
         fetched.Name.Should().Be(created.Name);
@@ -71,7 +71,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
     [Fact]
     public async Task GetById_WhenMissing_Returns404()
     {
-        var res = await Client.GetAsync($"{BaseUrl}/{Guid.NewGuid()}");
+        var res = await Client.GetAsync($"{BaseUrl}/{Guid.NewGuid()}", cancellationToken: TestContext.Current.CancellationToken);
         await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
@@ -84,10 +84,10 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
             Name = "Event A",
             Description = "Initial description",
             Scope = EventScope.Local
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
         create.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var created = await create.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
+        var created = await create.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
         created!.Id.Should().NotBeEmpty();
 
         // update
@@ -96,15 +96,15 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
             Name = "Event A Updated",
             Description = "Updated description",
             Scope = EventScope.International
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
 
         put.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // roundtrip
-        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}");
+        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}", cancellationToken: TestContext.Current.CancellationToken);
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var updated = await get.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
+        var updated = await get.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
         updated.Should().NotBeNull();
         updated!.Name.Should().Be("Event A Updated");
         updated.Description.Should().Be("Updated description");
@@ -120,7 +120,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
             Name = "Does not matter",
             Description = "Does not matter",
             Scope = EventScope.Local
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
 
         await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
@@ -134,17 +134,17 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
             Name = "Event To Delete",
             Description = "To be deleted",
             Scope = EventScope.Local
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
         create.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var created = await create.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default);
+        var created = await create.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
 
         // delete
-        var del = await Client.DeleteAsync($"{BaseUrl}/{created!.Id}");
+        var del = await Client.DeleteAsync($"{BaseUrl}/{created!.Id}", cancellationToken: TestContext.Current.CancellationToken);
         del.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // get -> 404
-        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}");
+        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}", cancellationToken: TestContext.Current.CancellationToken);
 
         await get.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
@@ -157,7 +157,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
             Name = "A", // too short (min 2)
             Description = null,
             Scope = EventScope.Local
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
 
         await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }
@@ -173,19 +173,19 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
                 Name = name,
                 Description = "Demo",
                 Scope = EventScope.Local
-            });
+            }, cancellationToken: TestContext.Current.CancellationToken);
             create.StatusCode.Should().Be(HttpStatusCode.Created);
         }
 
         // Act
-        var res = await Client.GetAsync($"{BaseUrl}?page=1&pageSize=2");
+        var res = await Client.GetAsync($"{BaseUrl}?page=1&pageSize=2", cancellationToken: TestContext.Current.CancellationToken);
         res.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var page = await res.Content.ReadFromJsonAsync<PagedResult<EventResponse>>(JsonTestOptions.Default);
+        var page = await res.Content.ReadFromJsonAsync<PagedResult<EventResponse>>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
         page.Should().NotBeNull();
 
         page!.Items.Should().NotBeNull();
-        page.Items.Count.Should().BeLessOrEqualTo(2);
+        page.Items.Count.Should().BeLessThanOrEqualTo(2);
         page.ShouldHaveValidPaginationLinks(currentPage: 1, expectedPageSize: 2);
 
     }

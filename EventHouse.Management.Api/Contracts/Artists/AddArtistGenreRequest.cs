@@ -13,7 +13,6 @@ public sealed record AddArtistGenreRequest
     public Guid GenreId { get; init; }
 
     /// <summary>The status of the artist-genre association.</summary>
-    /// <example>Active</example>
     [SwaggerSchema(
         Description = "Artist Genre Status. Serialized as string.")]
     [Required]
