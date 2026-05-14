@@ -19,6 +19,8 @@ internal class ArtistRepository(ManagementDbContext context) :
         { "UX_ArtistGenres_Artist_Genre", (null, null, true) }
     };
 
+    #region WRITE
+
     public async Task AddAsync(Artist entity, CancellationToken cancellationToken = default)
     {
         await _context.Artists.AddAsync(entity, cancellationToken);
@@ -76,6 +78,9 @@ internal class ArtistRepository(ManagementDbContext context) :
         return true;
     }
 
+    #endregion
+
+    #region READ
     public async Task<Artist?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Artists
@@ -119,4 +124,12 @@ internal class ArtistRepository(ManagementDbContext context) :
 
         return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
     }
+    #endregion
+
+    #region VALIDATIONS
+    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Artists.AnyAsync(a => a.Id == id, cancellationToken);
+    }
+    #endregion
 }

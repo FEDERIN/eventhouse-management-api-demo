@@ -1,37 +1,35 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using System.Threading.RateLimiting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace EventHouse.Management.Api.Tests.RateLimiting;
 
-public sealed class RateLimitingOnlyWebApplicationFactory : CustomWebApplicationFactory, IDisposable
+public sealed class RateLimitingOnlyWebApplicationFactory : CustomWebApplicationFactory
 {
-    private readonly string? _prevPermit;
-    private readonly string? _prevWindow;
-    private readonly string? _prevQueue;
-
-    public RateLimitingOnlyWebApplicationFactory()
-    {
-        _prevPermit = Environment.GetEnvironmentVariable("RateLimiting__PermitLimit");
-        _prevWindow = Environment.GetEnvironmentVariable("RateLimiting__WindowSeconds");
-        _prevQueue = Environment.GetEnvironmentVariable("RateLimiting__QueueLimit");
-
-        Environment.SetEnvironmentVariable("RateLimiting__PermitLimit", "3");
-        Environment.SetEnvironmentVariable("RateLimiting__WindowSeconds", "60");
-        Environment.SetEnvironmentVariable("RateLimiting__QueueLimit", "0");
-    }
-
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         base.ConfigureWebHost(builder);
         builder.UseEnvironment("Development");
-    }
 
-    public new void Dispose()
-    {
-        // ✅ restore para no romper otras pruebas
-        Environment.SetEnvironmentVariable("RateLimiting__PermitLimit", _prevPermit);
-        Environment.SetEnvironmentVariable("RateLimiting__WindowSeconds", _prevWindow);
-        Environment.SetEnvironmentVariable("RateLimiting__QueueLimit", _prevQueue);
+        builder.ConfigureServices(services =>
+        {
+            services.PostConfigure<Microsoft.AspNetCore.RateLimiting.RateLimiterOptions>(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-        base.Dispose();
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: "test-limit",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 3,
+                            Window = TimeSpan.FromSeconds(60),
+                            QueueLimit = 0,
+                            AutoReplenishment = true
+                        }));
+            });
+        });
     }
 }
