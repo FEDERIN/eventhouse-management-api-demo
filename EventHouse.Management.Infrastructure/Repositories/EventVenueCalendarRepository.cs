@@ -29,6 +29,34 @@ public class EventVenueCalendarRepository(ManagementDbContext context)
 
         await SaveChangesWithUniqueCheckAsync(EventVenueCalendarMappings, cancellationToken);
     }
+
+    public async Task SwapHeadlinerAsync(Guid calendarId, Guid oldArtistId, Guid newArtistId, CancellationToken ct)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync(ct);
+
+        try
+        {
+            await _context.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE ArtistPerformances
+            SET IsHeadliner = 0
+            WHERE EventVenueCalendarId = {calendarId} AND ArtistId = {oldArtistId}
+            """, ct);
+
+            await _context.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE ArtistPerformances
+            SET IsHeadliner = 1
+            WHERE EventVenueCalendarId = {calendarId} AND ArtistId = {newArtistId}
+            """, ct);
+
+            await transaction.CommitAsync(ct);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(ct);
+            throw;
+        }
+    }
+
     #endregion
 
     #region READ
@@ -39,10 +67,11 @@ public class EventVenueCalendarRepository(ManagementDbContext context)
             .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
     }
 
-    public async Task<EventVenueCalendar?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<EventVenueCalendar?> GetByIdWithPerformancesAsync(Guid id, CancellationToken ct)
     {
         return await _context.EventVenueCalendars
-            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+            .Include(c => c.Performances)
+            .FirstOrDefaultAsync(c => c.Id == id, ct);
     }
 
     public async Task<PagedResultDto<EventVenueCalendar>> GetPagedAsync(EventVenueCalendarQueryCriteria criteria, CancellationToken cancellationToken = default)
@@ -74,6 +103,14 @@ public class EventVenueCalendarRepository(ManagementDbContext context)
     #endregion
 
     #region VALIDATIONS
+
+    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return _context.EventVenueCalendars
+            .AsNoTracking()
+            .AnyAsync(e => e.Id == id, cancellationToken);
+    }
+
     public async Task<bool> IsSlotOccupiedAsync(Guid eventVenueId, DateTime startUtc, DateTime endUtc, Guid? excludeId = null, CancellationToken cancellationToken = default)
     {
         var targetVenueId = await _context.EventVenues

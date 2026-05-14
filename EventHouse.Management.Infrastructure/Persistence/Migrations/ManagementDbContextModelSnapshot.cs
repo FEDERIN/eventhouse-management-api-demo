@@ -15,7 +15,7 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.25");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.26");
 
             modelBuilder.Entity("EventHouse.Management.Domain.Entities.Artist", b =>
                 {
@@ -79,6 +79,46 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("CK_ArtistGenre_ArtistId_NotEmpty", "ArtistId <> '00000000-0000-0000-0000-000000000000'");
 
                             t.HasCheckConstraint("CK_ArtistGenre_GenreId_NotEmpty", "GenreId <> '00000000-0000-0000-0000-000000000000'");
+                        });
+                });
+
+            modelBuilder.Entity("EventHouse.Management.Domain.Entities.ArtistPerformance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ArtistId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("EventVenueCalendarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsHeadliner")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("SetEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("SetStart")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventVenueCalendarId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_ArtistPerformances_OneHeadlinerPerCalendar")
+                        .HasFilter("IsHeadliner = 1");
+
+                    b.HasIndex("ArtistId", "EventVenueCalendarId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_ArtistPerformances_Artist_EventVenueCalendar");
+
+                    b.ToTable("ArtistPerformances", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ArtistPerformance_ArtistId_NotEmpty", "ArtistId <> '00000000-0000-0000-0000-000000000000'");
+
+                            t.HasCheckConstraint("CK_ArtistPerformance_EventVenueCalendarId_NotEmpty", "EventVenueCalendarId <> '00000000-0000-0000-0000-000000000000'");
                         });
                 });
 
@@ -324,6 +364,23 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("EventHouse.Management.Domain.Entities.ArtistPerformance", b =>
+                {
+                    b.HasOne("EventHouse.Management.Domain.Entities.Artist", null)
+                        .WithMany()
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EventHouse.Management.Domain.Entities.EventVenueCalendar", "EventVenueCalendar")
+                        .WithMany("Performances")
+                        .HasForeignKey("EventVenueCalendarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EventVenueCalendar");
+                });
+
             modelBuilder.Entity("EventHouse.Management.Domain.Entities.EventVenue", b =>
                 {
                     b.HasOne("EventHouse.Management.Domain.Entities.Event", "Event")
@@ -372,6 +429,11 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("EventHouse.Management.Domain.Entities.Artist", b =>
                 {
                     b.Navigation("Genres");
+                });
+
+            modelBuilder.Entity("EventHouse.Management.Domain.Entities.EventVenueCalendar", b =>
+                {
+                    b.Navigation("Performances");
                 });
 #pragma warning restore 612, 618
         }

@@ -7,7 +7,7 @@ namespace EventHouse.Management.Api.Swagger.Examples.Data;
 [ExcludeFromCodeCoverage]
 internal static class ArtistExampleData
 {
-    private static readonly Guid ArtistId = Guid.Parse("d290f1ee-6c54-4b01-90e6-d701748f0851");
+    private static readonly Guid ArtistId = ExampleConstants.ArtistId;
     private static readonly string ArtistName = "The Rolling Stones";
     private static readonly ArtistCategory ArtistCategory = ArtistCategory.Band;
     private static readonly Guid GenreId = ExampleConstants.GenreId;

@@ -38,6 +38,14 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
+
+        builder.ConfigureServices(services =>
+        {
+            services.PostConfigure<Microsoft.AspNetCore.RateLimiting.RateLimiterOptions>(options =>
+            {
+                options.GlobalLimiter = null;
+            });
+        });
     }
 
     protected override IHost CreateHost(IHostBuilder builder)
