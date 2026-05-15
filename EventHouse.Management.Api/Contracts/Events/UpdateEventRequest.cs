@@ -6,7 +6,6 @@ namespace EventHouse.Management.Api.Contracts.Events
     public sealed record UpdateEventRequest
     {
         /// <summary>Event name.</summary>
-        /// <example>Summer Fest 2026</example>
         [Required]
         [MinLength(2)]
         [MaxLength(200)]
@@ -16,14 +15,12 @@ namespace EventHouse.Management.Api.Contracts.Events
         public string Name { get; init; } = default!;
 
         /// <summary>Optional event description.</summary>
-        /// <example>Annual open-air music festival.</example>
         [SwaggerSchema(
             Description = "Optional event description."
         )]
         public string? Description { get; init; }
 
         /// <summary>Geographical scope of the event.</summary>
-        /// <example>International</example>
         [Required]
         [SwaggerSchema(
             Description = "Defines who can see the event."

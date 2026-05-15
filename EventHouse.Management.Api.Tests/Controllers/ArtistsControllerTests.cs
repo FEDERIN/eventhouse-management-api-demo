@@ -18,7 +18,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, BaseUrlArtists).WithoutAuthentication();
 
-        var res = await Client.SendAsync(request);
+        var res = await Client.SendAsync(request, cancellationToken: TestContext.Current.CancellationToken);
 
         res.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -28,7 +28,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
     {
         var request = ArtistFactory.CreateRequest(category: ArtistCategory.DJ);
 
-        var response = await Client.PostAsJsonAsync(BaseUrlArtists, request);
+        var response = await Client.PostAsJsonAsync(BaseUrlArtists, request, cancellationToken: TestContext.Current.CancellationToken);
         var created = await response.ReadContentAsync<ArtistDetail>();
         created.Should().BeEquivalentTo(request, opt => opt.ExcludingMissingMembers());
     }
@@ -36,7 +36,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
     [Fact]
     public async Task GetById_WhenMissing_Returns404()
     {
-        var res = await Client.GetAsync($"{BaseUrlArtists}/{Guid.NewGuid()}");
+        var res = await Client.GetAsync($"{BaseUrlArtists}/{Guid.NewGuid()}", cancellationToken: TestContext.Current.CancellationToken);
 
         await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
@@ -52,13 +52,13 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
         };
 
         // Act
-        var response = await Client.PutAsJsonAsync($"{BaseUrlArtists}/{artist.Id}", updateRequest);
+        var response = await Client.PutAsJsonAsync($"{BaseUrlArtists}/{artist.Id}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Roundtrip
-        var updated = await Client.GetFromJsonAsync<ArtistDetail>($"{BaseUrlArtists}/{artist.Id}", JsonTestOptions.Default);
+        var updated = await Client.GetFromJsonAsync<ArtistDetail>($"{BaseUrlArtists}/{artist.Id}", JsonTestOptions.Default, TestContext.Current.CancellationToken);
         updated.Should().BeEquivalentTo(updateRequest); // Ahora sí comparas DTO con DTO
     }
 
@@ -70,7 +70,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
         {
             Name = "Does not matter",
             Category = ArtistCategory.Band
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
 
         await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
@@ -82,11 +82,11 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
         var artist = await CreateArtistAsync(category: ArtistCategory.Band);
 
         // delete
-        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist!.Id}");
+        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist!.Id}", cancellationToken: TestContext.Current.CancellationToken);
         del.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // get -> 404
-        var get = await Client.GetAsync($"{BaseUrlArtists}/{artist.Id}");
+        var get = await Client.GetAsync($"{BaseUrlArtists}/{artist.Id}", cancellationToken: TestContext.Current.CancellationToken);
         await get.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
@@ -97,7 +97,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
         {
             Name = "A",
             Category = ArtistCategory.Band
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
 
         await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }
@@ -112,12 +112,12 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
         }
 
         // Act
-        var res = await Client.GetAsync($"{BaseUrlArtists}?page=1&pageSize=2");
+        var res = await Client.GetAsync($"{BaseUrlArtists}?page=1&pageSize=2", TestContext.Current.CancellationToken);
         res.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var page = await res.Content.ReadFromJsonAsync<PagedResult<ArtistDetail>>(JsonTestOptions.Default);
+        var page = await res.Content.ReadFromJsonAsync<PagedResult<ArtistDetail>>(JsonTestOptions.Default, TestContext.Current.CancellationToken);
         page.Should().NotBeNull();
-        page!.Items.Count.Should().BeLessOrEqualTo(2);
+        page!.Items.Count.Should().BeLessThanOrEqualTo(2);
         page.ShouldHaveValidPaginationLinks(currentPage: 1, expectedPageSize: 2);
     }
 
@@ -134,13 +134,13 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
             GenreId = genre!.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = true
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // --- Round-trip: Verificación real ---
-        var updatedArtist = await Client.GetFromJsonAsync<ArtistDetail>($"{BaseUrlArtists}/{artist.Id}", JsonTestOptions.Default);
+        var updatedArtist = await Client.GetFromJsonAsync<ArtistDetail>($"{BaseUrlArtists}/{artist.Id}", JsonTestOptions.Default, TestContext.Current.CancellationToken);
         
         updatedArtist!.Genres.Should().ContainSingle(g => g.GenreId == genre.Id && g.IsPrimary == true);
     }
@@ -160,10 +160,10 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
             IsPrimary = false
         };
 
-        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", body))
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", body, cancellationToken: TestContext.Current.CancellationToken))
             .StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist.Id}/genres", body))
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist.Id}/genres", body, cancellationToken: TestContext.Current.CancellationToken))
             .StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
@@ -182,17 +182,17 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
             GenreId = genre!.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = true
-        })).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist.Id}/genres", new AddArtistGenreRequest
         {
             GenreId = genre2!.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = false
-        })).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // act: set g2 primary
-        var patch = await Client.PatchAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre2.Id}/primary", content: null);
+        var patch = await Client.PatchAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre2.Id}/primary", content: null, cancellationToken: TestContext.Current.CancellationToken );
         patch.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
@@ -210,10 +210,10 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
             GenreId = genre!.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = false
-        })).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // delete
-        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre.Id}");
+        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre.Id}", cancellationToken: TestContext.Current.CancellationToken);
         del.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
@@ -233,13 +233,14 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
             GenreId = genre.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = true
-        })).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
 
         // act: update status to Inactive
         var put = await Client.PutAsJsonAsync(
             $"{BaseUrlArtists}/{artist.Id}/genres/{genre.Id}",
-            new UpdateArtistGenreStatusRequest { Status = ArtistGenreStatus.Inactive });
+            new UpdateArtistGenreStatusRequest { Status = ArtistGenreStatus.Inactive },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         put.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
