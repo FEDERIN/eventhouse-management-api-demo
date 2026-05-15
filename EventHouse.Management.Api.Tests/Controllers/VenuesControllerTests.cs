@@ -20,7 +20,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
         var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl)
             .WithoutAuthentication();
 
-        var res = await Client.SendAsync(request);
+        var res = await Client.SendAsync(request, TestContext.Current.CancellationToken);
 
         res.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -32,7 +32,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
         var request = VenueFactory.CreateRequest(name: "Miami International Arena");
 
         // Act
-        var response = await Client.PostAsJsonAsync(BaseUrl, request);
+        var response = await Client.PostAsJsonAsync(BaseUrl, request, cancellationToken: TestContext.Current.CancellationToken);
         var created = await response.ReadContentAsync<VenueResponse>();
 
         // Assert
@@ -44,7 +44,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
     [Fact]
     public async Task GetById_WhenMissing_Returns404()
     {
-        var res = await Client.GetAsync($"{BaseUrl}/{Guid.NewGuid()}");
+        var res = await Client.GetAsync($"{BaseUrl}/{Guid.NewGuid()}", TestContext.Current.CancellationToken);
         res.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -56,13 +56,13 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
         var updateRequest = VenueFactory.UpdateRequest("Kaseya Center");
 
         // Act
-        var response = await Client.PutAsJsonAsync($"{BaseUrl}/{venue.Id}", updateRequest);
+        var response = await Client.PutAsJsonAsync($"{BaseUrl}/{venue.Id}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Roundtrip
-        var updated = await Client.GetFromJsonAsync<VenueResponse>($"{BaseUrl}/{venue.Id}", JsonTestOptions.Default);
+        var updated = await Client.GetFromJsonAsync<VenueResponse>($"{BaseUrl}/{venue.Id}", JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
         updated.Should().BeEquivalentTo(updateRequest);
     }
 
@@ -82,7 +82,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
             TimeZoneId = "America/Miami",
             Capacity = 19600,
             IsActive = true
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
 
 
         await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
@@ -99,7 +99,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
         var updateRequest = VenueFactory.UpdateRequest(venue.Name);
 
         // Act
-        var update = await Client.PutAsJsonAsync($"{BaseUrl}/{venue2!.Id}", updateRequest);
+        var update = await Client.PutAsJsonAsync($"{BaseUrl}/{venue2!.Id}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         await update.ShouldHaveErrorCode(HttpStatusCode.Conflict, "VENUE_NAME_ALREADY_EXISTS");
@@ -112,7 +112,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
         var venue = await CreateVenueAsync();
 
         // delete
-        var del = await Client.DeleteAsync($"{BaseUrl}/{venue!.Id}");
+        var del = await Client.DeleteAsync($"{BaseUrl}/{venue!.Id}", TestContext.Current.CancellationToken);
         del.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
@@ -122,7 +122,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
 
         var id = Guid.NewGuid();
 
-        var del = await Client.DeleteAsync($"{BaseUrl}/{id}");
+        var del = await Client.DeleteAsync($"{BaseUrl}/{id}", TestContext.Current.CancellationToken);
 
         await del.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
@@ -140,7 +140,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
             TimeZoneId = "UTC",
             Capacity = 100,
             IsActive = true
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
 
         await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }
@@ -154,7 +154,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
         for (int i = 0; i < 3; i++) await CreateVenueAsync($"{prefix}_Arena_{i}");
 
         // Act
-        var res = await Client.GetAsync($"{BaseUrl}?page=1&pageSize=2");
+        var res = await Client.GetAsync($"{BaseUrl}?page=1&pageSize=2", TestContext.Current.CancellationToken);
         var page = await res.ReadContentAsync<PagedResult<VenueResponse>>();
 
         // Assert
