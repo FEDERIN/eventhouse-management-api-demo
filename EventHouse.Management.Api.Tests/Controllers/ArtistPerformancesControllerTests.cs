@@ -21,7 +21,7 @@ public sealed class ArtistPerformancesControllerTests(CustomWebApplicationFactor
         var performance = await AddArtistToCalendarAsync(calendar.Id);
 
         // Act
-        var response = await Client.GetAsync($"{BaseUrlArtistPerformances}/{performance.Id}");
+        var response = await Client.GetAsync($"{BaseUrlArtistPerformances}/{performance.Id}", TestContext.Current.CancellationToken);
         var returned = await response.ReadContentAsync<ArtistPerformanceResponse>();
 
         // Assert
@@ -34,7 +34,7 @@ public sealed class ArtistPerformancesControllerTests(CustomWebApplicationFactor
     public async Task GetById_WhenMissing_Returns404NotFound()
     {
         // Act
-        var response = await Client.GetAsync($"{BaseUrlArtistPerformances}/{Guid.NewGuid()}");
+        var response = await Client.GetAsync($"{BaseUrlArtistPerformances}/{Guid.NewGuid()}", TestContext.Current.CancellationToken);
 
         // Assert
         await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
@@ -51,12 +51,12 @@ public sealed class ArtistPerformancesControllerTests(CustomWebApplicationFactor
         var performance = await AddArtistToCalendarAsync(calendar.Id, isHeadliner: false);
 
         // Act
-        var response = await Client.DeleteAsync($"{BaseUrlArtistPerformances}/{calendar.Id}/{performance.ArtistId}");
+        var response = await Client.DeleteAsync($"{BaseUrlArtistPerformances}/{calendar.Id}/{performance.ArtistId}", cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var getRes = await Client.GetAsync($"{BaseUrlArtistPerformances}/{performance.Id}");
+        var getRes = await Client.GetAsync($"{BaseUrlArtistPerformances}/{performance.Id}", cancellationToken: TestContext.Current.CancellationToken);
         getRes.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -70,7 +70,7 @@ public sealed class ArtistPerformancesControllerTests(CustomWebApplicationFactor
         var headliner = await AddArtistToCalendarAsync(calendar.Id, isHeadliner: true,
             start: calendar.StartDate, end: calendar.StartDate.AddHours(1));
 
-        var response = await Client.DeleteAsync($"{BaseUrlArtistPerformances}/{calendar.Id}/{headliner.ArtistId}");
+        var response = await Client.DeleteAsync($"{BaseUrlArtistPerformances}/{calendar.Id}/{headliner.ArtistId}", cancellationToken: TestContext.Current.CancellationToken);
 
         await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "CANNOT_REMOVE_PUBLISHED_HEADLINER");
     }
@@ -79,7 +79,7 @@ public sealed class ArtistPerformancesControllerTests(CustomWebApplicationFactor
     public async Task RemovePerformance_WhenCalendarNotFound_Returns404NotFound()
     {
         // Act
-        var response = await Client.DeleteAsync($"{BaseUrlArtistPerformances}/{Guid.NewGuid()}/{Guid.NewGuid()}");
+        var response = await Client.DeleteAsync($"{BaseUrlArtistPerformances}/{Guid.NewGuid()}/{Guid.NewGuid()}", cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
@@ -90,7 +90,7 @@ public sealed class ArtistPerformancesControllerTests(CustomWebApplicationFactor
     {
         var calendar = await CreateEventVenueCalendarAsync();
         // Act
-        var response = await Client.DeleteAsync($"{BaseUrlArtistPerformances}/{calendar.Id}/{Guid.NewGuid()}");
+        var response = await Client.DeleteAsync($"{BaseUrlArtistPerformances}/{calendar.Id}/{Guid.NewGuid()}", cancellationToken: TestContext.Current.CancellationToken);
         // Assert
         await response.ShouldBeProblemJson(HttpStatusCode.NoContent);
     }
