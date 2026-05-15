@@ -8,7 +8,6 @@ public sealed record UpdateArtistRequest
     /// <summary>
     /// Public display name of the artist.
     /// </summary>
-    /// <example>The Rolling Stones</example>
     [SwaggerSchema(
         Description = "Must be between 2 and 200 characters.")]
     [Required]
