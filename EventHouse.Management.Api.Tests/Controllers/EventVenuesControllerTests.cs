@@ -43,6 +43,7 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+
         returned.Should().BeEquivalentTo(existing);
     }
 

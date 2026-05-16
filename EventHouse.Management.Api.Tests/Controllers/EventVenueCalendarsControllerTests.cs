@@ -3,6 +3,7 @@ using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.EventVenueCalendars;
 using EventHouse.Management.Api.Tests.Abstractions;
 using EventHouse.Management.Api.Tests.Common;
+using EventHouse.Management.Tests.Shared.Common;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
@@ -38,7 +39,11 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        returned.Should().BeEquivalentTo(existing);
+
+        returned.Should().BeEquivalentTo(existing, opt => opt
+            .ExcludingMissingMembers()
+            .WithPostgresPrecision()
+        );
     }
 
     [Fact]

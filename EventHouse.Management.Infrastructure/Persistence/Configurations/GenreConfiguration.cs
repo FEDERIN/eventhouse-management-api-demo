@@ -10,7 +10,7 @@ internal class GenreConfiguration : IEntityTypeConfiguration<Genre>
     {
         builder.ToTable("Genres", t =>
         {
-            t.HasCheckConstraint("CK_Genre_Name_NotEmpty", "TRIM(Name) <> ''");
+            t.HasCheckConstraint("CK_Genre_Name_NotEmpty", "TRIM(name) <> ''");
         });
 
         builder.HasKey(e => e.Id);
