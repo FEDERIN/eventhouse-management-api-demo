@@ -15,7 +15,7 @@ namespace EventHouse.Management.Infrastructure.Repositories
     {
         private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
         {
-            { "Genres.Name", ("GENRE_NAME_ALREADY_EXISTS", "The name already exists in another genre.", false) }
+            { "UX_Genres_Name", ("GENRE_NAME_ALREADY_EXISTS", "The name already exists in another genre.", false) }
         };
 
         public async Task AddAsync(Genre entity, CancellationToken cancellationToken = default)

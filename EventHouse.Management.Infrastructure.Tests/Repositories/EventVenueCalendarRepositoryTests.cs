@@ -4,17 +4,20 @@ using EventHouse.Management.Domain.Enums;
 using EventHouse.Management.Infrastructure.Repositories;
 using EventHouse.Management.Infrastructure.Tests.Extensions;
 using EventHouse.Management.Infrastructure.Tests.Persistence;
-using EventHouse.Management.TestUtils.Factories;
+using EventHouse.Management.Tests.Shared.Factories;
+using EventHouse.Management.Tests.Shared.Common;
 using FluentAssertions;
 
 namespace EventHouse.Management.Infrastructure.Tests.Repositories;
 
-public sealed class EventVenueCalendarRepositoryTests : BasePersistenceTest
+public sealed class EventVenueCalendarRepositoryTests(SharedDatabaseFixture fixture) : BasePersistenceTest(fixture)
 {
-    private readonly EventVenueCalendarRepository _repository;
+    private EventVenueCalendarRepository _repository = null!;
 
-    public EventVenueCalendarRepositoryTests()
+    public override async ValueTask InitializeAsync()
     {
+        await base.InitializeAsync();
+
         _repository = new EventVenueCalendarRepository(Context);
     }
 
@@ -78,28 +81,32 @@ public sealed class EventVenueCalendarRepositoryTests : BasePersistenceTest
         result.Items[0].SeatingMapId.Should().Be(SeatingMapId);
     }
 
-    [Fact]
-    public async Task GetPagedAsync_ShouldFilterByStartDate()
-    {
-        // Arrange
-        var (_, _, EventVenueId, SeatingMapId) = await SeedDependenciesAsync();
-        var targetStart = DateTimeOffset.UtcNow.AddDays(5);
-        var oldStart = DateTimeOffset.UtcNow.AddDays(-5);
+        [Fact]
+        public async Task GetPagedAsync_ShouldFilterByStartDate()
+        {
+            // Arrange
+            var (_, _, EventVenueId, SeatingMapId) = await SeedDependenciesAsync();
+            var targetStart = DateTimeOffset.UtcNow.AddDays(5);
+            var oldStart = DateTimeOffset.UtcNow.AddDays(-5);
 
-        await SeedAsync(
-            TestEntityFactory.CreateEventVenueCalendar(Guid.NewGuid(), EventVenueId, SeatingMapId, startLocal: targetStart),
-            TestEntityFactory.CreateEventVenueCalendar(Guid.NewGuid(), EventVenueId, SeatingMapId, startLocal: oldStart)
-        );
+            await SeedAsync(
+                TestEntityFactory.CreateEventVenueCalendar(Guid.NewGuid(), EventVenueId, SeatingMapId, startLocal: targetStart),
+                TestEntityFactory.CreateEventVenueCalendar(Guid.NewGuid(), EventVenueId, SeatingMapId, startLocal: oldStart)
+            );
 
-        var criteria = new EventVenueCalendarQueryCriteria { StartDate = DateTime.UtcNow };
+            var criteria = new EventVenueCalendarQueryCriteria { StartDate = DateTime.UtcNow };
 
-        // Act
-        var result = await _repository.GetPagedAsync(criteria, TestContext.Current.CancellationToken);
+            // Act
+            var result = await _repository.GetPagedAsync(criteria, TestContext.Current.CancellationToken);
 
-        // Assert
-        result.Items.Should().ContainSingle();
-        result.Items[0].StartDate.Should().Be(targetStart.UtcDateTime);
-    }
+            // Assert
+            result.Items.Should().ContainSingle();
+
+            result.Items[0].Should().BeEquivalentTo(new { StartDate = targetStart.UtcDateTime }, opt => opt
+            .WithPostgresPrecision()
+            .ExcludingMissingMembers());
+
+        }
 
     [Fact]
     public async Task GetPagedAsync_ShouldFilterByEndDate()
@@ -121,7 +128,10 @@ public sealed class EventVenueCalendarRepositoryTests : BasePersistenceTest
 
         // Assert
         result.Items.Should().ContainSingle();
-        result.Items[0].StartDate.Should().Be(oldStart.UtcDateTime);
+
+        result.Items[0].Should().BeEquivalentTo(new { StartDate = oldStart.UtcDateTime }, opt => opt
+        .WithPostgresPrecision()
+        .ExcludingMissingMembers());
     }
 
 
@@ -145,7 +155,9 @@ public sealed class EventVenueCalendarRepositoryTests : BasePersistenceTest
 
         // Assert
         result.Items.Should().ContainSingle();
-        result.Items[0].StartDate.Should().Be(targetStart.UtcDateTime);
+        result.Items[0].Should().BeEquivalentTo(new { StartDate = targetStart.UtcDateTime }, opt => opt
+        .WithPostgresPrecision()
+        .ExcludingMissingMembers());
     }
 
     [Fact]
@@ -168,7 +180,9 @@ public sealed class EventVenueCalendarRepositoryTests : BasePersistenceTest
 
         // Assert
         result.Items.Should().ContainSingle();
-        result.Items[0].StartDate.Should().Be(targetStart.UtcDateTime);
+        result.Items[0].Should().BeEquivalentTo(new { StartDate = targetStart.UtcDateTime }, opt => opt
+        .WithPostgresPrecision()
+        .ExcludingMissingMembers());
     }
 
     [Theory]

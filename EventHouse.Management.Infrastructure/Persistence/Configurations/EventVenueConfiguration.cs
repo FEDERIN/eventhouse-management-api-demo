@@ -11,8 +11,8 @@ public class EventVenueConfiguration : IEntityTypeConfiguration<EventVenue>
     {
         builder.ToTable("EventVenues", t =>
         {
-            t.HasCheckConstraint("CK_EventVenue_EventId_NotEmpty", "EventId <> '00000000-0000-0000-0000-000000000000'");
-            t.HasCheckConstraint("CK_EventVenue_VenueId_NotEmpty", "VenueId <> '00000000-0000-0000-0000-000000000000'");
+            t.HasCheckConstraint("CK_EventVenue_EventId_NotEmpty", "event_id <> '00000000-0000-0000-0000-000000000000'");
+            t.HasCheckConstraint("CK_EventVenue_VenueId_NotEmpty", "venue_id <> '00000000-0000-0000-0000-000000000000'");
         });
 
         builder.HasKey(e => e.Id);

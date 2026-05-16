@@ -10,8 +10,8 @@ internal class ArtistPerformanceConfiguration : IEntityTypeConfiguration<ArtistP
     {
         builder.ToTable("ArtistPerformances", t =>
         {
-            t.HasCheckConstraint("CK_ArtistPerformance_ArtistId_NotEmpty", "ArtistId <> '00000000-0000-0000-0000-000000000000'");
-            t.HasCheckConstraint("CK_ArtistPerformance_EventVenueCalendarId_NotEmpty", "EventVenueCalendarId <> '00000000-0000-0000-0000-000000000000'");
+            t.HasCheckConstraint("CK_ArtistPerformance_ArtistId_NotEmpty", "artist_id <> '00000000-0000-0000-0000-000000000000'");
+            t.HasCheckConstraint("CK_ArtistPerformance_EventVenueCalendarId_NotEmpty", "event_venue_calendar_id <> '00000000-0000-0000-0000-000000000000'");
         });
 
         builder.HasKey(e => e.Id);
@@ -36,7 +36,7 @@ internal class ArtistPerformanceConfiguration : IEntityTypeConfiguration<ArtistP
 
         builder.HasIndex(e => e.EventVenueCalendarId)
             .IsUnique()
-            .HasFilter("IsHeadliner = 1")
+            .HasFilter("is_headliner = true")
             .HasDatabaseName("UX_ArtistPerformances_OneHeadlinerPerCalendar");
 
         builder.HasOne(e => e.EventVenueCalendar)

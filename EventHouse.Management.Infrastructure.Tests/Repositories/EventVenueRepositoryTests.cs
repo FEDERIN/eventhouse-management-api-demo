@@ -9,12 +9,14 @@ using FluentAssertions;
 
 namespace EventHouse.Management.Infrastructure.Tests.Repositories;
 
-public sealed class EventVenueRepositoryTests : BasePersistenceTest
+public sealed class EventVenueRepositoryTests(SharedDatabaseFixture fixture) : BasePersistenceTest(fixture)
 {
-    private readonly EventVenueRepository _repository;
+    private EventVenueRepository _repository = null!;
 
-    public EventVenueRepositoryTests()
+    public override async ValueTask InitializeAsync()
     {
+        await base.InitializeAsync();
+
         _repository = new EventVenueRepository(Context);
     }
 

@@ -15,7 +15,7 @@ internal class ArtistRepository(ManagementDbContext context) :
 {
     private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> ArtistMappings = new()
     {
-        { "Artists.Name", ("ARTIST_NAME_ALREADY_EXISTS", "Artist name already exists.", false) },    
+        { "UX_Artists_Name", ("ARTIST_NAME_ALREADY_EXISTS", "Artist name already exists.", false) },
         { "UX_ArtistGenres_Artist_Genre", (null, null, true) }
     };
 
@@ -37,24 +37,32 @@ internal class ArtistRepository(ManagementDbContext context) :
 
     public async Task SetPrimaryGenreAsync(Guid artistId, Guid genreOldId, Guid genreId, CancellationToken ct)
     {
-        if (!genreOldId.Equals(Guid.Empty))
+        // Execute everything inside a single transaction to ensure consistency
+        using var transaction = await _context.Database.BeginTransactionAsync(ct);
+
+        try
         {
-            await _context.Database.ExecuteSqlInterpolatedAsync($"""
-                UPDATE ArtistGenres
-                SET IsPrimary = 0
-                WHERE ArtistId = {artistId} AND GenreId = {genreOldId}
-            """, ct);
+            // 1. Reset the old primary genre if it exists
+            if (genreOldId != Guid.Empty)
+            {
+                await _context.ArtistGenres
+                    .Where(ag => ag.ArtistId == artistId && ag.GenreId == genreOldId)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(ag => ag.IsPrimary, false), ct);
+            }
 
-            await _context.SaveChangesAsync(ct);
+            // 2. Set the new primary genre
+            await _context.ArtistGenres
+                .Where(ag => ag.ArtistId == artistId && ag.GenreId == genreId)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(ag => ag.IsPrimary, true), ct);
+
+            // Commit all changes at once
+            await transaction.CommitAsync(ct);
         }
-
-        await _context.Database.ExecuteSqlInterpolatedAsync($"""
-                UPDATE ArtistGenres
-                SET IsPrimary = 1
-                WHERE ArtistId = {artistId} AND GenreId = {genreId}
-            """, ct);
-
-        await _context.SaveChangesAsync(ct);
+        catch
+        {
+            await transaction.RollbackAsync(ct);
+            throw;
+        }
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)

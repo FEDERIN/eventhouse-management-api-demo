@@ -3,36 +3,24 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Testcontainers.PostgreSql;
 
 namespace EventHouse.Management.Api.Tests;
 
-public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private static readonly string DbPath;
-    private static bool _initialized;
-    private static readonly object InitLock = new();
+    // Fix for CS0618: Pass the image directly to the builder
+    private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:16-alpine")
+        .WithDatabase("eventhouse_management_tests")
+        .WithUsername("postgres")
+        .WithPassword("postgres")
+        .Build();
 
     static CustomWebApplicationFactory()
     {
-
-        // Auth env for tests
         Environment.SetEnvironmentVariable("Auth__DevSecret", "EVENTHOUSE_TEST_SECRET_12345678901234567890");
         Environment.SetEnvironmentVariable("Auth__Issuer", "eventhouse.local");
         Environment.SetEnvironmentVariable("Auth__Audience", "eventhouse.management");
-
-
-        // One deterministic DB per test run
-        var dataDir = Path.Combine(AppContext.BaseDirectory, "Data");
-        Directory.CreateDirectory(dataDir);
-
-        DbPath = Path.Combine(dataDir, "management.tests.run.db");
-
-        // Pooling off helps avoid file-lock weirdness in some environments
-        Environment.SetEnvironmentVariable(
-            "ConnectionStrings__ManagementConnection",
-            $"Data Source={DbPath};Pooling=False"
-        );
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -41,6 +29,17 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
+            var descriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(DbContextOptions<ManagementDbContext>));
+
+            if (descriptor != null) services.Remove(descriptor);
+
+            services.AddDbContext<ManagementDbContext>(options =>
+            {
+                options.UseNpgsql(_dbContainer.GetConnectionString())
+                       .UseSnakeCaseNamingConvention();
+            });
+
             services.PostConfigure<Microsoft.AspNetCore.RateLimiting.RateLimiterOptions>(options =>
             {
                 options.GlobalLimiter = null;
@@ -48,26 +47,22 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         });
     }
 
-    protected override IHost CreateHost(IHostBuilder builder)
+    public async ValueTask InitializeAsync()
     {
-        var host = base.CreateHost(builder);
+        // This will now work as soon as Docker is running
+        await _dbContainer.StartAsync();
 
-        // ✅ Clean DB once per run + migrate once (thread-safe)
-        lock (InitLock)
-        {
-            if (!_initialized)
-            {
-                using var scope = host.Services.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<ManagementDbContext>();
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ManagementDbContext>();
+        await db.Database.MigrateAsync();
+    }
 
-                // Start clean every run
-                db.Database.EnsureDeleted();
-                db.Database.Migrate();
+    public new async ValueTask DisposeAsync()
+    {
+        await _dbContainer.StopAsync();
+        await base.DisposeAsync();
 
-                _initialized = true;
-            }
-        }
-
-        return host;
+        // Fix for CA1816: Properly handle the garbage collector
+        GC.SuppressFinalize(this);
     }
 }

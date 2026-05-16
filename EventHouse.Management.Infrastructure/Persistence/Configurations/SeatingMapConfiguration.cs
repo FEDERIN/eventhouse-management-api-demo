@@ -10,7 +10,7 @@ public class SeatingMapConfiguration : IEntityTypeConfiguration<SeatingMap>
     {
         builder.ToTable("SeatingMaps", t =>
         {
-            t.HasCheckConstraint("CK_SeatingMap_VenueId_NotEmpty", "VenueId <> '00000000-0000-0000-0000-000000000000'");
+            t.HasCheckConstraint("CK_SeatingMap_VenueId_NotEmpty", "venue_id <> '00000000-0000-0000-0000-000000000000'");
         });
 
         builder.HasKey(e => e.Id);

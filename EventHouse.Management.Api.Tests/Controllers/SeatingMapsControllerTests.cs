@@ -3,7 +3,9 @@ using EventHouse.Management.Api.Contracts.SeatingMaps;
 using EventHouse.Management.Api.Tests.Abstractions;
 using EventHouse.Management.Api.Tests.Common;
 using EventHouse.Management.Api.Tests.Factories;
+using EventHouse.Management.Tests.Shared.Common;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -35,7 +37,12 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
         var returned = await res.ReadContentAsync<SeatingMapResponse>();
 
         res.StatusCode.Should().Be(HttpStatusCode.OK);
-        returned.Should().BeEquivalentTo(seatingMap, opt => opt.ExcludingMissingMembers());
+
+        // Use BeEquivalentTo but handle the precision for DateTime properties
+        returned.Should().BeEquivalentTo(seatingMap, opt => opt
+            .ExcludingMissingMembers()
+            .WithPostgresPrecision()
+        );
     }
 
     [Fact]
@@ -52,11 +59,22 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
         var venue = await CreateVenueAsync();
         var seatingMap1 = await CreateSeatingMapAsync(venueId: venue.Id);
         var seatingMap2 = await CreateSeatingMapAsync(venueId: venue.Id);
+
         var res = await Client.GetAsync(BaseUrlSeatingMaps, TestContext.Current.CancellationToken);
         var pagedResult = await res.ReadContentAsync<PagedResult<SeatingMapResponse>>();
+
         res.StatusCode.Should().Be(HttpStatusCode.OK);
-        pagedResult.Items.Should().ContainEquivalentOf(seatingMap1, opt => opt.ExcludingMissingMembers());
-        pagedResult.Items.Should().ContainEquivalentOf(seatingMap2, opt => opt.ExcludingMissingMembers());
+
+        // Apply the microsecond tolerance globally for these assertions
+        using var scope = new AssertionScope();
+
+        pagedResult.Items.Should().ContainEquivalentOf(seatingMap1, opt => opt
+           .ExcludingMissingMembers()
+           .WithPostgresPrecision());
+
+        pagedResult.Items.Should().ContainEquivalentOf(seatingMap2, opt => opt
+            .ExcludingMissingMembers()
+            .WithPostgresPrecision());
     }
     #endregion
 

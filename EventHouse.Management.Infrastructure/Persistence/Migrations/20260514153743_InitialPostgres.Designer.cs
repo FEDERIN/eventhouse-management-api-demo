@@ -5,36 +5,45 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ManagementDbContext))]
-    [Migration("20260503144728_artistPerformance")]
-    partial class artistPerformance
+    [Migration("20260514153743_InitialPostgres")]
+    partial class InitialPostgres
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.26");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "8.0.27")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("EventHouse.Management.Domain.Entities.Artist", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<byte>("Category")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("smallint")
+                        .HasColumnName("category");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_artists");
 
                     b.HasIndex("Name")
                         .IsUnique()
@@ -42,7 +51,7 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Artists", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Artist_Name_NotEmpty", "TRIM(Name) <> ''");
+                            t.HasCheckConstraint("CK_Artist_Name_NotEmpty", "TRIM(name) <> ''");
                         });
                 });
 
@@ -50,28 +59,35 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<Guid>("ArtistId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("artist_id");
 
                     b.Property<Guid>("GenreId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("genre_id");
 
                     b.Property<bool>("IsPrimary")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_primary");
 
                     b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_artist_genres");
 
                     b.HasIndex("ArtistId")
                         .IsUnique()
-                        .HasDatabaseName("UX_ArtistGenres_Artist_Primary")
-                        .HasFilter("IsPrimary = 1");
+                        .HasDatabaseName("ux_artist_genres_artist_primary")
+                        .HasFilter("is_primary = true");
 
-                    b.HasIndex("GenreId");
+                    b.HasIndex("GenreId")
+                        .HasDatabaseName("ix_artist_genres_genre_id");
 
                     b.HasIndex("ArtistId", "GenreId")
                         .IsUnique()
@@ -79,9 +95,9 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 
                     b.ToTable("ArtistGenres", null, t =>
                         {
-                            t.HasCheckConstraint("CK_ArtistGenre_ArtistId_NotEmpty", "ArtistId <> '00000000-0000-0000-0000-000000000000'");
+                            t.HasCheckConstraint("CK_ArtistGenre_ArtistId_NotEmpty", "artist_id <> '00000000-0000-0000-0000-000000000000'");
 
-                            t.HasCheckConstraint("CK_ArtistGenre_GenreId_NotEmpty", "GenreId <> '00000000-0000-0000-0000-000000000000'");
+                            t.HasCheckConstraint("CK_ArtistGenre_GenreId_NotEmpty", "genre_id <> '00000000-0000-0000-0000-000000000000'");
                         });
                 });
 
@@ -89,29 +105,36 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<Guid>("ArtistId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("artist_id");
 
                     b.Property<Guid>("EventVenueCalendarId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("event_venue_calendar_id");
 
                     b.Property<bool>("IsHeadliner")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_headliner");
 
                     b.Property<DateTime?>("SetEnd")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("set_end");
 
                     b.Property<DateTime?>("SetStart")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("set_start");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_artist_performances");
 
                     b.HasIndex("EventVenueCalendarId")
                         .IsUnique()
                         .HasDatabaseName("UX_ArtistPerformances_OneHeadlinerPerCalendar")
-                        .HasFilter("IsHeadliner = 1");
+                        .HasFilter("is_headliner = true");
 
                     b.HasIndex("ArtistId", "EventVenueCalendarId")
                         .IsUnique()
@@ -119,9 +142,9 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 
                     b.ToTable("ArtistPerformances", null, t =>
                         {
-                            t.HasCheckConstraint("CK_ArtistPerformance_ArtistId_NotEmpty", "ArtistId <> '00000000-0000-0000-0000-000000000000'");
+                            t.HasCheckConstraint("CK_ArtistPerformance_ArtistId_NotEmpty", "artist_id <> '00000000-0000-0000-0000-000000000000'");
 
-                            t.HasCheckConstraint("CK_ArtistPerformance_EventVenueCalendarId_NotEmpty", "EventVenueCalendarId <> '00000000-0000-0000-0000-000000000000'");
+                            t.HasCheckConstraint("CK_ArtistPerformance_EventVenueCalendarId_NotEmpty", "event_venue_calendar_id <> '00000000-0000-0000-0000-000000000000'");
                         });
                 });
 
@@ -129,21 +152,26 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
                     b.Property<byte>("Scope")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("smallint")
+                        .HasColumnName("scope");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_events");
 
                     b.HasIndex("Name")
                         .IsUnique()
@@ -151,7 +179,7 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Events", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Event_Name_NotEmpty", "TRIM(Name) <> ''");
+                            t.HasCheckConstraint("CK_Event_Name_NotEmpty", "TRIM(name) <> ''");
 
                             t.HasCheckConstraint("CK_Event_Scope_Range", "Scope IN (0,1,2)");
                         });
@@ -161,20 +189,26 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<Guid>("EventId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("event_id");
 
                     b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.Property<Guid>("VenueId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("venue_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_event_venues");
 
-                    b.HasIndex("VenueId");
+                    b.HasIndex("VenueId")
+                        .HasDatabaseName("ix_event_venues_venue_id");
 
                     b.HasIndex("EventId", "VenueId")
                         .IsUnique()
@@ -182,9 +216,9 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 
                     b.ToTable("EventVenues", null, t =>
                         {
-                            t.HasCheckConstraint("CK_EventVenue_EventId_NotEmpty", "EventId <> '00000000-0000-0000-0000-000000000000'");
+                            t.HasCheckConstraint("CK_EventVenue_EventId_NotEmpty", "event_id <> '00000000-0000-0000-0000-000000000000'");
 
-                            t.HasCheckConstraint("CK_EventVenue_VenueId_NotEmpty", "VenueId <> '00000000-0000-0000-0000-000000000000'");
+                            t.HasCheckConstraint("CK_EventVenue_VenueId_NotEmpty", "venue_id <> '00000000-0000-0000-0000-000000000000'");
                         });
                 });
 
@@ -192,39 +226,49 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTime?>("EndDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("end_date");
 
                     b.Property<Guid>("EventVenueId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("event_venue_id");
 
                     b.Property<Guid>("SeatingMapId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("seating_map_id");
 
                     b.Property<DateTime>("StartDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_date");
 
                     b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.Property<string>("TimeZoneId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text")
+                        .HasColumnName("time_zone_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_event_venue_calendars");
 
-                    b.HasIndex("SeatingMapId");
+                    b.HasIndex("SeatingMapId")
+                        .HasDatabaseName("ix_event_venue_calendars_seating_map_id");
 
-                    b.HasIndex("EventVenueId", "StartDate");
+                    b.HasIndex("EventVenueId", "StartDate")
+                        .HasDatabaseName("ix_event_venue_calendars_event_venue_id_start_date");
 
                     b.HasIndex("EventVenueId", "StartDate", "EndDate")
                         .HasDatabaseName("IX_EventVenueCalendar_Overlap_Search");
 
                     b.ToTable("EventVenueCalendars", null, t =>
                         {
-                            t.HasCheckConstraint("CK_EventVenueCalendar_EndDate", "(EndDate IS NULL OR EndDate >= StartDate)");
+                            t.HasCheckConstraint("CK_EventVenueCalendar_EndDate", "(end_date IS NULL OR end_date >= start_date)");
                         });
                 });
 
@@ -232,14 +276,17 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_genres");
 
                     b.HasIndex("Name")
                         .IsUnique()
@@ -247,7 +294,7 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Genres", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Genre_Name_NotEmpty", "TRIM(Name) <> ''");
+                            t.HasCheckConstraint("CK_Genre_Name_NotEmpty", "TRIM(name) <> ''");
                         });
                 });
 
@@ -255,31 +302,39 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
                     b.Property<Guid>("VenueId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("venue_id");
 
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(1);
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_seating_maps");
 
-                    b.HasIndex("VenueId");
+                    b.HasIndex("VenueId")
+                        .HasDatabaseName("ix_seating_maps_venue_id");
 
                     b.HasIndex("VenueId", "Name")
                         .IsUnique()
@@ -287,7 +342,7 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 
                     b.ToTable("SeatingMaps", null, t =>
                         {
-                            t.HasCheckConstraint("CK_SeatingMap_VenueId_NotEmpty", "VenueId <> '00000000-0000-0000-0000-000000000000'");
+                            t.HasCheckConstraint("CK_SeatingMap_VenueId_NotEmpty", "venue_id <> '00000000-0000-0000-0000-000000000000'");
                         });
                 });
 
@@ -295,59 +350,72 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("Address")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("address");
 
                     b.Property<int?>("Capacity")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer")
+                        .HasColumnName("capacity");
 
                     b.Property<string>("City")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("city");
 
                     b.Property<string>("CountryCode")
                         .IsRequired()
                         .HasMaxLength(2)
-                        .HasColumnType("TEXT")
+                        .HasColumnType("character(2)")
+                        .HasColumnName("country_code")
                         .IsFixedLength();
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(true);
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
 
                     b.Property<decimal?>("Latitude")
-                        .HasColumnType("decimal(9,6)");
+                        .HasColumnType("decimal(9,6)")
+                        .HasColumnName("latitude");
 
                     b.Property<decimal?>("Longitude")
-                        .HasColumnType("decimal(9,6)");
+                        .HasColumnType("decimal(9,6)")
+                        .HasColumnName("longitude");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
                     b.Property<string>("Region")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("region");
 
                     b.Property<string>("TimeZoneId")
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("time_zone_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_venues");
 
                     b.HasIndex("Name")
                         .IsUnique()
                         .HasDatabaseName("UX_Venues_Name");
 
-                    b.HasIndex("CountryCode", "City");
+                    b.HasIndex("CountryCode", "City")
+                        .HasDatabaseName("ix_venues_country_code_city");
 
                     b.ToTable("Venues", (string)null);
                 });
@@ -358,13 +426,15 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                         .WithMany("Genres")
                         .HasForeignKey("ArtistId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_artist_genres_artists_artist_id");
 
                     b.HasOne("EventHouse.Management.Domain.Entities.Genre", null)
                         .WithMany()
                         .HasForeignKey("GenreId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_artist_genres_genres_genre_id");
                 });
 
             modelBuilder.Entity("EventHouse.Management.Domain.Entities.ArtistPerformance", b =>
@@ -373,13 +443,15 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("ArtistId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_artist_performances_artists_artist_id");
 
                     b.HasOne("EventHouse.Management.Domain.Entities.EventVenueCalendar", "EventVenueCalendar")
                         .WithMany("Performances")
                         .HasForeignKey("EventVenueCalendarId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_artist_performances_event_venue_calendars_event_venue_calend");
 
                     b.Navigation("EventVenueCalendar");
                 });
@@ -390,13 +462,15 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_event_venues_events_event_id");
 
                     b.HasOne("EventHouse.Management.Domain.Entities.Venue", "Venue")
                         .WithMany()
                         .HasForeignKey("VenueId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_event_venues_venues_venue_id");
 
                     b.Navigation("Event");
 
@@ -409,13 +483,15 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("EventVenueId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_event_venue_calendars_event_venues_event_venue_id");
 
                     b.HasOne("EventHouse.Management.Domain.Entities.SeatingMap", null)
                         .WithMany()
                         .HasForeignKey("SeatingMapId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_event_venue_calendars_seating_maps_seating_map_id");
 
                     b.Navigation("EventVenue");
                 });
@@ -426,7 +502,8 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("VenueId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_seating_maps_venues_venue_id");
                 });
 
             modelBuilder.Entity("EventHouse.Management.Domain.Entities.Artist", b =>

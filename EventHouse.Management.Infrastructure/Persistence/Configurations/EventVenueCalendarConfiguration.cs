@@ -9,10 +9,7 @@ public class EventVenueCalendarConfiguration : IEntityTypeConfiguration<EventVen
     {
         builder.ToTable("EventVenueCalendars", t =>
         {
-            t.HasCheckConstraint(
-                "CK_EventVenueCalendar_EndDate",
-                "(EndDate IS NULL OR EndDate >= StartDate)"
-            );
+            t.HasCheckConstraint("CK_EventVenueCalendar_EndDate", "(end_date IS NULL OR end_date >= start_date)");
         });
 
         builder.HasKey(e => e.Id);

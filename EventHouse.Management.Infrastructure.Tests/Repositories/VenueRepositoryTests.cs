@@ -3,17 +3,19 @@ using EventHouse.Management.Application.Queries.Venues.GetAll;
 using EventHouse.Management.Infrastructure.Repositories;
 using EventHouse.Management.Infrastructure.Tests.Extensions;
 using EventHouse.Management.Infrastructure.Tests.Persistence;
-using EventHouse.Management.TestUtils.Factories;
+using EventHouse.Management.Tests.Shared.Factories;
 using FluentAssertions;
 
 namespace EventHouse.Management.Infrastructure.Tests.Repositories;
 
-public sealed class VenueRepositoryTests : BasePersistenceTest
+public sealed class VenueRepositoryTests(SharedDatabaseFixture fixture) : BasePersistenceTest(fixture)
 {
-    private readonly VenueRepository _repository;
+    private VenueRepository _repository = null!;
 
-    public VenueRepositoryTests()
+    public override async ValueTask InitializeAsync()
     {
+        await base.InitializeAsync();
+
         _repository = new VenueRepository(Context);
     }
 

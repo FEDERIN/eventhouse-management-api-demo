@@ -1,7 +1,7 @@
 ﻿using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Domain.Enums;
 
-namespace EventHouse.Management.TestUtils.Factories;
+namespace EventHouse.Management.Tests.Shared.Factories;
 
 public static class TestEntityFactory
 {
