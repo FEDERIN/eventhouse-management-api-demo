@@ -15,7 +15,7 @@ internal class EventRepository(ManagementDbContext context) :
 {
     private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
     {
-        { "Events.Name", ("EVENT_NAME_ALREADY_EXISTS", "The name already exists in another event.", false) }
+        { "UX_Event_Name", ("EVENT_NAME_ALREADY_EXISTS", "The name already exists in another event.", false) }
     };
 
     public async Task AddAsync(Event entity, CancellationToken cancellationToken = default)

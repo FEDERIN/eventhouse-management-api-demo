@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EventHouse.Management.Domain\EventHouse.Management.Domain.csproj" />
+    <ProjectReference Include="..\EventHouse.Management.TestUtils\EventHouse.Management.Tests.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

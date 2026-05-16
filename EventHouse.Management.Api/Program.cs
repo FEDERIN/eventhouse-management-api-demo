@@ -91,17 +91,24 @@ builder.Services.AddAuthorization();
 //
 // DbContext
 //
+//builder.Services.AddDbContext<ManagementDbContext>(options =>
+//{
+//    options.UseSqlite(builder.Configuration.GetConnectionString("ManagementConnection"));
+
+//    if (builder.Environment.IsDevelopment())
+//    {
+//        options.EnableDetailedErrors();
+//        options.EnableSensitiveDataLogging();
+//        options.LogTo(Console.WriteLine);
+//    }
+//});
+
 builder.Services.AddDbContext<ManagementDbContext>(options =>
 {
-    options.UseSqlite(builder.Configuration.GetConnectionString("ManagementConnection"));
-
-    if (builder.Environment.IsDevelopment())
-    {
-        options.EnableDetailedErrors();
-        options.EnableSensitiveDataLogging();
-        options.LogTo(Console.WriteLine);
-    }
+    options.UseNpgsql(builder.Configuration.GetConnectionString("ManagementConnection"))
+           .UseSnakeCaseNamingConvention(); //Convert to snake_case for PostgreSQL
 });
+
 
 //
 // Health checks (cloud readiness)
