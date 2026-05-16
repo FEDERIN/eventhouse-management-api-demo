@@ -14,7 +14,7 @@ internal class EventVenueRepository(ManagementDbContext context) :
 {
     private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> EventVenueMappings = new()
     {
-        { "EventVenues.EventId, EventVenues.VenueId", ("EVENT_ALREADY_ASSIGNED", "This event is already assigned to this venue.", false) }
+        { "UX_EventVenues_Event_Venue", ("EVENT_ALREADY_ASSIGNED", "This event is already assigned to this venue.", false) }
     };
 
     #region WRITE

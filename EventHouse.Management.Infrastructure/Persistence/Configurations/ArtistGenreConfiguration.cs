@@ -10,8 +10,8 @@ internal class ArtistGenreConfiguration : IEntityTypeConfiguration<ArtistGenre>
     {
         builder.ToTable("ArtistGenres", t =>
         {
-            t.HasCheckConstraint("CK_ArtistGenre_ArtistId_NotEmpty", "ArtistId <> '00000000-0000-0000-0000-000000000000'");
-            t.HasCheckConstraint("CK_ArtistGenre_GenreId_NotEmpty", "GenreId <> '00000000-0000-0000-0000-000000000000'");
+            t.HasCheckConstraint("CK_ArtistGenre_ArtistId_NotEmpty", "artist_id <> '00000000-0000-0000-0000-000000000000'");
+            t.HasCheckConstraint("CK_ArtistGenre_GenreId_NotEmpty", "genre_id <> '00000000-0000-0000-0000-000000000000'");
         });
 
         builder.HasKey(e => e.Id);
@@ -38,7 +38,7 @@ internal class ArtistGenreConfiguration : IEntityTypeConfiguration<ArtistGenre>
 
         builder.HasIndex(e => e.ArtistId)
                .IsUnique()
-               .HasFilter("IsPrimary = 1")
-               .HasDatabaseName("UX_ArtistGenres_Artist_Primary");
+               .HasFilter("is_primary = true")
+               .HasDatabaseName("ux_artist_genres_artist_primary");
     }
 }

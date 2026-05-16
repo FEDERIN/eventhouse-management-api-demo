@@ -7,16 +7,19 @@ using FluentAssertions;
 
 namespace EventHouse.Management.Infrastructure.Tests.Repositories;
 
-public class SeatingMapRepositoryTests : BasePersistenceTest
+public class SeatingMapRepositoryTests(SharedDatabaseFixture fixture) : BasePersistenceTest(fixture)
 {
-    private readonly SeatingMapRepository _repository;
-    private readonly VenueRepository _venueRepository;
+    private SeatingMapRepository _repository = null!;
+    private VenueRepository _venueRepository = null!;
 
-    public SeatingMapRepositoryTests()
+    public override async ValueTask InitializeAsync()
     {
+        await base.InitializeAsync();
+
         _repository = new SeatingMapRepository(Context);
         _venueRepository = new VenueRepository(Context);
     }
+
 
     [Fact]
     public async Task UpdateAsync_ShouldThrowInvalidOperationException_WhenEntityIsDetached()

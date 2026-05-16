@@ -10,7 +10,7 @@ internal class ArtistConfiguration : IEntityTypeConfiguration<Artist>
     {
         builder.ToTable("Artists", t =>
         {
-            t.HasCheckConstraint("CK_Artist_Name_NotEmpty", "TRIM(Name) <> ''");
+            t.HasCheckConstraint("CK_Artist_Name_NotEmpty", "TRIM(name) <> ''");
         });
 
         builder.HasKey(e => e.Id);

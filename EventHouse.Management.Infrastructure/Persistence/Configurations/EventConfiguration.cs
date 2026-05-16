@@ -10,7 +10,7 @@ internal class EventConfiguration : IEntityTypeConfiguration<Event>
     {
         builder.ToTable("Events", t =>
         {
-            t.HasCheckConstraint("CK_Event_Name_NotEmpty", "TRIM(Name) <> ''");
+            t.HasCheckConstraint("CK_Event_Name_NotEmpty", "TRIM(name) <> ''");
             t.HasCheckConstraint("CK_Event_Scope_Range", "Scope IN (0,1,2)");
         });
 

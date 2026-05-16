@@ -2,17 +2,19 @@
 using EventHouse.Management.Application.Queries.Genres.GetAll;
 using EventHouse.Management.Infrastructure.Repositories;
 using EventHouse.Management.Infrastructure.Tests.Persistence;
-using EventHouse.Management.TestUtils.Factories;
+using EventHouse.Management.Tests.Shared.Factories;
 using FluentAssertions;
 
 namespace EventHouse.Management.Infrastructure.Tests.Repositories;
 
-public class GenreRepositoryTests : BasePersistenceTest
+public class GenreRepositoryTests(SharedDatabaseFixture fixture) : BasePersistenceTest(fixture)
 {
-    private readonly GenreRepository _repository;
+    private GenreRepository _repository = null!;
 
-    public GenreRepositoryTests()
+    public override async ValueTask InitializeAsync()
     {
+        await base.InitializeAsync();
+
         _repository = new GenreRepository(Context);
     }
 

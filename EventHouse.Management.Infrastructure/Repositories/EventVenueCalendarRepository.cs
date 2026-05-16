@@ -32,21 +32,20 @@ public class EventVenueCalendarRepository(ManagementDbContext context)
 
     public async Task SwapHeadlinerAsync(Guid calendarId, Guid oldArtistId, Guid newArtistId, CancellationToken ct)
     {
+        // Ensure atomicity so we never end up with two headliners or none
         using var transaction = await _context.Database.BeginTransactionAsync(ct);
 
         try
         {
-            await _context.Database.ExecuteSqlInterpolatedAsync($"""
-            UPDATE ArtistPerformances
-            SET IsHeadliner = 0
-            WHERE EventVenueCalendarId = {calendarId} AND ArtistId = {oldArtistId}
-            """, ct);
+            // 1. Remove headliner status from the previous artist
+            await _context.ArtistPerformances
+                .Where(ap => ap.EventVenueCalendarId == calendarId && ap.ArtistId == oldArtistId)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.IsHeadliner, false), ct);
 
-            await _context.Database.ExecuteSqlInterpolatedAsync($"""
-            UPDATE ArtistPerformances
-            SET IsHeadliner = 1
-            WHERE EventVenueCalendarId = {calendarId} AND ArtistId = {newArtistId}
-            """, ct);
+            // 2. Set the new artist as the headliner
+            await _context.ArtistPerformances
+                .Where(ap => ap.EventVenueCalendarId == calendarId && ap.ArtistId == newArtistId)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.IsHeadliner, true), ct);
 
             await transaction.CommitAsync(ct);
         }
@@ -56,7 +55,6 @@ public class EventVenueCalendarRepository(ManagementDbContext context)
             throw;
         }
     }
-
     #endregion
 
     #region READ

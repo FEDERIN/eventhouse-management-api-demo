@@ -13,7 +13,7 @@ internal class VenueRepository(ManagementDbContext context) :
 {
     private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
     {
-        { "Venues.Name", ("VENUE_NAME_ALREADY_EXISTS", "The name already exists in another venue.", false) }
+        { "UX_Venues_Name", ("VENUE_NAME_ALREADY_EXISTS", "The name already exists in another venue.", false) }
     };
 
     public async Task AddAsync(Venue entity, CancellationToken cancellationToken = default)
