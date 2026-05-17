@@ -88,21 +88,6 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-//
-// DbContext
-//
-//builder.Services.AddDbContext<ManagementDbContext>(options =>
-//{
-//    options.UseSqlite(builder.Configuration.GetConnectionString("ManagementConnection"));
-
-//    if (builder.Environment.IsDevelopment())
-//    {
-//        options.EnableDetailedErrors();
-//        options.EnableSensitiveDataLogging();
-//        options.LogTo(Console.WriteLine);
-//    }
-//});
-
 builder.Services.AddDbContext<ManagementDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("ManagementConnection"))
@@ -160,7 +145,7 @@ builder.Services.AddSwaggerGen(c =>
     // Servers placeholders
     c.AddServer(new OpenApiServer { Url = "http://localhost:5185", Description = "Local" });
     c.AddServer(new OpenApiServer { Url = "https://staging.api.tu-dominio.com", Description = "Staging" });
-    c.AddServer(new OpenApiServer { Url = "https://api.tu-dominio.com", Description = "Production" });
+    c.AddServer(new OpenApiServer { Url = "https://eventhouse-management-api-demo.onrender.com/swagger/index.html", Description = "Production" });
 
     // Respeta nullability de C#
     c.SupportNonNullableReferenceTypes();
@@ -243,36 +228,32 @@ var app = builder.Build();
 //Use YOUR custom endpoints (Prometheus + Serilog)
 app.UseObservabilityEndpoints();
 
-//
-// Pipeline
-//
+app.UseSwagger(c =>
+{
+    c.RouteTemplate = "swagger-original/{documentName}/swagger.json";
+});
+
+app.MapGet("/swagger/v1/swagger.json", async (ISwaggerProvider swaggerProvider, HttpContext http) =>
+{
+    var doc = swaggerProvider.GetSwagger("v1");
+
+    var json = doc.SerializeAsJson(OpenApiSpecVersion.OpenApi3_0);
+    var patched = SwaggerJsonRefPatcher.Patch(json);
+
+    http.Response.ContentType = "application/json";
+    await http.Response.WriteAsync(patched);
+})
+.DisableRateLimiting()
+.ExcludeFromDescription();
+
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "EventHouse.Management.Api v1");
+    c.RoutePrefix = "swagger";
+});
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger(c =>
-    {
-        c.RouteTemplate = "swagger-original/{documentName}/swagger.json";
-    });
-
-    app.MapGet("/swagger/v1/swagger.json", async (ISwaggerProvider swaggerProvider, HttpContext http) =>
-    {
-        var doc = swaggerProvider.GetSwagger("v1");
-
-        var json = doc.SerializeAsJson(OpenApiSpecVersion.OpenApi3_0);
-        var patched = SwaggerJsonRefPatcher.Patch(json);
-
-        http.Response.ContentType = "application/json";
-        await http.Response.WriteAsync(patched);
-    })
-    .DisableRateLimiting()
-    .ExcludeFromDescription();
-
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "EventHouse.Management.Api v1");
-        c.RoutePrefix = "swagger";
-    });
-
-
     app.UseHttpsRedirection();
 }
 
