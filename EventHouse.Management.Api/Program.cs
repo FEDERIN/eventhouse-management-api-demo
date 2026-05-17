@@ -143,9 +143,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 
     // Servers placeholders
+    c.AddServer(new OpenApiServer
+    {
+        Url = "https://eventhouse-management-api-demo.onrender.com",
+        Description = "Render Production"
+    });
     c.AddServer(new OpenApiServer { Url = "http://localhost:5185", Description = "Local" });
-    c.AddServer(new OpenApiServer { Url = "https://staging.api.tu-dominio.com", Description = "Staging" });
-    c.AddServer(new OpenApiServer { Url = "https://eventhouse-management-api-demo.onrender.com/swagger/index.html", Description = "Production" });
 
     // Respeta nullability de C#
     c.SupportNonNullableReferenceTypes();
