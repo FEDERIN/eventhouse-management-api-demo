@@ -1,3 +1,4 @@
+﻿using Core.Idempotency;
 using Core.Observability;
 using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Middlewares;
@@ -28,7 +29,6 @@ string environment = builder.Environment.EnvironmentName;
 string serviceName = "EventHouse.Management.Api";
 string serviceNamespace = "EventHouse.Management";
 
-// 2. Call YOUR specific extension method
 builder.AddObservability(environment, serviceName, serviceNamespace);
 
 //
@@ -36,7 +36,6 @@ builder.AddObservability(environment, serviceName, serviceNamespace);
 //
 builder.Services.AddControllers(options =>
 {
-    // Auth por defecto
     var policy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
@@ -45,7 +44,6 @@ builder.Services.AddControllers(options =>
 })
 .AddJsonOptions(options =>
 {
-    // Enums como string en JSON
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
@@ -168,6 +166,7 @@ builder.Services.AddSwaggerGen(c =>
     // Document filter para agregar header Location en respuestas 201
     c.DocumentFilter<CreatedWithLocationDocumentFilter>();
     c.OperationFilter<JsonOnlyResponsesOperationFilter>();
+    c.OperationFilter<IdempotencyHeaderOperationFilter>();
 });
 
 builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
@@ -181,14 +180,12 @@ var queueLimit = rlSection.GetValue<int>("QueueLimit", 0);
 
 builder.Services.AddRateLimiter(options =>
 {
-    // Respuesta 429 con ProblemDetails
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
     options.OnRejected = async (context, token) =>
     {
         context.HttpContext.Response.ContentType = "application/problem+json";
 
-        // Retry-After en segundos (simple)
         context.HttpContext.Response.Headers.RetryAfter = windowSeconds.ToString();
 
         var problem = new EventHouseProblemDetails
@@ -205,7 +202,7 @@ builder.Services.AddRateLimiter(options =>
         await context.HttpContext.Response.WriteAsJsonAsync(problem, cancellationToken: token);
     };
 
-    // Pol�tica global por IP (demo)
+    // Política global por IP (demo)
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
     {
         var key =

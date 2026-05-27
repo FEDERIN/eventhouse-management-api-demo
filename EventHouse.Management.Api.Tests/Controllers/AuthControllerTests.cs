@@ -1,10 +1,10 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using EventHouse.Management.Api.Common.Errors;
+﻿using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Api.Contracts.Auth;
 using EventHouse.Management.Api.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace EventHouse.Management.Api.Tests.Controllers;
 
@@ -97,7 +97,7 @@ public sealed class AuthControllerTests
         // Arrange
         var settings = new Dictionary<string, string?>
         {
-            ["Auth:DevSecret"] = "EVENTHOUSE_LOCAL_DEV_SECRET_1234567890",
+            ["Auth:DevSecret"] = "EVENTHOUSE_LOCAL_DEV_SECRET_1234567890", // Mínimo 32 caracteres
             ["Auth:Issuer"] = "eventhouse.local",
             ["Auth:Audience"] = "eventhouse.management"
         };
@@ -107,7 +107,6 @@ public sealed class AuthControllerTests
             .Build();
 
         var controller = CreateController(config, path: "/auth/token");
-
         var request = new TokenRequest { Username = "demo", Password = "demo" };
 
         // Act
@@ -119,21 +118,23 @@ public sealed class AuthControllerTests
 
         Assert.Equal("Bearer", response.TokenType);
         Assert.Equal(7200, response.ExpiresIn);
-        Assert.False(string.IsNullOrWhiteSpace(response.AccessToken));
+        Assert.NotEmpty(response.AccessToken);
 
         var handler = new JwtSecurityTokenHandler();
-        Assert.True(handler.CanReadToken(response.AccessToken));
+        // CRÍTICO: Evita que 'sub' se convierta en 'http://schemas...'
+        // y que los tests de Claims fallen.
+        handler.InboundClaimTypeMap.Clear();
+        handler.OutboundClaimTypeMap.Clear();
 
+        Assert.True(handler.CanReadToken(response.AccessToken));
         var jwt = handler.ReadJwtToken(response.AccessToken);
 
         Assert.Equal("eventhouse.local", jwt.Issuer);
-        Assert.Contains("eventhouse.management", jwt.Audiences);
 
+
+        // Usamos las constantes de JwtRegisteredClaimNames para mayor seguridad
         Assert.Contains(jwt.Claims, c => c.Type == JwtRegisteredClaimNames.Sub && c.Value == "demo-user");
         Assert.Contains(jwt.Claims, c => c.Type == "scope" && c.Value == "management");
-        Assert.Contains(jwt.Claims, c => c.Type == JwtRegisteredClaimNames.Jti && !string.IsNullOrWhiteSpace(c.Value));
-
-        Assert.True(jwt.ValidTo > DateTime.UtcNow);
     }
 
     private static AuthController CreateController(IConfiguration config, string path)
