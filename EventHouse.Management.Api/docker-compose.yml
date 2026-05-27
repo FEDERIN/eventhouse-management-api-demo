@@ -1,5 +1,35 @@
 ﻿services:
-  # 1. EventHouse Management API
+  postgres:
+    image: postgres:16-alpine
+    container_name: core-postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - MANAGEMENT_DB=${MANAGEMENT_DB}
+      - IDEMPOTENCY_DB=${IDEMPOTENCY_DB}
+    volumes:
+      - ./init-db:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    networks:
+      - otel-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: core-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    networks:
+      - otel-network
+
   eventhouse-api:
     build:
       context: ..
@@ -8,28 +38,48 @@
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - Auth__DevSecret=YourLongSecureSecretKeyHere123!_ExtraCharactersForSecurity
-      # Overriding settings for Docker network (using service names)
+
+      # OpenTelemetry
       - OpenTelemetry__Tracing__OtlpEndpoint=http://otel-collector:4317
+      - OpenTelemetry__Metrics__OtlpEndpoint=http://otel-collector:4317
       - OpenTelemetry__Logging__OtlpEndpoint=http://otel-collector:4317
       - OpenTelemetry__Metrics__Enabled=true
       - OpenTelemetry__Tracing__Enabled=true
       - OpenTelemetry__Logging__Enabled=true
-      - ConnectionStrings__ManagementConnection=Data Source=/app/Persistence/EventHouse.db
+      - OpenTelemetry__Metrics__Meters__0=FGutierrez.Core.Idempotency
+
+      # Idempotency Generic Config
+      - Idempotency__Provider=${IDEMPOTENCY_PROVIDER}
+      - Idempotency__Enabled=true
+      - Idempotency__HeaderName=X-Idempotency-Key
+      - Idempotency__Expiration=6:00:00
+      - Idempotency__MeterName=FGutierrez.Core.Idempotency
+
+      # Connection Strings (Mapped to your Extension Methods)
+      - ConnectionStrings__Idempotency=${IDEMPOTENCY_CONNECTION}
+      - ConnectionStrings__ManagementConnection=Host=postgres;Port=5432;Database=${MANAGEMENT_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+
+      # Configure which HTTP methods should be considered for idempotency (This was missing)
+      - Idempotency__AllowedMethods__0=POST
+      - Idempotency__AllowedMethods__1=PUT
+      - Idempotency__AllowedMethods__2=DELETE
     ports:
       - "5185:8080"
     networks:
       - otel-network
-    volumes:
-      - ./sqlite_data:/app/Persistence
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 5
     depends_on:
-      - otel-collector
+      postgres:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+      redis:
+        condition: service_started
 
-  # 2. The Collector (all-in-one Collector that sends to Jaeger and exposes metrics for Prometheus)
   otel-collector:
     container_name: core-otel-collector
     image: otel/opentelemetry-collector-contrib:latest
@@ -37,23 +87,21 @@
       - ./otel-collector-config.yml:/etc/otel-col/config.yml
     command: ["--config=/etc/otel-col/config.yml"]
     ports:
-      - "4317:4317" # Receive gRPC from the Minimal API
-      - "8889:8889" # Exhibit metrics for Prometheus
+      - "4317:4317"
+      - "8889:8889"
     networks:
       - otel-network
     depends_on:
       - jaeger
 
-  # 3. Jaeger (Visualizer of traces)
   jaeger:
     container_name: core-jaeger
     image: jaegertracing/all-in-one:latest
     ports:
-      - "16686:16686" # UI
+      - "16686:16686"
     networks:
       - otel-network
 
-  # 4. Prometheus (Scrapes the Collector)
   prometheus:
     container_name: core-prometheus
     image: prom/prometheus:latest
@@ -64,7 +112,6 @@
     networks:
       - otel-network
 
-  # 5. Grafana (Dashboards)
   grafana:
     container_name: core-grafana
     image: grafana/grafana:latest
@@ -77,7 +124,10 @@
     networks:
       - otel-network
 
-# --- CRITICAL SECTION: Define the network for all services ---
+volumes:
+  postgres_data:
+    driver: local
+
 networks:
   otel-network:
     driver: bridge
