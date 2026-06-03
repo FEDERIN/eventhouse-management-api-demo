@@ -9,7 +9,7 @@ internal sealed class UpdateSeatingMapCommandValidator
     public UpdateSeatingMapCommandValidator()
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Id is require.");
+            .NotEmpty().WithMessage("Id is required.");
 
         ApplySeatingMapRules(
             x => x.Name,

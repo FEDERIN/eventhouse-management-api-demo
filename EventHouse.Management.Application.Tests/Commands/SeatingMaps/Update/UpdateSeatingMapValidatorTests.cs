@@ -1,58 +1,47 @@
 ﻿using EventHouse.Management.Application.Commands.SeatingMaps.Update;
-using FluentAssertions;
-
 
 namespace EventHouse.Management.Application.Tests.Commands.SeatingMaps.Update;
 
-public sealed class UpdateSeatingMapValidatorTests
+public sealed class UpdateSeatingMapValidatorTests : ValidatorTestBase<UpdateSeatingMapCommand>
 {
-    private readonly UpdateSeatingMapCommandValidator _validator = new();
-    
+    public UpdateSeatingMapValidatorTests() : base(new UpdateSeatingMapCommandValidator()) { }
+
     [Fact]
-    public void ValidCommand_ShouldNotHaveValidationErrors()
+    public void Should_Pass_When_Command_Is_Valid()
     {
-        // Arrange
-        var command = ValidCommand();
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeTrue();
+        ShouldPassValidation(ValidCommand());
     }
 
     [Fact]
-    public void InvalidCommand_ShouldHaveValidationErrors()
+    public void Should_HaveError_When_Id_Is_Empty()
     {
-        // Arrange
+        var command = ValidCommand() with { Id = Guid.Empty };
+
+        ShouldHaveValidationError(command, x => x.Id, "Id is required.");
+    }
+
+    [Fact]
+    public void Should_HaveError_When_Name_Is_Empty()
+    {
         var command = ValidCommand() with { Name = string.Empty };
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.ErrorCode.Contains("NotEmptyValidator") && e.ErrorMessage.Length > 0);
+
+        ShouldHaveValidationError(command, x => x.Name, "Name is required.");
     }
 
     [Fact]
-    public void VersionLessThanOne_ShouldHaveValidationErrors()
+    public void Should_HaveError_When_Version_Is_Zero_Or_Less()
     {
-        // Arrange
         var command = ValidCommand() with { Version = 0 };
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.ErrorCode.Contains("GreaterThanValidator") && e.ErrorMessage.Length > 0);
+
+        ShouldHaveValidationError(command, x => x.Version, "Version must be greater than 0.");
     }
 
     [Fact]
-    public void NameExceedsMaxLength_ShouldHaveValidationErrors()
+    public void Should_HaveError_When_Name_Exceeds_Max_Length()
     {
-        // Arrange
         var command = ValidCommand() with { Name = new string('A', 201) };
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.ErrorCode.Contains("MaximumLengthValidator") && e.ErrorMessage.Length > 0);
+
+        ShouldHaveValidationError(command, x => x.Name);
     }
 
     private static UpdateSeatingMapCommand ValidCommand() => new(

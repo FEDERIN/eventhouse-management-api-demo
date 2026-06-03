@@ -30,3 +30,5 @@ coverage-report/
 [Tt]est[Rr]esults/
 
 *.cobertura.xml
+
+.env
