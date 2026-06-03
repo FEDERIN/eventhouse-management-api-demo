@@ -22,7 +22,11 @@ public static class SwaggerJsonRefPatcher
         EnsureCommonResponses(root);
         ReplaceResponsesWithRefs(root);
 
-        return root.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+        return root.ToJsonString(new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            TypeInfoResolver = JsonSerializerOptions.Default.TypeInfoResolver
+        });
     }
 
     private static void EnsureCommonResponses(JsonObject root)
