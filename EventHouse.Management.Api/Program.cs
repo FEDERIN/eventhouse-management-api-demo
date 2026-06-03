@@ -260,6 +260,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+app.UseIdempotency();
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
