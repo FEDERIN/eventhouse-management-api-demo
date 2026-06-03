@@ -11,7 +11,7 @@ internal sealed class UpdateGenreCommandValidator
             .NotEmpty().WithMessage("Id must be a non-empty GUID.");
 
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Name is require.")
+            .NotEmpty().WithMessage("Name is required.")
             .Must(name => !string.IsNullOrWhiteSpace(name))
             .WithMessage("Name cannot contain only whitespace.")
             .MaximumLength(200);

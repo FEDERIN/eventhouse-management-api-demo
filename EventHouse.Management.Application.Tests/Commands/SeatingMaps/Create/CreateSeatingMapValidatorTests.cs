@@ -1,115 +1,45 @@
-﻿
-using EventHouse.Management.Application.Commands.SeatingMaps.Create;
-using FluentAssertions;
+﻿using EventHouse.Management.Application.Commands.SeatingMaps.Create;
 
 namespace EventHouse.Management.Application.Tests.Commands.SeatingMaps.Create;
 
-public sealed class CreateSeatingMapValidatorTests
+public sealed class CreateSeatingMapValidatorTests : ValidatorTestBase<CreateSeatingMapCommand>
 {
-    private readonly CreateSeatingMapCommandValidator _validator = new();
+    public CreateSeatingMapValidatorTests() : base(new CreateSeatingMapCommandValidator()) { }
 
     [Fact]
-    public void ValidCommand_ShouldNotHaveValidationErrors()
+    public void Should_Pass_When_Command_Is_Valid()
     {
-        // Arrange
-        var command = ValidCommand();
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeTrue();
+        ShouldPassValidation(ValidCommand());
     }
 
     [Fact]
-    public void EmptyName_ShouldHaveValidationError()
+    public void Should_HaveError_When_Name_Is_Empty()
     {
-        // Arrange
-        var command = ValidCommand() with { Name = string.Empty };
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.ErrorCode.Contains("NotEmptyValidator") && e.ErrorMessage.Length > 0);
-     }
-
-    [Fact]
-    public void NullName_ShouldHaveValidationError()
-    {
-        // Arrange
-        var command = ValidCommand() with { Name = null! };
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.ErrorCode.Contains("NotEmptyValidator") && e.ErrorMessage.Length > 0);
+        ShouldHaveValidationError(ValidCommand() with { Name = string.Empty }, x => x.Name);
     }
 
     [Fact]
-    public void NameWithOnlyWhitespace_ShouldHaveValidationError()
+    public void Should_HaveError_When_Name_Is_Null()
     {
-        // Arrange
-        var command = ValidCommand() with { Name = "   " };
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.ErrorCode.Contains("NotEmptyValidator") && e.ErrorMessage.Length > 0);
+        ShouldHaveValidationError(ValidCommand() with { Name = null! }, x => x.Name);
     }
 
     [Fact]
-    public void EmptyVenueId_ShouldHaveValidationError()
+    public void Should_HaveError_When_Name_Is_Whitespace()
     {
-        // Arrange
-        var command = ValidCommand() with { VenueId = Guid.Empty };
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(CreateSeatingMapCommand.VenueId));
+        ShouldHaveValidationError(ValidCommand() with { Name = "   " }, x => x.Name);
     }
 
     [Fact]
-    public void ValidVenueId_ShouldNotHaveValidationError()
+    public void Should_HaveError_When_VenueId_Is_Empty()
     {
-        // Arrange
-        var command = ValidCommand() with { VenueId = Guid.NewGuid() };
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeTrue();
+        ShouldHaveValidationError(ValidCommand() with { VenueId = Guid.Empty }, x => x.VenueId);
     }
 
     [Fact]
-    public void VersionLessThanOne_ShouldHaveValidationError()
+    public void Should_HaveError_When_Version_Is_Less_Than_One()
     {
-        // Arrange
-        var command = ValidCommand() with { Version = 0 };
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.ErrorCode.Contains("GreaterThanValidator") && e.ErrorMessage.Length > 0);
-    }
-
-    [Fact]
-    public void VersionGreaterThanOne_ShouldNotHaveValidationError()
-    {
-        // Arrange
-        var command = ValidCommand() with { Version = 2 };
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsActive_ShouldNotHaveValidationError()
-    {
-        // Arrange
-        var command = ValidCommand() with { IsActive = false };
-        // Act
-        var result = _validator.Validate(command);
-        // Assert
-        result.IsValid.Should().BeTrue();
+        ShouldHaveValidationError(ValidCommand() with { Version = 0 }, x => x.Version);
     }
 
     private static CreateSeatingMapCommand ValidCommand() =>

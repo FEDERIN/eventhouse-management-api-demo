@@ -1,37 +1,28 @@
 ﻿using EventHouse.Management.Application.Commands.EventVenueCalendars.Update;
 using EventHouse.Management.Application.Common.Enums;
-using FluentValidation.TestHelper;
 
 namespace EventHouse.Management.Application.Tests.Commands.EventVenueCalendars.Update;
 
-public sealed class UpdateEventVenueCalendarValidatorTests
+public sealed class UpdateEventVenueCalendarValidatorTests : ValidatorTestBase<UpdateEventVenueCalendarCommand>
 {
-    private readonly UpdateEventVenueCalendarCommandValidator _validator = new();
+    public UpdateEventVenueCalendarValidatorTests() : base(new UpdateEventVenueCalendarCommandValidator()) { }
 
     [Fact]
-    public void Should_PassValidation_When_CommandIsValid()
+    public void Should_Pass_When_Command_Is_Valid()
     {
-        var command = CreateValidCommand();
-
-        var result = _validator.TestValidate(command);
-
-        result.ShouldNotHaveAnyValidationErrors();
+        ShouldPassValidation(CreateValidCommand());
     }
 
     [Fact]
-    public void Should_HaveError_When_Id_IsEmpty()
+    public void Should_HaveError_When_Id_Is_Empty()
     {
-        // Uso de 'with' para modificar solo la propiedad que queremos probar
         var command = CreateValidCommand() with { Id = Guid.Empty };
 
-        var result = _validator.TestValidate(command);
-
-        result.ShouldHaveValidationErrorFor(x => x.Id)
-              .WithErrorMessage("The calendar event identifier must not be empty.");
+        ShouldHaveValidationError(command, x => x.Id, "The calendar event identifier must not be empty.");
     }
 
     [Fact]
-    public void Should_HaveError_When_EndDate_IsBefore_StartDate()
+    public void Should_HaveError_When_End_Date_Is_Before_Start_Date()
     {
         var start = DateTimeOffset.UtcNow.AddDays(1);
         var command = CreateValidCommand() with
@@ -40,21 +31,15 @@ public sealed class UpdateEventVenueCalendarValidatorTests
             EndDate = start.AddHours(-1)
         };
 
-        var result = _validator.TestValidate(command);
-
-        result.ShouldHaveValidationErrorFor(x => x.EndDate)
-              .WithErrorMessage("EndDate must be greater than or equal to StartDate.");
+        ShouldHaveValidationError(command, x => x.EndDate, "EndDate must be greater than or equal to StartDate.");
     }
 
     [Fact]
-    public void Should_HaveError_When_Status_IsInvalid()
+    public void Should_HaveError_When_Status_Is_Invalid()
     {
         var command = CreateValidCommand() with { Status = (EventVenueCalendarStatusDto)99 };
 
-        var result = _validator.TestValidate(command);
-
-        result.ShouldHaveValidationErrorFor(x => x.Status)
-              .WithErrorMessage("The provided status is not valid.");
+        ShouldHaveValidationError(command, x => x.Status, "The provided status is not valid.");
     }
 
     private static UpdateEventVenueCalendarCommand CreateValidCommand() =>

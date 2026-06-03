@@ -1,44 +1,32 @@
-﻿
-
-using EventHouse.Management.Application.Commands.Genres.Update;
-using FluentAssertions;
+﻿using EventHouse.Management.Application.Commands.Genres.Update;
 
 namespace EventHouse.Management.Application.Tests.Commands.Genres.Update;
 
-public sealed class UpdateGenreValidatorTests
+public sealed class UpdateGenreValidatorTests : ValidatorTestBase<UpdateGenreCommand>
 {
-    private readonly UpdateGenreCommandValidator _validator = new();
+    public UpdateGenreValidatorTests() : base(new UpdateGenreCommandValidator()) { }
 
     [Fact]
-    public void Should_fail_when_id_is_empty()
+    public void Should_HaveError_When_Id_Is_Empty()
     {
-        var command = new UpdateGenreCommand(
-            Guid.Empty,
-            "Rock"
-        );
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeFalse();
+        var command = new UpdateGenreCommand(Guid.Empty, "Rock");
+
+        ShouldHaveValidationError(command, x => x.Id, "Id must be a non-empty GUID.");
     }
 
     [Fact]
-    public void Should_fail_when_name_is_empty()
+    public void Should_HaveError_When_Name_Is_Empty()
     {
-        var command = new UpdateGenreCommand(
-            Guid.NewGuid(),
-            ""
-        );
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeFalse();
+        var command = new UpdateGenreCommand(Guid.NewGuid(), "");
+
+        ShouldHaveValidationError(command, x => x.Name, "Name is required.");
     }
 
     [Fact]
-    public void Should_pass_with_valid_command()
+    public void Should_Pass_When_Command_Is_Valid()
     {
-        var command = new UpdateGenreCommand(
-            Guid.NewGuid(),
-            "Jazz"
-        );
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeTrue();
+        var command = new UpdateGenreCommand(Guid.NewGuid(), "Jazz");
+
+        ShouldPassValidation(command);
     }
 }

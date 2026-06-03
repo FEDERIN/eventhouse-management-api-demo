@@ -1,66 +1,51 @@
-﻿
-using EventHouse.Management.Application.Commands.Events.Create;
+﻿using EventHouse.Management.Application.Commands.Events.Create;
 using EventHouse.Management.Application.Common.Enums;
-using FluentAssertions;
 
 namespace EventHouse.Management.Application.Tests.Commands.Events.Create;
 
-public sealed class CreateEventValidatorTests
+public sealed class CreateEventValidatorTests : ValidatorTestBase<CreateEventCommand>
 {
+    public CreateEventValidatorTests() : base(new CreateEventCommandValidator()) { }
 
-    private readonly CreateEventCommandValidator _validator = new();
-
-    [Fact]
-    public void Should_fail_when_name_is_empty()
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Should_HaveError_When_Name_Is_Empty_Or_Whitespace(string invalidName)
     {
-        var command = new CreateEventCommand(
-            "", "Some description", EventScopeDto.Local
-        );
+        var command = new CreateEventCommand(invalidName, "Desc", EventScopeDto.Local);
 
-        var result = _validator.Validate(command);
-
-        result.IsValid.Should().BeFalse();
+        ShouldHaveValidationError(command, x => x.Name, "Name is required.");
     }
 
     [Fact]
-    public void Should_fail_when_name_is_too_long()
+    public void Should_HaveError_When_Name_Is_Too_Long()
     {
-        var longName = new string('A', 201); // Assuming max length is 200
-        var command = new CreateEventCommand(
-            longName, "Some description", EventScopeDto.National
-        );
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeFalse();
+        var command = new CreateEventCommand(new string('A', 201), "Desc", EventScopeDto.Local);
+
+        ShouldHaveValidationError(command, x => x.Name);
     }
 
     [Fact]
-    public void Should_fail_when_description_is_too_long()
+    public void Should_HaveError_When_Description_Is_Too_Long()
     {
-        var longDescription = new string('B', 1001); // Assuming max length is 1000
-        var command = new CreateEventCommand(
-            "Test Event", longDescription, EventScopeDto.International
-        );
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeFalse();
+        var command = new CreateEventCommand("Valid Name", new string('B', 1001), EventScopeDto.Local);
+
+        ShouldHaveValidationError(command, x => x.Description);
     }
 
     [Fact]
-    public void Should_fail_when_scope_is_invalid()
+    public void Should_HaveError_When_Scope_Is_Invalid()
     {
-        var command = new CreateEventCommand(
-            "Test Event", "Some description", unchecked((EventScopeDto)999)
-        );
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeFalse();
+        var command = new CreateEventCommand("Valid Name", "Valid description", unchecked((EventScopeDto)999));
+
+        ShouldHaveValidationError(command, x => x.Scope);
     }
 
     [Fact]
-    public void Should_pass_with_valid_data()
+    public void Should_Pass_When_Data_Is_Valid()
     {
-        var command = new CreateEventCommand(
-            "Valid Event", "A valid event description", EventScopeDto.International
-        );
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeTrue();
+        var command = new CreateEventCommand("Valid Event", "Valid description", EventScopeDto.International);
+
+        ShouldPassValidation(command);
     }
 }

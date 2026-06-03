@@ -1,53 +1,39 @@
 ﻿using EventHouse.Management.Application.Commands.EventVenues.UpdateStatus;
 using EventHouse.Management.Application.Common.Enums;
-using FluentValidation.TestHelper;
 
 namespace EventHouse.Management.Application.Tests.Commands.EventVenues.UpdateStatus;
 
-public sealed class UpdateEventVenueStatusValidatorTests
+public sealed class UpdateEventVenueStatusValidatorTests : ValidatorTestBase<UpdateEventVenueStatusCommand>
 {
-    private readonly UpdateEventVenueStatusCommandValidator _validator = new();
+    public UpdateEventVenueStatusValidatorTests() : base(new UpdateEventVenueStatusCommandValidator()) { }
 
     [Fact]
-    public void Should_PassValidation_When_CommandIsValid()
+    public void Should_Pass_When_Command_Is_Valid()
     {
-        // Arrange
         var command = new UpdateEventVenueStatusCommand(
             Guid.NewGuid(),
             EventVenueStatusDto.Active);
-        // Act
-        var result = _validator.TestValidate(command);
-        // Assert
-        result.ShouldNotHaveAnyValidationErrors();
+
+        ShouldPassValidation(command);
     }
 
     [Fact]
-    public void Should_HaveError_When_Id_IsEmpty()
+    public void Should_HaveError_When_Id_Is_Empty()
     {
-        // Arrange
         var command = new UpdateEventVenueStatusCommand(
             Guid.Empty,
             EventVenueStatusDto.Active);
-        // Act
-        var result = _validator.TestValidate(command);
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.Id)
-              .WithErrorMessage("Id must be a non-empty GUID.");
+
+        ShouldHaveValidationError(command, x => x.Id, "Id must be a non-empty GUID.");
     }
 
     [Fact]
-    public void Should_HaveError_When_Status_IsInvalid()
+    public void Should_HaveError_When_Status_Is_Invalid()
     {
-        // Arrange
         var command = new UpdateEventVenueStatusCommand(
             Guid.NewGuid(),
             (EventVenueStatusDto)99);
 
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.Status)
-              .WithErrorMessage("The provided status is not valid.");
+        ShouldHaveValidationError(command, x => x.Status, "The provided status is not valid.");
     }
 }

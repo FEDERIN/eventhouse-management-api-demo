@@ -1,61 +1,41 @@
 ﻿using EventHouse.Management.Application.Commands.Events.Update;
-using FluentAssertions;
+using EventHouse.Management.Application.Common.Enums;
 
 namespace EventHouse.Management.Application.Tests.Commands.Events.Update;
 
-public sealed class UpdateEventValidatorTests
+public sealed class UpdateEventValidatorTests : ValidatorTestBase<UpdateEventCommand>
 {
-    private readonly UpdateEventCommandValidator _validator = new();
+    public UpdateEventValidatorTests() : base(new UpdateEventCommandValidator()) { }
 
     [Fact]
-    public void Should_fail_when_id_is_empty()
+    public void Should_HaveError_When_Id_Is_Empty()
     {
-        var command = new UpdateEventCommand(
-            Guid.Empty,
-            "Test Event",
-            "This is a test event.",
-            Common.Enums.EventScopeDto.Local
-        );
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeFalse();
+        var command = new UpdateEventCommand(Guid.Empty, "Test Event", "This is a test event.", EventScopeDto.Local);
+
+        ShouldHaveValidationError(command, x => x.Id, "Id must be a non-empty GUID.");
     }
 
     [Fact]
-    public void Should_fail_when_name_is_empty()
+    public void Should_HaveError_When_Name_Is_Empty()
     {
-        var command = new UpdateEventCommand(
-            Guid.NewGuid(),
-            "",
-            "This is a test event.",
-            Common.Enums.EventScopeDto.Local
-        );
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeFalse();
+        var command = new UpdateEventCommand(Guid.NewGuid(), "", "This is a test event.", EventScopeDto.Local);
+
+        ShouldHaveValidationError(command, x => x.Name, "Name is required.");
     }
 
     [Fact]
-    public void Should_fail_when_scope_is_invalid()
+    public void Should_HaveError_When_Scope_Is_Invalid()
     {
-        var command = new UpdateEventCommand(
-            Guid.NewGuid(),
-            "Test Event",
-            "This is a test event.",
-            unchecked((Common.Enums.EventScopeDto)999)
-        );
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeFalse();
+        var command = new UpdateEventCommand(Guid.NewGuid(), "Test Event", "This is a test event.", unchecked((EventScopeDto)999));
+
+        ShouldHaveValidationError(command, x => x.Scope, "The provided scope is not valid.");
     }
 
     [Fact]
-    public void Should_pass_with_valid_command()
+    public void Should_Pass_When_Data_Is_Valid()
     {
-        var command = new UpdateEventCommand(
-            Guid.NewGuid(),
-            "Test Event",
-            "This is a test event.",
-            Common.Enums.EventScopeDto.International
-        );
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeTrue();
+        var command = new UpdateEventCommand(Guid.NewGuid(), "Test Event", "This is a test event.", EventScopeDto.International);
+
+        ShouldPassValidation(command);
     }
 }
