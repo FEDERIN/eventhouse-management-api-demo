@@ -23,6 +23,11 @@ public class IdempotencyHeaderOperationFilter(IConfiguration configuration) : IO
 
         operation.Parameters ??= [];
 
+        var existingHeader = operation.Parameters.FirstOrDefault(p =>
+        p.Name.Equals(options.HeaderName ?? "X-Idempotency-Key", StringComparison.OrdinalIgnoreCase));
+
+        if (existingHeader != null) return;
+
         operation.Parameters.Add(new OpenApiParameter
         {
             Name = options.HeaderName ?? "X-Idempotency-Key",
