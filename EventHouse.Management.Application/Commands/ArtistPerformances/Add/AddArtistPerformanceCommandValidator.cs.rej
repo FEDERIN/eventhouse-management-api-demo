@@ -1,0 +1,27 @@
+diff a/EventHouse.Management.Application/Commands/ArtistPerformances/Add/AddArtistPerformanceCommandValidator.cs b/EventHouse.Management.Application/Commands/ArtistPerformances/Add/AddArtistPerformanceCommandValidator.cs	(rejected hunks)
+@@ -3,18 +3,16 @@
+ namespace EventHouse.Management.Application.Commands.ArtistPerformances.Add;
+ 
+ internal sealed class AddArtistPerformanceCommandValidator
+-    : AbstractValidator<AddArtistPerformanceCommand>
++    : ArtistPerformanceCommandValidatorBase<AddArtistPerformanceCommand>
+ {
+     public AddArtistPerformanceCommandValidator()
+     {
+         RuleFor(x => x.EventVenueCalendarId)
+-            .NotEmpty().WithMessage("The EventVenueCalendarId cannot be empty.");
+-  
++            .NotEmpty().WithMessage("EventVenueCalendarId must be a non-empty GUID.");
++
+         RuleFor(x => x.ArtistId)
+-            .NotEmpty().WithMessage("The ArtistId cannot be empty.");
++            .NotEmpty().WithMessage("ArtistId must be a non-empty GUID.");
+ 
+-        RuleFor(x => x.SetEnd)
+-            .Must((cmd, end) => end is null || cmd.SetStart is null || end.Value >= cmd.SetStart.Value)
+-            .WithMessage("SetEnd must be greater than or equal to SetStart when both are specified.");
++        ApplyArtistPerformanceRules(x => x.SetStart, x => x.SetEnd);
+     }
+-}
++}
+\ No newline at end of file

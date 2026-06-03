@@ -1,5 +1,6 @@
 ﻿using EventHouse.Management.Application.Common.Enums;
 using FluentValidation;
+using System.Linq.Expressions;
 
 namespace EventHouse.Management.Application.Commands.Events;
 
@@ -11,22 +12,21 @@ internal abstract class EventCommandValidatorBase<TCommand> : AbstractValidator<
     }
 
     protected void ApplyEventRules(
-        Func<TCommand, string> name,
-        Func<TCommand, string?> description,
-        Func<TCommand, EventScopeDto> scope)
+        Expression<Func<TCommand, string>> nameExpression,
+        Expression<Func<TCommand, string?>> descriptionExpression,
+        Expression<Func<TCommand, EventScopeDto>> scopeExpression)
     {
-        RuleFor(x => name(x))
-            .NotEmpty().WithMessage("Name is require.")
-            .Must(n => !string.IsNullOrWhiteSpace(n))
-            .WithMessage("Name cannot contain only whitespace.")
+        RuleFor(nameExpression)
+            .NotEmpty().WithMessage("Name is required.")
+            .Must(n => !string.IsNullOrWhiteSpace(n)).WithMessage("Name cannot contain only whitespace.")
             .MaximumLength(200);
 
-        RuleFor(x => description(x))
+        RuleFor(descriptionExpression)
             .Must(d => d is null || d.Trim().Length > 0)
             .WithMessage("Description cannot contain only whitespace.")
             .MaximumLength(200);
 
-        RuleFor(x => scope(x))
-            .IsInEnum();
+        RuleFor(scopeExpression)
+            .IsInEnum().WithMessage("The provided scope is not valid.");
     }
 }

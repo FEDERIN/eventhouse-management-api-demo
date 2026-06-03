@@ -1,62 +1,44 @@
 ﻿using EventHouse.Management.Application.Commands.EventVenues.Create;
 using EventHouse.Management.Application.Common.Enums;
-using FluentValidation.TestHelper;
 
 namespace EventHouse.Management.Application.Tests.Commands.EventVenues.Create;
 
-public sealed class CreateEventVenueValidatorTests
+public sealed class CreateEventVenueValidatorTests : ValidatorTestBase<CreateEventVenueCommand>
 {
-    private readonly CreateEventVenueCommandValidator _validator = new();
+    public CreateEventVenueValidatorTests() : base(new CreateEventVenueCommandValidator()) { }
 
     [Fact]
-    public void Should_HaveError_When_EventId_IsEmpty()
+    public void Should_HaveError_When_EventId_Is_Empty()
     {
-        // Arrange
         var command = new CreateEventVenueCommand(Guid.Empty, Guid.NewGuid(), EventVenueStatusDto.Active);
 
-        // Act & Assert
-        var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(x => x.EventId)
-              .WithErrorMessage("The EventId cannot be empty.");
+        ShouldHaveValidationError(command, x => x.EventId, "The EventId cannot be empty.");
     }
 
     [Fact]
-    public void Should_HaveError_When_VenueId_IsEmpty()
+    public void Should_HaveError_When_VenueId_Is_Empty()
     {
-        // Arrange
         var command = new CreateEventVenueCommand(Guid.NewGuid(), Guid.Empty, EventVenueStatusDto.Active);
 
-        // Act & Assert
-        var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(x => x.VenueId)
-              .WithErrorMessage("The VenueId cannot be empty.");
+        ShouldHaveValidationError(command, x => x.VenueId, "The VenueId cannot be empty.");
     }
 
     [Fact]
-    public void Should_NotHaveError_When_Command_IsValid()
+    public void Should_Pass_When_Command_Is_Valid()
     {
-        // Arrange
         var command = new CreateEventVenueCommand(Guid.NewGuid(), Guid.NewGuid(), EventVenueStatusDto.Active);
 
-        // Act & Assert
-        var result = _validator.TestValidate(command);
-        result.ShouldNotHaveAnyValidationErrors();
+        ShouldPassValidation(command);
     }
 
     [Fact]
-    public void Should_HaveError_When_Status_IsInvalid()
+    public void Should_HaveError_When_Status_Is_Invalid()
     {
-        // Arrange
         var command = new CreateEventVenueCommand(
             Guid.NewGuid(),
             Guid.NewGuid(),
             (EventVenueStatusDto)99);
 
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.Status)
-              .WithErrorMessage("The provided status is not valid.");
+        ShouldHaveValidationError(command, x => x.Status, "The provided status is not valid.");
     }
 }

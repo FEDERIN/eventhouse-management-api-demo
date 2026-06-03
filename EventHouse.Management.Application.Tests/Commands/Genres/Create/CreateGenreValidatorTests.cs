@@ -1,35 +1,34 @@
-﻿
-using EventHouse.Management.Application.Commands.Genres.Create;
-using FluentAssertions;
+﻿using EventHouse.Management.Application.Commands.Genres.Create;
 
 namespace EventHouse.Management.Application.Tests.Commands.Genres.Create;
 
-public sealed class CreateGenreValidatorTests
+public sealed class CreateGenreValidatorTests : ValidatorTestBase<CreateGenreCommand>
 {
-    private readonly CreateGenreCommandValidator _validator = new();
+    public CreateGenreValidatorTests() : base(new CreateGenreCommandValidator()) { }
 
-    [Fact]
-    public void Should_fail_when_name_is_empty()
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Should_HaveError_When_Name_Is_Empty_Or_Whitespace(string invalidName)
     {
-        var command = new CreateGenreCommand("");
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeFalse();
+        var command = new CreateGenreCommand(invalidName);
+
+        ShouldHaveValidationError(command, x => x.Name, "Name is required.");
     }
 
     [Fact]
-    public void Should_fail_when_name_is_too_long()
+    public void Should_HaveError_When_Name_Is_Too_Long()
     {
-        var longName = new string('A', 201);
-        var command = new CreateGenreCommand(longName);
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeFalse();
+        var command = new CreateGenreCommand(new string('A', 201));
+
+        ShouldHaveValidationError(command, x => x.Name, "Name must not exceed 200 characters.");
     }
 
     [Fact]
-    public void Should_pass_with_valid_name()
+    public void Should_Pass_When_Command_Is_Valid()
     {
         var command = new CreateGenreCommand("Rock");
-        var result = _validator.Validate(command);
-        result.IsValid.Should().BeTrue();
+
+        ShouldPassValidation(command);
     }
 }

@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿
+using FluentValidation;
+using System.Linq.Expressions;
 
 namespace EventHouse.Management.Application.Commands.SeatingMaps;
 
@@ -10,16 +12,16 @@ internal abstract class SeatingMapCommandValidatorBase<TCommand> : AbstractValid
     }
 
     protected void ApplySeatingMapRules(
-        Func<TCommand, string> name,
-        Func<TCommand, int> version)
+        Expression<Func<TCommand, string>> name,
+        Expression<Func<TCommand, int>> version)
     {
-        RuleFor(x => name(x))
-            .NotEmpty().WithMessage("Name is require.")
+        RuleFor(name)
+            .NotEmpty().WithMessage("Name is required.")
             .Must(n => !string.IsNullOrWhiteSpace(n))
             .WithMessage("Name cannot contain only whitespace.")
             .MaximumLength(200);
-        
-        RuleFor(x => version(x))
+
+        RuleFor(version)
             .GreaterThan(0).WithMessage("Version must be greater than 0.");
     }
 }

@@ -1,35 +1,30 @@
 ﻿using EventHouse.Management.Application.Commands.Artists.RemoveGenre;
-using FluentAssertions;
 
 namespace EventHouse.Management.Application.Tests.Commands.Artists.RemoveGenre;
 
-public sealed class RemoveArtistGenreValidatorTest
+public sealed class RemoveArtistGenreValidatorTest : ValidatorTestBase<RemoveArtistGenreCommand>
 {
-    private readonly RemoveArtistGenreCommandValidator _validator = new();
+    public RemoveArtistGenreValidatorTest() : base(new RemoveArtistGenreCommandValidator()) { }
 
     [Fact]
-    public void Should_fail_when_artist_id_is_empty()
+    public void Should_HaveError_When_ArtistId_Is_Empty()
     {
         var command = new RemoveArtistGenreCommand(
             ArtistId: Guid.Empty,
             GenreId: Guid.NewGuid()
         );
 
-        var result = _validator.Validate(command);
-
-        result.IsValid.Should().BeFalse();
+        ShouldHaveValidationError(command, x => x.ArtistId, "ArtistId must be a non-empty GUID.");
     }
 
     [Fact]
-    public void Should_fail_when_genre_id_is_empty()
+    public void Should_HaveError_When_GenreId_Is_Empty()
     {
         var command = new RemoveArtistGenreCommand(
             ArtistId: Guid.NewGuid(),
             GenreId: Guid.Empty
         );
 
-        var result = _validator.Validate(command);
-
-        result.IsValid.Should().BeFalse();
+        ShouldHaveValidationError(command, x => x.GenreId, "GenreId must be a non-empty GUID.");
     }
 }
