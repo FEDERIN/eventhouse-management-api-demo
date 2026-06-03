@@ -31,4 +31,4 @@ coverage-report/
 
 *.cobertura.xml
 
-.env
+EventHouse.Management.Api/.env
