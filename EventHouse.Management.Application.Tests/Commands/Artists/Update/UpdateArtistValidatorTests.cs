@@ -1,56 +1,41 @@
-﻿
-
-using EventHouse.Management.Application.Commands.Artists.Update;
+﻿using EventHouse.Management.Application.Commands.Artists.Update;
 using EventHouse.Management.Application.Common.Enums;
-using FluentAssertions;
 
-namespace EventHouse.Management.Application.Tests.Commands.Artists.Update
+namespace EventHouse.Management.Application.Tests.Commands.Artists.Update;
+
+public sealed class UpdateArtistValidatorTests : ValidatorTestBase<UpdateArtistCommand>
 {
-    public sealed class UpdateArtistValidatorTests
+    public UpdateArtistValidatorTests() : base(new UpdateArtistCommandValidator()) { }
+
+    [Fact]
+    public void Should_HaveError_When_Id_Is_Empty()
     {
-        private readonly UpdateArtistCommandValidator _validator = new();
+        var command = new UpdateArtistCommand(Guid.Empty, "Test Artist", ArtistCategoryDto.Band);
 
-        [Fact]
-        public void Should_fail_when_id_is_empty()
-        {
-            var command = new UpdateArtistCommand(
-                Guid.Empty,
-                "Test",
-                ArtistCategoryDto.Band
-            );
+        ShouldHaveValidationError(command, x => x.Id, "Id must be a non-empty GUID.");
+    }
 
-            var result = _validator.Validate(command);
+    [Fact]
+    public void Should_HaveError_When_Name_Is_Empty()
+    {
+        var command = new UpdateArtistCommand(Guid.NewGuid(), "", ArtistCategoryDto.Band);
 
-            result.IsValid.Should().BeFalse();
-        }
+        ShouldHaveValidationError(command, x => x.Name, "Name is required.");
+    }
 
-        [Fact]
-        public void Should_fail_when_name_is_empty()
-        {
-            var command = new UpdateArtistCommand(
-                Guid.NewGuid(),
-                "", 
-                ArtistCategoryDto.Band
-            );
+    [Fact]
+    public void Should_HaveError_When_Category_Is_Invalid()
+    {
+        var command = new UpdateArtistCommand(Guid.NewGuid(), "Test Artist", unchecked((ArtistCategoryDto)999));
 
-            var result = _validator.Validate(command);
+        ShouldHaveValidationError(command, x => x.Category, "'Category' has a range of values which does not include the provided value.");
+    }
 
-            result.IsValid.Should().BeFalse();
-        }
+    [Fact]
+    public void Should_Pass_When_Command_Is_Valid()
+    {
+        var command = new UpdateArtistCommand(Guid.NewGuid(), "Valid Artist Name", ArtistCategoryDto.Singer);
 
-        [Fact]
-        public void Should_fail_when_category_is_invalid()
-        {
-
-            var command = new UpdateArtistCommand(
-                Guid.NewGuid(),
-                "Test", 
-                unchecked((ArtistCategoryDto)999)
-                );
-
-            var result = _validator.Validate(command);
-
-            result.IsValid.Should().BeFalse();
-        }
+        ShouldPassValidation(command);
     }
 }

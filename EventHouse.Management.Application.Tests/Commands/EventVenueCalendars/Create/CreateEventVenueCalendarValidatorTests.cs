@@ -1,89 +1,55 @@
 ﻿using EventHouse.Management.Application.Commands.EventVenueCalendars.Create;
 using EventHouse.Management.Application.Common.Enums;
-using FluentValidation.TestHelper;
 
 namespace EventHouse.Management.Application.Tests.Commands.EventVenueCalendars.Create;
 
-public sealed class CreateEventVenueCalendarValidatorTests
+public sealed class CreateEventVenueCalendarValidatorTests : ValidatorTestBase<CreateEventVenueCalendarCommand>
 {
-    private readonly CreateEventVenueCalendarCommandValidator _validator = new();
+    public CreateEventVenueCalendarValidatorTests() : base(new CreateEventVenueCalendarCommandValidator()) { }
 
     [Fact]
-    public void Should_PassValidation_When_CommandIsValid()
+    public void Should_Pass_When_Command_Is_Valid()
     {
-        // Arrange
-        var command =  new CreateEventVenueCalendarCommand(
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            DateTime.Now,
-            DateTime.Now.AddHours(2),
-            "America/New_York",
-            EventVenueCalendarStatusDto.Draft
-            );
-
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldNotHaveAnyValidationErrors();
+        ShouldPassValidation(CreateValidCommand());
     }
 
     [Fact]
-    public void Should_HaveError_When_EventVenueId_IsEmpty()
+    public void Should_HaveError_When_EventVenueId_Is_Empty()
     {
-        // Arrange
         var command = CreateValidCommand() with { EventVenueId = Guid.Empty };
 
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.EventVenueId)
-              .WithErrorMessage("EventVenue identifier is required.");
+        ShouldHaveValidationError(command, x => x.EventVenueId, "EventVenue identifier is required.");
     }
 
     [Fact]
-    public void Should_HaveError_When_SeatingMapId_IsEmpty()
+    public void Should_HaveError_When_SeatingMapId_Is_Empty()
     {
-        // Arrange
         var command = CreateValidCommand() with { SeatingMapId = Guid.Empty };
 
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.SeatingMapId)
-              .WithErrorMessage("SeatingMap identifier is required.");
+        ShouldHaveValidationError(command, x => x.SeatingMapId, "SeatingMap identifier is required.");
     }
 
     [Theory]
     [InlineData("")]
     [InlineData(null)]
-    public void Should_HaveError_When_TimeZoneId_IsEmpty(string? invalidTz)
+    public void Should_HaveError_When_TimeZoneId_Is_Empty(string? invalidTz)
     {
         var command = CreateValidCommand() with { TimeZoneId = invalidTz! };
 
-        var result = _validator.TestValidate(command);
-
-        result.ShouldHaveValidationErrorFor(x => x.TimeZoneId)
-              .WithErrorMessage("TimeZone identifier is required.");
+        ShouldHaveValidationError(command, x => x.TimeZoneId, "TimeZone identifier is required.");
     }
 
     [Fact]
-    public void Should_HaveError_When_TimeZoneId_IsInvalidIana()
+    public void Should_HaveError_When_TimeZoneId_Is_Invalid_Iana()
     {
         var command = CreateValidCommand() with { TimeZoneId = "Invalid/Zone_Name" };
 
-        var result = _validator.TestValidate(command);
-
-        result.ShouldHaveValidationErrorFor(x => x.TimeZoneId)
-              .WithErrorMessage("TimeZone must be a valid IANA identifier (e.g., 'Europe/Madrid').");
+        ShouldHaveValidationError(command, x => x.TimeZoneId, "TimeZone must be a valid IANA identifier (e.g., 'Europe/Madrid').");
     }
 
     [Fact]
     public void Should_HaveError_When_EndDate_Is_Before_StartDate()
     {
-        // Arrange
         var start = DateTimeOffset.UtcNow.AddDays(1);
         var command = CreateValidCommand() with
         {
@@ -91,29 +57,15 @@ public sealed class CreateEventVenueCalendarValidatorTests
             EndDate = start.AddHours(-1)
         };
 
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.EndDate)
-              .WithErrorMessage("EndDate must be greater than or equal to StartDate.");
+        ShouldHaveValidationError(command, x => x.EndDate, "EndDate must be greater than or equal to StartDate.");
     }
 
     [Fact]
     public void Should_HaveError_When_Status_Is_Invalid_Enum_Value()
     {
-        // Arrange
-        var command = CreateValidCommand() with
-        {
-            Status = (EventVenueCalendarStatusDto)99
-        };
+        var command = CreateValidCommand() with { Status = (EventVenueCalendarStatusDto)99 };
 
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.Status)
-              .WithErrorMessage("The provided status is not valid.");
+        ShouldHaveValidationError(command, x => x.Status, "The provided status is not valid.");
     }
 
     private static CreateEventVenueCalendarCommand CreateValidCommand() =>

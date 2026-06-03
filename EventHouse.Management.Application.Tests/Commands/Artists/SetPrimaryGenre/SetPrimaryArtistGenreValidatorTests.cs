@@ -1,36 +1,32 @@
-﻿
-using EventHouse.Management.Application.Commands.Artists.SetPrimaryGenre;
-using FluentAssertions;
+﻿using EventHouse.Management.Application.Commands.Artists.SetPrimaryGenre;
 
 namespace EventHouse.Management.Application.Tests.Commands.Artists.SetPrimaryGenre;
 
-public sealed class SetPrimaryArtistGenreValidatorTests
+public sealed class SetPrimaryArtistGenreValidatorTests : ValidatorTestBase<SetPrimaryArtistGenreCommand>
 {
-    private readonly SetPrimaryArtistGenreCommandValidator _validator = new();
+    public SetPrimaryArtistGenreValidatorTests() : base(new SetPrimaryArtistGenreCommandValidator()) { }
 
     [Fact]
-    public void Should_fail_when_artist_id_is_empty()
+    public void Should_HaveError_When_ArtistId_Is_Empty()
     {
-        var command = new SetPrimaryArtistGenreCommand(
-            ArtistId: Guid.Empty,
-            GenreId: Guid.NewGuid()
-        );
+        var command = new SetPrimaryArtistGenreCommand(Guid.Empty, Guid.NewGuid());
 
-        var result = _validator.Validate(command);
-
-        result.IsValid.Should().BeFalse();
+        ShouldHaveValidationError(command, x => x.ArtistId, "ArtistId must be a non-empty GUID.");
     }
 
     [Fact]
-    public void Should_fail_when_genre_id_is_empty()
+    public void Should_HaveError_When_GenreId_Is_Empty()
     {
-        var command = new SetPrimaryArtistGenreCommand(
-            ArtistId: Guid.NewGuid(),
-            GenreId: Guid.Empty
-        );
+        var command = new SetPrimaryArtistGenreCommand(Guid.NewGuid(), Guid.Empty);
 
-        var result = _validator.Validate(command);
+        ShouldHaveValidationError(command, x => x.GenreId, "GenreId must be a non-empty GUID.");
+    }
 
-        result.IsValid.Should().BeFalse();
+    [Fact]
+    public void Should_Pass_When_Command_Is_Valid()
+    {
+        var command = new SetPrimaryArtistGenreCommand(Guid.NewGuid(), Guid.NewGuid());
+
+        ShouldPassValidation(command);
     }
 }

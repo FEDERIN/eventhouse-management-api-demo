@@ -1,55 +1,44 @@
 ﻿using EventHouse.Management.Application.Commands.Artists.AddGenre;
 using EventHouse.Management.Application.Common.Enums;
-using FluentAssertions;
 
 namespace EventHouse.Management.Application.Tests.Commands.Artists.AddGenre;
 
-public class AddArtistGenreValidatorTests
+public sealed class AddArtistGenreValidatorTests : ValidatorTestBase<AddArtistGenreCommand>
 {
-    private readonly AddArtistGenreCommandValidator _validator = new();
+    public AddArtistGenreValidatorTests(): base(new AddArtistGenreCommandValidator()) { }
 
     [Fact]
-    public void Should_fail_when_artist_id_is_empty()
+    public void Should_HaveError_When_ArtistId_Is_Empty()
     {
-        var command = new AddArtistGenreCommand(
-            ArtistId: Guid.Empty,
-            GenreId: Guid.NewGuid(),
-            Status: ArtistGenreStatusDto.Active,
-            IsPrimary: true
-        );
+        var command = CreateValidCommand() with { ArtistId = Guid.Empty };
 
-        var result = _validator.Validate(command);
-
-        result.IsValid.Should().BeFalse();
+        ShouldHaveValidationError(command, x => x.ArtistId, "ArtistId must be a non-empty GUID.");
     }
 
     [Fact]
-    public void Should_fail_when_genre_id_is_empty()
+    public void Should_HaveError_When_GenreId_Is_Empty()
     {
-        var command = new AddArtistGenreCommand(
-            ArtistId: Guid.NewGuid(),
-            GenreId: Guid.Empty,
-            Status: ArtistGenreStatusDto.Active,
-            IsPrimary: true
-        );
+        var command = CreateValidCommand() with { GenreId = Guid.Empty };
 
-        var result = _validator.Validate(command);
-
-        result.IsValid.Should().BeFalse();
+        ShouldHaveValidationError(command, x => x.GenreId, "GenreId must be a non-empty GUID.");
     }
 
     [Fact]
-    public void Should_fail_when_status_is_invalid()
+    public void Should_HaveError_When_Status_Is_Invalid()
     {
-        var command = new AddArtistGenreCommand(
-            ArtistId: Guid.NewGuid(),
-            GenreId: Guid.NewGuid(),
-            Status: unchecked((ArtistGenreStatusDto)999),
-            IsPrimary: false
-        );
+        var command = CreateValidCommand() with { Status = (ArtistGenreStatusDto)999 };
 
-        var result = _validator.Validate(command);
-
-        result.IsValid.Should().BeFalse();
+        ShouldHaveValidationError(command, x => x.Status, "Status must be a valid ArtistGenreStatus value.");
     }
+
+    [Fact]
+    public void Should_Pass_When_Command_Is_Valid()
+    {
+        var command = CreateValidCommand();
+
+        ShouldPassValidation(command);
+    }
+
+    private static AddArtistGenreCommand CreateValidCommand() =>
+        new(Guid.NewGuid(), Guid.NewGuid(), ArtistGenreStatusDto.Active, true);
 }
