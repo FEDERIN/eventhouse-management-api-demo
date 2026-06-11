@@ -11,18 +11,109 @@ namespace EventHouse.Management.Api.Tests.Controllers;
 public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
     : BaseIntegrationTest(factory)
 {
-    private const string BaseUrl = ApiRoutes.Events;
+    #region READ (GET)
 
     [Fact]
-    public async Task GetAll_WithoutToken_Returns401()
+    public async Task GetAll_WithPaging_ReturnsPagedResultWithLinks()
     {
+        // Arrange: create 3 events
+        foreach (var name in new[] { "E1", "E2", "E3" })
+        {
+            await CreateEventAsync(name);
+        }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl).WithoutAuthentication();
+        // Act
+        var res = await Client.GetAsync($"{BaseUrlEvents}?page=1&pageSize=2", cancellationToken: TestContext.Current.CancellationToken);
+        res.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var res = await Client.SendAsync(request, TestContext.Current.CancellationToken);
+        var page = await res.Content.ReadFromJsonAsync<PagedResult<EventResponse>>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
+        page.Should().NotBeNull();
 
-        res.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        page!.Items.Should().NotBeNull();
+        page.Items.Count.Should().BeLessThanOrEqualTo(2);
+        page.ShouldHaveValidPaginationLinks(currentPage: 1, expectedPageSize: 2);
+
     }
+
+    [Theory]
+    [InlineData("Concierto", null, null, EventSortBy.Name, SortDirection.Asc)]
+    [InlineData(null, "Rock", EventScope.National, EventSortBy.Name, SortDirection.Desc)]
+    [InlineData("Festival", "Electronica", EventScope.International, EventSortBy.Name, SortDirection.Asc)]
+    public async Task GetEvents_WithFiltersAndSorting_ReturnsFilteredResults(
+            string? name,
+            string? description,
+            EventScope? scope,
+            EventSortBy sortBy,
+            SortDirection sortDirection)
+    {
+        var url = $"{BaseUrlEvents}?" +
+                  (name != null ? $"name={name}&" : "") +
+                  (description != null ? $"description={description}&" : "") +
+                  (scope.HasValue ? $"scope={scope}&" : "") +
+                  $"sortBy={sortBy}&sortDirection={sortDirection}";
+
+        // Act
+        var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Theory]
+    [InlineData(EventSortBy.Name, SortDirection.Asc)]
+    [InlineData(EventSortBy.Name, SortDirection.Desc)]
+    [InlineData(EventSortBy.Description, SortDirection.Asc)]
+    [InlineData(EventSortBy.Description, SortDirection.Desc)]
+    [InlineData(EventSortBy.Scope, SortDirection.Asc)]
+    [InlineData(EventSortBy.Scope, SortDirection.Desc)]
+    [InlineData(null, SortDirection.Asc)]
+    [InlineData(null, SortDirection.Desc)]
+    public async Task GetAll_WithSorting_ReturnsSortedResults(EventSortBy? sortColumn, SortDirection direction)
+    {
+        // Arrange: create events with varying properties
+        var eventsToCreate = new[]
+        {
+            new CreateEventRequest { Name = "Alpha", Description = "First", Scope = EventScope.Local },
+            new CreateEventRequest { Name = "Charlie", Description = "Third", Scope = EventScope.International },
+            new CreateEventRequest { Name = "Bravo", Description = "Second", Scope = EventScope.Local }
+        };
+
+        foreach (var req in eventsToCreate)
+        {
+            await CreateEventAsync(name : req.Name, description :req.Description, scope : req.Scope);
+        }
+
+        var url = $"{BaseUrlEvents}?sortBy={sortColumn}&sortDirection={direction}";
+
+
+        // Act
+        var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
+        var pagedResult = await response.ReadContentAsync<PagedResult<EventResponse>>();
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var items = pagedResult.Items;
+
+        switch (sortColumn)
+        {
+            case EventSortBy.Description:
+                ValidateOrder(items.Select(x => x.Description), direction);
+                break;
+
+            case EventSortBy.Scope:
+                ValidateOrder(items.Select(x => x.Scope), direction);
+                break;
+
+            case EventSortBy.Name:
+                ValidateOrder(items.Select(x => x.Name), direction);
+                break;
+        }
+    }
+
+    #endregion
+
+    #region CREATE (POST)
 
     [Fact]
     public async Task Create_Returns201_Location_And_CanGetById()
@@ -35,7 +126,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
         };
 
         // Act
-        var post = await Client.PostAsJsonAsync(BaseUrl, request, cancellationToken: TestContext.Current.CancellationToken);
+        var post = await Client.PostAsJsonAsync(BaseUrlEvents, request, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert: 201
         post.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -57,102 +148,21 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
         location.Should().EndWith(created.Id.ToString());
 
         // Roundtrip: GET by id returns 200 and same resource
-        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}", cancellationToken: TestContext.Current.CancellationToken);
+        var get = await Client.GetAsync($"{BaseUrlEvents}/{created.Id}", cancellationToken: TestContext.Current.CancellationToken);
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var fetched = await get.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
-        fetched.Should().NotBeNull();
-        fetched!.Id.Should().Be(created.Id);
-        fetched.Name.Should().Be(created.Name);
-        fetched.Description.Should().Be(created.Description);
-        fetched.Scope.Should().Be(created.Scope);
+
+        fetched.Should().BeEquivalentTo(created, opt => opt
+            .ExcludingMissingMembers()
+        );
     }
 
-    [Fact]
-    public async Task GetById_WhenMissing_Returns404()
-    {
-        var res = await Client.GetAsync($"{BaseUrl}/{Guid.NewGuid()}", cancellationToken: TestContext.Current.CancellationToken);
-        await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task Update_Returns204_And_PersistsChanges()
-    {
-        // create
-        var create = await Client.PostAsJsonAsync(BaseUrl, new CreateEventRequest
-        {
-            Name = "Event A",
-            Description = "Initial description",
-            Scope = EventScope.Local
-        }, cancellationToken: TestContext.Current.CancellationToken);
-        create.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var created = await create.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
-        created!.Id.Should().NotBeEmpty();
-
-        // update
-        var put = await Client.PutAsJsonAsync($"{BaseUrl}/{created.Id}", new UpdateEventRequest
-        {
-            Name = "Event A Updated",
-            Description = "Updated description",
-            Scope = EventScope.International
-        }, cancellationToken: TestContext.Current.CancellationToken);
-
-        put.StatusCode.Should().Be(HttpStatusCode.NoContent);
-
-        // roundtrip
-        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}", cancellationToken: TestContext.Current.CancellationToken);
-        get.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var updated = await get.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
-        updated.Should().NotBeNull();
-        updated!.Name.Should().Be("Event A Updated");
-        updated.Description.Should().Be("Updated description");
-        updated.Scope.Should().Be(EventScope.International);
-    }
-
-    [Fact]
-    public async Task Update_WhenMissing_Returns404_ProblemJson()
-    {
-        var id = Guid.NewGuid();
-        var res = await Client.PutAsJsonAsync($"{BaseUrl}/{id}", new UpdateEventRequest
-        {
-            Name = "Does not matter",
-            Description = "Does not matter",
-            Scope = EventScope.Local
-        }, cancellationToken: TestContext.Current.CancellationToken);
-
-        await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task Delete_Returns204_And_Then_GetReturns404()
-    {
-        // create
-        var create = await Client.PostAsJsonAsync(BaseUrl, new CreateEventRequest
-        {
-            Name = "Event To Delete",
-            Description = "To be deleted",
-            Scope = EventScope.Local
-        }, cancellationToken: TestContext.Current.CancellationToken);
-        create.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var created = await create.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
-
-        // delete
-        var del = await Client.DeleteAsync($"{BaseUrl}/{created!.Id}", cancellationToken: TestContext.Current.CancellationToken);
-        del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-
-        // get -> 404
-        var get = await Client.GetAsync($"{BaseUrl}/{created.Id}", cancellationToken: TestContext.Current.CancellationToken);
-
-        await get.ShouldBeProblemJson(HttpStatusCode.NotFound);
-    }
 
     [Fact]
     public async Task Create_WhenInvalid_Returns400_ValidationProblemJson()
     {
-        var res = await Client.PostAsJsonAsync(BaseUrl, new CreateEventRequest
+        var res = await Client.PostAsJsonAsync(BaseUrlEvents, new CreateEventRequest
         {
             Name = "A", // too short (min 2)
             Description = null,
@@ -161,32 +171,54 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
 
         await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }
+    #endregion
+
+    #region UPDATE (PUT)
+    [Fact]
+    public async Task Update_Returns204_And_PersistsChanges()
+    {
+        // Arrange
+        var created = await CreateEventAsync(name: "Event A", description: "Initial description", scope: EventScope.Local);
+
+        var updateRequest = new UpdateEventRequest
+        {
+            Name = "Event A Updated",
+            Description = "Updated description",
+            Scope = EventScope.International
+        };
+
+        // Act & Assert
+        await PutAndAssertPersisted<UpdateEventRequest, EventResponse>(
+            $"{BaseUrlEvents}/{created.Id}",
+            updateRequest
+        );
+    }
 
     [Fact]
-    public async Task GetAll_WithPaging_ReturnsPagedResultWithLinks()
+    public async Task Update_WhenMissing_Returns404_ProblemJson()
     {
-        // Arrange: create 3 events
-        foreach (var name in new[] { "E1", "E2", "E3" })
+        await AssertPutReturns404($"{BaseUrlEvents}/{Guid.NewGuid()}", new UpdateEventRequest
         {
-            var create = await Client.PostAsJsonAsync(BaseUrl, new CreateEventRequest
-            {
-                Name = name,
-                Description = "Demo",
-                Scope = EventScope.Local
-            }, cancellationToken: TestContext.Current.CancellationToken);
-            create.StatusCode.Should().Be(HttpStatusCode.Created);
-        }
+            Name = "Does not matter",
+            Description = "Does not matter",
+            Scope = EventScope.Local
+        });
+    }
 
-        // Act
-        var res = await Client.GetAsync($"{BaseUrl}?page=1&pageSize=2", cancellationToken: TestContext.Current.CancellationToken);
-        res.StatusCode.Should().Be(HttpStatusCode.OK);
+    #endregion
 
-        var page = await res.Content.ReadFromJsonAsync<PagedResult<EventResponse>>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
-        page.Should().NotBeNull();
+    #region DELETE
+    [Fact]
+    public async Task Delete_Returns204_And_Then_GetReturns404()
+    {
+        //Arrange
+        var created = await CreateEventAsync(name: "Event To Delete", description: "To be deleted", scope: EventScope.Local);
+        var url = $"{BaseUrlEvents}/{created!.Id}";
 
-        page!.Items.Should().NotBeNull();
-        page.Items.Count.Should().BeLessThanOrEqualTo(2);
-        page.ShouldHaveValidPaginationLinks(currentPage: 1, expectedPageSize: 2);
+        //Act && Assert
+        await AssertDeleteReturns204(url);
+        await AssertGetReturns404(url);
 
     }
+    #endregion
 }

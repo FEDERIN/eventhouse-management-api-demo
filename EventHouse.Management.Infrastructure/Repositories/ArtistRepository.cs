@@ -37,12 +37,10 @@ internal class ArtistRepository(ManagementDbContext context) :
 
     public async Task SetPrimaryGenreAsync(Guid artistId, Guid genreOldId, Guid genreId, CancellationToken ct)
     {
-        // Execute everything inside a single transaction to ensure consistency
         using var transaction = await _context.Database.BeginTransactionAsync(ct);
 
         try
         {
-            // 1. Reset the old primary genre if it exists
             if (genreOldId != Guid.Empty)
             {
                 await _context.ArtistGenres
@@ -50,12 +48,15 @@ internal class ArtistRepository(ManagementDbContext context) :
                     .ExecuteUpdateAsync(setters => setters.SetProperty(ag => ag.IsPrimary, false), ct);
             }
 
-            // 2. Set the new primary genre
-            await _context.ArtistGenres
+            int affectedRows = await _context.ArtistGenres
                 .Where(ag => ag.ArtistId == artistId && ag.GenreId == genreId)
                 .ExecuteUpdateAsync(setters => setters.SetProperty(ag => ag.IsPrimary, true), ct);
 
-            // Commit all changes at once
+            if (affectedRows == 0)
+            {
+                throw new InvalidOperationException($"The primary genre could not be established. The genre {genreId} is not associated with the artist {artistId}.");
+            }
+
             await transaction.CommitAsync(ct);
         }
         catch
@@ -116,10 +117,9 @@ internal class ArtistRepository(ManagementDbContext context) :
         if (criteria.Category.HasValue)
             query = query.Where(a => a.Category == criteria.Category.Value);
 
-        var sortBy = criteria.SortBy ?? ArtistSortField.Name;
         bool asc = criteria.SortDirection == SortDirection.Asc;
 
-        query = sortBy switch
+        query = criteria.SortBy switch
         {
             ArtistSortField.Name =>
                 asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name),

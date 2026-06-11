@@ -1,8 +1,8 @@
 ﻿using EventHouse.Management.Domain.Enums;
 using EventHouse.Management.Domain.Exceptions;
-using EventHouse.Management.Domain.Exceptions.Artists;
 using EventHouse.Management.Domain.Exceptions.Calendars;
 using EventHouse.ShareKernel.Entities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EventHouse.Management.Domain.Entities;
 
@@ -14,6 +14,8 @@ public class EventVenueCalendar : Entity
     public DateTime? EndDate { get; private set; }
     public string TimeZoneId { get; private set; } = "UTC";
     public EventVenueCalendarStatus Status { get; private set; }
+
+    [ExcludeFromCodeCoverage]
     public virtual EventVenue? EventVenue { get; private set; }
 
     private readonly List<ArtistPerformance> _performances = [];
@@ -36,7 +38,6 @@ public class EventVenueCalendar : Entity
             throw new ArgumentException("EventVenueId cannot be empty.", nameof(eventVenueId));
         if (seatingMapId == Guid.Empty)
             throw new ArgumentException("SeatingMapId cannot be empty.", nameof(seatingMapId));
-
 
         Id = id;
         EventVenueId = eventVenueId;
@@ -88,10 +89,8 @@ public class EventVenueCalendar : Entity
             throw new DuplicateHeadlinerException(Id);
         }
 
-        if (Status == EventVenueCalendarStatus.Published && (!startLocal.HasValue || !endLocal.HasValue))
-        {
-            throw new PerformanceDatesRequiredException(Id, artistId);
-        }
+        // Usamos nuestro método validador
+        EnsurePerformanceHasDatesIfPublished(artistId, startLocal, endLocal);
 
         if (startLocal.HasValue && endLocal.HasValue)
         {
@@ -128,7 +127,7 @@ public class EventVenueCalendar : Entity
             var start = startLocal.Value.UtcDateTime;
             var end = endLocal.Value.UtcDateTime;
 
-            if (_performances.Any(p => p.ArtistId != artistId &&  start < p.SetEnd && p.SetStart < end))
+            if (_performances.Any(p => p.ArtistId != artistId && start < p.SetEnd && p.SetStart < end))
             {
                 throw new StageOverlapException(Id, start, end);
             }
@@ -137,10 +136,7 @@ public class EventVenueCalendar : Entity
         performance.UpdateTimes(startLocal, endLocal);
         performance.ValidateTimeRange(StartDate, EndDate);
 
-        if (Status == EventVenueCalendarStatus.Published && (performance.SetStart == null || performance.SetEnd == null))
-        {
-            throw new PerformanceDatesRequiredException(Id, artistId);
-        }
+        EnsurePerformanceHasDatesIfPublished(artistId, performance.SetStart, performance.SetEnd);
     }
 
     public void SwapHeadliner(Guid currentHeadlinerArtistId, Guid newHeadlinerArtistId)
@@ -153,14 +149,6 @@ public class EventVenueCalendar : Entity
 
         oldHeadliner.UpdateHeadlinerStatus(false);
         newHeadliner.UpdateHeadlinerStatus(true);
-
-        if (Status == EventVenueCalendarStatus.Published)
-        {
-            if (newHeadliner.SetStart == null || newHeadliner.SetEnd == null)
-            {
-                throw new PerformanceDatesRequiredException(Id, newHeadlinerArtistId);
-            }
-        }
     }
 
     public void RemovePerformance(Guid artistId)
@@ -178,9 +166,18 @@ public class EventVenueCalendar : Entity
         _performances.Remove(existing);
     }
 
+    private void EnsurePerformanceHasDatesIfPublished(Guid artistId, DateTimeOffset? start, DateTimeOffset? end)
+    {
+        if (Status == EventVenueCalendarStatus.Published && (!start.HasValue || !end.HasValue))
+        {
+            throw new PerformanceDatesRequiredException(Id, artistId);
+        }
+    }
+
     private static DateTime GetEndOfDayUtc(DateTimeOffset start)
     {
-        return start.Date.AddDays(1).AddTicks(-1).ToUniversalTime();
+        var endOfDay = new DateTimeOffset(start.Year, start.Month, start.Day, 23, 59, 59, 999, start.Offset);
+        return endOfDay.UtcDateTime;
     }
 
     private static void ValidateDateRange(DateTime start, DateTime? end)

@@ -9,8 +9,8 @@ public static class VenueFactory
 
     public static CreateVenueRequest CreateRequest(
         string? name = null,
-        int? capacity = null,
-        string? city = null)
+        string? city = null,
+        int? capacity = null)
     {
         var cityName = city ?? Faker.Address.City();
 

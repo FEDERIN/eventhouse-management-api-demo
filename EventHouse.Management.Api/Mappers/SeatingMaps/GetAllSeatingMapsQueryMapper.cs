@@ -12,6 +12,8 @@ internal sealed class GetAllSeatingMapsQueryMapper
             Name = request.Name,
             VenueId = request.VenueId,
             IsActive = request.IsActive,
+            SortBy = SeatingMapSortMapper.ToApplication(request.SortBy),
+            SortDirection = SortDirectionMapper.ToApplication(request.SortDirection)
         };
     }
 }

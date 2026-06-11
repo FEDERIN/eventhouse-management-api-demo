@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage" enabled="True">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Exclude>
+            <Filter>[*.Infrastructure]EventHouse.Management.Infrastructure.Persistence.Migrations.*</Filter>
+          </Exclude>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
