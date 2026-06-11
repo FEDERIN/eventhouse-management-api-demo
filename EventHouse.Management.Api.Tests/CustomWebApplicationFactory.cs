@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 using Testcontainers.PostgreSql;
 
 namespace EventHouse.Management.Api.Tests;
@@ -38,6 +39,12 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
             {
                 options.UseNpgsql(_dbContainer.GetConnectionString())
                        .UseSnakeCaseNamingConvention();
+            });
+
+            services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+            {
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
             });
 
             services.PostConfigure<Microsoft.AspNetCore.RateLimiting.RateLimiterOptions>(options =>

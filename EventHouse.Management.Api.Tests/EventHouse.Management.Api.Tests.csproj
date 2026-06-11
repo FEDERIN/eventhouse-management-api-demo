@@ -11,11 +11,8 @@
 
   <ItemGroup>
     <Compile Remove="Contracts\**" />
-    <Compile Remove="NewFolder\**" />
     <EmbeddedResource Remove="Contracts\**" />
-    <EmbeddedResource Remove="NewFolder\**" />
     <None Remove="Contracts\**" />
-    <None Remove="NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>

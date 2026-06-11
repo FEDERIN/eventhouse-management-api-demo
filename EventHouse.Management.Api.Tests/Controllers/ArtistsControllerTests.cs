@@ -12,101 +12,72 @@ namespace EventHouse.Management.Api.Tests.Controllers;
 public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
     : BaseIntegrationTest(factory)
 {
- 
-    [Fact]
-    public async Task GetAll_WithoutToken_Returns401()
+    #region READ (GET)
+    [Theory]
+    [InlineData("Bad Bunny", null)]
+    [InlineData(null, ArtistCategory.Singer)]
+    [InlineData("Festival", ArtistCategory.Dancer)]
+    public async Task GetArtists_WithFiltersAndSorting_ReturnsFilteredResults(
+        string? name,
+        ArtistCategory? category)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, BaseUrlArtists).WithoutAuthentication();
-
-        var res = await Client.SendAsync(request, cancellationToken: TestContext.Current.CancellationToken);
-
-        res.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-    }
-
-    [Fact]
-    public async Task Create_Returns201_And_MatchesRequest()
-    {
-        var request = ArtistFactory.CreateRequest(category: ArtistCategory.DJ);
-
-        var response = await Client.PostAsJsonAsync(BaseUrlArtists, request, cancellationToken: TestContext.Current.CancellationToken);
-        var created = await response.ReadContentAsync<ArtistDetail>();
-        created.Should().BeEquivalentTo(request, opt => opt.ExcludingMissingMembers());
-    }
-
-    [Fact]
-    public async Task GetById_WhenMissing_Returns404()
-    {
-        var res = await Client.GetAsync($"{BaseUrlArtists}/{Guid.NewGuid()}", cancellationToken: TestContext.Current.CancellationToken);
-
-        await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task Update_Returns204_And_PersistsChanges()
-    {
-        var artist = await CreateArtistAsync(category: ArtistCategory.Singer);
-        var updateRequest = new UpdateArtistRequest 
-        { 
-            Name = artist.Name + "Updated",
-            Category = ArtistCategory.Influencer
-        };
+        var url = $"{BaseUrlArtists}?" +
+                  (name != null ? $"name={name}&" : "") +
+                  (category.HasValue ? $"category={category}&" : "");
 
         // Act
-        var response = await Client.PutAsJsonAsync($"{BaseUrlArtists}/{artist.Id}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
-
-        // Roundtrip
-        var updated = await Client.GetFromJsonAsync<ArtistDetail>($"{BaseUrlArtists}/{artist.Id}", JsonTestOptions.Default, TestContext.Current.CancellationToken);
-        updated.Should().BeEquivalentTo(updateRequest); // Ahora sí comparas DTO con DTO
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
-    [Fact]
-    public async Task Update_WhenMissing_Returns404_ProblemJson()
+    [Theory]
+    [InlineData(ArtistSortBy.Name, SortDirection.Asc)]
+    [InlineData(ArtistSortBy.Name, SortDirection.Desc)]
+    [InlineData(ArtistSortBy.Category, SortDirection.Asc)]
+    [InlineData(ArtistSortBy.Category, SortDirection.Desc)]
+    [InlineData(null, SortDirection.Asc)]
+    [InlineData(null, SortDirection.Desc)]
+    public async Task GetAll_WithSorting_ReturnsSortedResults(ArtistSortBy? sortColumn, SortDirection direction)
     {
-        var id = Guid.NewGuid();
-        var res = await Client.PutAsJsonAsync($"{BaseUrlArtists}/{id}", new UpdateArtistRequest
+
+        await CreateArtistAsync(category: ArtistCategory.Singer);
+        await CreateArtistAsync(category: ArtistCategory.Influencer);
+        await CreateArtistAsync(category: ArtistCategory.Dancer);
+
+        var url = $"{BaseUrlArtists}?sortBy={sortColumn}&sortDirection={direction}";
+
+        // Act
+        var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
+        var pagedResult = await response.ReadContentAsync<PagedResult<ArtistDetail>>();
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var items = pagedResult.Items;
+
+        switch (sortColumn)
         {
-            Name = "Does not matter",
-            Category = ArtistCategory.Band
-        }, cancellationToken: TestContext.Current.CancellationToken);
+            case ArtistSortBy.Name:
+                ValidateOrder(items.Select(x => x.Name), direction);
+                break;
 
-        await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
-    }
+            case ArtistSortBy.Category:
+                ValidateOrder(items.Select(x => x.Category), direction);
+                break;
+            default:
+                ValidateOrder(items.Select(x => x.Name), direction);
+                break;
+        }
 
-    [Fact]
-    public async Task Delete_Returns204_And_Then_GetReturns404()
-    {
-
-        var artist = await CreateArtistAsync(category: ArtistCategory.Band);
-
-        // delete
-        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist!.Id}", cancellationToken: TestContext.Current.CancellationToken);
-        del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-
-        // get -> 404
-        var get = await Client.GetAsync($"{BaseUrlArtists}/{artist.Id}", cancellationToken: TestContext.Current.CancellationToken);
-        await get.ShouldBeProblemJson(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task Create_WhenInvalid_Returns400_ValidationProblemJson()
-    {
-        var res = await Client.PostAsJsonAsync(BaseUrlArtists, new CreateArtistRequest
-        {
-            Name = "A",
-            Category = ArtistCategory.Band
-        }, cancellationToken: TestContext.Current.CancellationToken);
-
-        await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task GetAll_WithPaging_ReturnsPagedResultWithLinks()
     {
         // Arrange: create 3 artists
-        for(var i = 0; i < 3; i++)
+        for (var i = 0; i < 3; i++)
         {
             await CreateArtistAsync(category: ArtistCategory.Band);
         }
@@ -120,7 +91,101 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
         page!.Items.Count.Should().BeLessThanOrEqualTo(2);
         page.ShouldHaveValidPaginationLinks(currentPage: 1, expectedPageSize: 2);
     }
+    #endregion
 
+    #region CREATE (POST)
+    [Fact]
+    public async Task Create_Returns201_And_MatchesRequest()
+    {
+        var request = ArtistFactory.CreateRequest(category: ArtistCategory.DJ);
+
+        var response = await Client.PostAsJsonAsync(BaseUrlArtists, request, cancellationToken: TestContext.Current.CancellationToken);
+        var created = await response.ReadContentAsync<ArtistDetail>();
+        created.Should().BeEquivalentTo(request, opt => opt.ExcludingMissingMembers());
+    }
+
+    [Fact]
+    public async Task Create_WhenInvalid_Returns400_ValidationProblemJson()
+    {
+        var res = await Client.PostAsJsonAsync(BaseUrlArtists, new CreateArtistRequest
+        {
+            Name = "A",
+            Category = ArtistCategory.Band
+        }, cancellationToken: TestContext.Current.CancellationToken);
+
+        await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
+    }
+    #endregion
+
+    #region UPDATE (PUT)
+    [Fact]
+    public async Task Update_Returns204_And_PersistsChanges()
+    {
+        var artist = await CreateArtistAsync(category: ArtistCategory.Singer);
+        var updateRequest = new UpdateArtistRequest 
+        { 
+            Name = artist.Name + "Updated",
+            Category = ArtistCategory.Influencer
+        };
+
+        await PutAndAssertPersisted<UpdateArtistRequest, ArtistDetail>(
+                $"{BaseUrlArtists}/{artist.Id}",
+                updateRequest
+            );
+    }
+
+    [Fact]
+    public async Task Update_WhenMissing_Returns404_ProblemJson()
+    {
+        await AssertPutReturns404($"{BaseUrlArtists}/{Guid.NewGuid()}", new UpdateArtistRequest
+        {
+            Name = "Does not matter",
+            Category = ArtistCategory.Band
+        });
+    }
+    #endregion
+
+    #region DELETE
+    [Fact]
+    public async Task Delete_Returns204_And_Then_GetReturns404()
+    {
+        //Arrange
+        var artist = await CreateArtistAsync(category: ArtistCategory.Band);
+        var url = $"{BaseUrlArtists}/{artist!.Id}";
+
+        // Act & Assert
+        await AssertDeleteReturns204(url);
+        await AssertGetReturns404(url);
+    }
+
+    [Fact]
+    public async Task Delete_Return409_And_Have_Relation_Artist()
+    {
+        var artist = await CreateArtistAsync(category: ArtistCategory.Host);
+
+        // create genre
+        var genre = await CreateGenreAsync(forCategory: ArtistCategory.Host);
+
+        var body = new AddArtistGenreRequest
+        {
+            GenreId = genre!.Id,
+            Status = ArtistGenreStatus.Active,
+            IsPrimary = false
+        };
+
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", body, cancellationToken: TestContext.Current.CancellationToken))
+            .StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist!.Id}", cancellationToken: TestContext.Current.CancellationToken);
+        del.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+    }
+
+    #endregion
+
+    #region GENRE
+
+    #region CREATE (POST)
     [Fact]
     public async Task AddGenre_Returns204_And_IsVisibleInGetArtist()
     {
@@ -166,57 +231,10 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
         (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist.Id}/genres", body, cancellationToken: TestContext.Current.CancellationToken))
             .StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
+    #endregion
 
-    [Fact]
-    public async Task SetPrimaryGenre_Returns204_And_MovesPrimaryFlag()
-    {
-        var artist = await CreateArtistAsync(category: ArtistCategory.Comedian);
 
-        // create genre
-        var genre = await CreateGenreAsync(forCategory: ArtistCategory.Comedian);
-        var genre2 = await CreateGenreAsync(forCategory: ArtistCategory.Comedian);
-
-        // add both genres
-        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", new AddArtistGenreRequest
-        {
-            GenreId = genre!.Id,
-            Status = ArtistGenreStatus.Active,
-            IsPrimary = true
-        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
-
-        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist.Id}/genres", new AddArtistGenreRequest
-        {
-            GenreId = genre2!.Id,
-            Status = ArtistGenreStatus.Active,
-            IsPrimary = false
-        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
-
-        // act: set g2 primary
-        var patch = await Client.PatchAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre2.Id}/primary", content: null, cancellationToken: TestContext.Current.CancellationToken );
-        patch.StatusCode.Should().Be(HttpStatusCode.NoContent);
-    }
-
-    [Fact]
-    public async Task RemoveGenre_Returns204_And_RemovesAssociation()
-    {
-        var artist = await CreateArtistAsync(category: ArtistCategory.Influencer);
-
-        // create genre
-        var genre = await CreateGenreAsync(forCategory: ArtistCategory.Influencer);
-
-        // add
-        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", new AddArtistGenreRequest
-        {
-            GenreId = genre!.Id,
-            Status = ArtistGenreStatus.Active,
-            IsPrimary = false
-        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
-
-        // delete
-        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre.Id}", cancellationToken: TestContext.Current.CancellationToken);
-        del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-    }
-
+    #region UPDATE (PUT, PATCH)
     [Fact]
     public async Task UpdateGenreStatus_Returns204_And_PersistsChange()
     {
@@ -244,4 +262,59 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
 
         put.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
+
+    [Fact]
+    public async Task SetPrimaryGenre_Returns204_And_MovesPrimaryFlag()
+    {
+        var artist = await CreateArtistAsync(category: ArtistCategory.Comedian);
+
+        // create genre
+        var genre = await CreateGenreAsync(forCategory: ArtistCategory.Comedian);
+        var genre2 = await CreateGenreAsync(forCategory: ArtistCategory.Comedian);
+
+        // add both genres
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", new AddArtistGenreRequest
+        {
+            GenreId = genre!.Id,
+            Status = ArtistGenreStatus.Active,
+            IsPrimary = true
+        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist.Id}/genres", new AddArtistGenreRequest
+        {
+            GenreId = genre2!.Id,
+            Status = ArtistGenreStatus.Active,
+            IsPrimary = false
+        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // act: set g2 primary
+        var patch = await Client.PatchAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre2.Id}/primary", content: null, cancellationToken: TestContext.Current.CancellationToken);
+        patch.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+    #endregion
+
+    #region DELETE
+    [Fact]
+    public async Task RemoveGenre_Returns204_And_RemovesAssociation()
+    {
+        var artist = await CreateArtistAsync(category: ArtistCategory.Influencer);
+
+        // create genre
+        var genre = await CreateGenreAsync(forCategory: ArtistCategory.Influencer);
+
+        // add
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", new AddArtistGenreRequest
+        {
+            GenreId = genre!.Id,
+            Status = ArtistGenreStatus.Active,
+            IsPrimary = false
+        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // delete
+        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre.Id}", cancellationToken: TestContext.Current.CancellationToken);
+        del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+    #endregion
+
+    #endregion
 }

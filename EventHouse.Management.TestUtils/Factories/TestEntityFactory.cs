@@ -5,6 +5,14 @@ namespace EventHouse.Management.Tests.Shared.Factories;
 
 public static class TestEntityFactory
 {
+    public static Artist CreateArtist(string name, ArtistCategory category)
+    {
+        var id = Guid.NewGuid();
+        var uniqueName = $"{name} {Guid.NewGuid().ToString()[..4]}";
+
+        return new Artist(id, uniqueName, category);
+    }
+
     /// <summary>
     /// Creates a Genre entity with a randomized name to avoid collisions.
     /// </summary>
@@ -16,50 +24,6 @@ public static class TestEntityFactory
         return new Genre(genreId, uniqueName);
     }
 
-    /// <summary>
-    /// Creates a Venue entity that satisfies all domain validations.
-    /// </summary>
-    public static Venue CreateVenue(
-        Guid? id = null,
-        string name = "Madison Square Garden",
-        string address = "4 Pennsylvania Plaza",
-        string city = "New York",
-        string region = "NY",
-        string countryCode = "US",
-        decimal? latitude = 40.7505m,
-        decimal? longitude = -73.9934m,
-        string? timeZoneId = "Eastern Standard Time",
-        int? capacity = 20000,
-        bool isActive = true)
-    {
-        return new Venue(
-            id ?? Guid.NewGuid(),
-            $"{name} {Guid.NewGuid().ToString()[..4]}",
-            address,
-            city,
-            region,
-            countryCode,
-            latitude,
-            longitude,
-            timeZoneId,
-            capacity,
-            isActive);
-    }
-
-    public static Event CreateEvent(Guid id, string name = "Test Event", EventScope scope = EventScope.Local)
-    {
-        return new Event(id, $"{name} {Guid.NewGuid().ToString()[..4]}", "Description", scope);
-    }
-
-    public static SeatingMap CreateSeatingMap(Guid id, Guid venueId, string name = "Main Map", int version = 1, bool isActive = true)
-    {
-        return new SeatingMap(id, venueId, name, version, isActive);
-    }
-
-    public static EventVenue CreateEventVenue(Guid id, Guid eventId, Guid venueId, EventVenueStatus status = EventVenueStatus.Active)
-    {
-        return new EventVenue(id, eventId, venueId, status);
-    }
 
     public static EventVenueCalendar CreateEventVenueCalendar(
     Guid id,

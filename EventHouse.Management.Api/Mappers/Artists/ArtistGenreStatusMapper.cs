@@ -8,9 +8,6 @@ internal static class ArtistGenreStatusMapper
     public static ArtistGenreStatusDto ToApplicationRequired(Contract statusContract) =>
         ApiEnumMapper<Contract, ArtistGenreStatusDto>.ToApplicationRequired(statusContract);
 
-    public static ArtistGenreStatusDto? ToApplicationOptional(Contract? statusContract) =>
-        ApiEnumMapper<Contract, ArtistGenreStatusDto>.ToApplicationOptional(statusContract);
-
     public static Contract ToContract(ArtistGenreStatusDto status) =>
         ApiEnumMapper<Contract, ArtistGenreStatusDto>.ToContract(status);
 }

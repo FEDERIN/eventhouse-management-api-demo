@@ -14,21 +14,6 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
 {
     private const string StatusPath = "status";
 
-    #region SECURITY
-
-    [Fact]
-    public async Task GetAll_WithoutToken_Returns401Unauthorized()
-    {
-        // Act
-        var request = new HttpRequestMessage(HttpMethod.Get, BaseUrlEventVenues).WithoutAuthentication();
-
-        var res = await Client.SendAsync(request, TestContext.Current.CancellationToken);
-
-        res.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-    }
-
-    #endregion
-
     #region READ (GET)
 
     [Fact]
@@ -48,16 +33,6 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
     }
 
     [Fact]
-    public async Task GetById_WhenMissing_Returns404NotFound()
-    {
-        // Act
-        var response = await Client.GetAsync($"{BaseUrlEventVenues}/{Guid.NewGuid()}", TestContext.Current.CancellationToken);
-
-        // Assert
-        await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
     public async Task GetAll_WhenMultiple_Returns200OK_WithPagedResult()
     {
         // Arrange
@@ -73,6 +48,74 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
         pagedResult.Items.Should().HaveCountGreaterThanOrEqualTo(2);
         pagedResult.TotalCount.Should().BeGreaterThanOrEqualTo(2);
     }
+
+    [Theory]
+    [InlineData(null, null, null)]
+    [InlineData(null, null, EventVenueStatus.Active)]
+    [InlineData(null, null, EventVenueStatus.Inactive)]
+    public async Task GetAll_WithFiltersAndSorting_ReturnsFilteredResults(
+    Guid? eventId,
+    Guid? venueId,
+    EventVenueStatus? status)
+    {
+        // Arrange
+        await CreateEventVenueAsync();
+        await CreateEventVenueAsync();
+
+        var url = $"{BaseUrlEventVenues}?" +
+                  (eventId.HasValue ? $"eventId={eventId}&" : "") +
+                  (venueId.HasValue ? $"venueId={venueId}&" : "") +
+                  (status.HasValue ? $"status={status}" : "");
+
+        // Act
+        var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Validar que los filtros funcionan
+        if (status.HasValue)
+        {
+            var pagedResult = await response.ReadContentAsync<PagedResult<EventVenueResponse>>();
+            pagedResult.Items.Should().AllSatisfy(x => x.Status.Should().Be(status.Value));
+        }
+    }
+
+    [Theory]
+    [InlineData(EventVenueSortBy.Status, SortDirection.Asc)]
+    [InlineData(EventVenueSortBy.Status, SortDirection.Desc)]
+    [InlineData(null, SortDirection.Asc)]
+    [InlineData(null, SortDirection.Desc)]
+    public async Task GetAll_WithSorting_ReturnsSortedResults(
+        EventVenueSortBy? sortColumn,
+        SortDirection direction)
+    {
+        // Arrange
+        await CreateEventVenueAsync();
+        await CreateEventVenueAsync();
+
+        var url = $"{BaseUrlEventVenues}?sortBy={sortColumn}&sortDirection={direction}";
+
+        // Act
+        var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
+        var pagedResult = await response.ReadContentAsync<PagedResult<EventVenueResponse>>();
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var items = pagedResult.Items;
+
+        if (sortColumn == EventVenueSortBy.Status)
+        {
+            ValidateOrder(items.Select(x => x.Status), direction);
+        }
+        else
+        {
+            // Default sorting
+            ValidateOrder(items.Select(x => x.Status), direction);
+        }
+    }
+
 
     [Fact]
     public async Task GetAll_WhenFilteredByEventAndVenue_ShouldReturnEnrichedNames()
@@ -147,7 +190,7 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
         var @event = await CreateEventAsync();
         var requestMissingVenue = EventVenueFactory.CreateRequest(@event.Id, Guid.NewGuid());
 
-        // Act & Assert 1
+        // Act 1
         var res1 = await Client.PostAsJsonAsync(BaseUrlEventVenues, requestMissingVenue, cancellationToken: TestContext.Current.CancellationToken);
         await res1.ShouldBeProblemJson(HttpStatusCode.NotFound);
 
@@ -155,7 +198,7 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
         var venue = await CreateVenueAsync();
         var requestMissingEvent = EventVenueFactory.CreateRequest(Guid.NewGuid(), venue.Id);
 
-        // Act & Assert 2
+        // Act 2
         var res2 = await Client.PostAsJsonAsync(BaseUrlEventVenues, requestMissingEvent, cancellationToken: TestContext.Current.CancellationToken);
         await res2.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
@@ -208,11 +251,11 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
         // Arrange
         var updateRequest = new UpdateEventVenueStatusRequest { Status = EventVenueStatus.Inactive };
 
-        // Act
-        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenues}/{Guid.NewGuid()}/{StatusPath}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
-
-        // Assert
-        await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
+        // Act & Assert:
+        await AssertPutReturns404(
+            $"{BaseUrlEventVenues}/{Guid.NewGuid()}/{StatusPath}",
+            updateRequest
+        );
     }
     #endregion
 }

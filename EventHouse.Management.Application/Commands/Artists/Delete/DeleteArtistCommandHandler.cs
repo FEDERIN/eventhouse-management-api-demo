@@ -1,16 +1,15 @@
-﻿using EventHouse.Management.Application.Common;
-using EventHouse.Management.Application.Common.Interfaces;
+﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Domain.Exceptions;
 using MediatR;
 
 namespace EventHouse.Management.Application.Commands.Artists.Delete;
 
 internal sealed class DeleteArtistCommandHandler(IArtistRepository repository)
-        : IRequestHandler<DeleteArtistCommand, DeleteResult>
+        : IRequestHandler<DeleteArtistCommand>
 {
     private readonly IArtistRepository _repository = repository;
 
-    public async Task<DeleteResult> Handle(
+    public async Task Handle(
         DeleteArtistCommand request,
         CancellationToken cancellationToken)
     {
@@ -18,7 +17,5 @@ internal sealed class DeleteArtistCommandHandler(IArtistRepository repository)
 
         if (result is false)
             throw new NotFoundException("Artist", request.Id);
-
-        return DeleteResult.Ok();
     }
 }
