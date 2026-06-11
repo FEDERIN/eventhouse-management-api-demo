@@ -1,4 +1,5 @@
 ﻿using EventHouse.ShareKernel.Entities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EventHouse.Management.Domain.Entities;
 
@@ -9,6 +10,8 @@ public class ArtistPerformance : Entity
     public bool IsHeadliner { get; private set; }
     public DateTime? SetStart { get; private set; } // Stored in UTC
     public DateTime? SetEnd { get; private set; }   // Stored in UTC
+
+    [ExcludeFromCodeCoverage]
     public virtual EventVenueCalendar? EventVenueCalendar { get; private set; }
 
     private ArtistPerformance() { }

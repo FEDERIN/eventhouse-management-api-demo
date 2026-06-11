@@ -19,11 +19,6 @@ internal class ArtistPerformanceRepository(ManagementDbContext context) :
         return await _context.ArtistPerformances.AsNoTracking().FirstOrDefaultAsync(ap => ap.Id == id, ct);
     }
 
-    public async Task<ArtistPerformance?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default)
-    {
-        return await _context.ArtistPerformances.FirstOrDefaultAsync(ap => ap.Id == id, ct);
-    }
-
     public async Task<PagedResultDto<ArtistPerformance>> GetPagedAsync(
         ArtistPerformanceQueryCriteria criteria,
         CancellationToken ct = default)

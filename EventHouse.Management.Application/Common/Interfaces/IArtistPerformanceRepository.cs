@@ -8,7 +8,6 @@ public interface IArtistPerformanceRepository
 {
     #region READ
     Task<ArtistPerformance?> GetByIdAsync(Guid id, CancellationToken ct = default);
-    Task<ArtistPerformance?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default);
     Task<PagedResultDto<ArtistPerformance>> GetPagedAsync(
         ArtistPerformanceQueryCriteria criteria, CancellationToken ct = default);
     #endregion

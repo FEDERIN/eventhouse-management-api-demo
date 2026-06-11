@@ -32,26 +32,28 @@ public class EventVenueCalendarRepository(ManagementDbContext context)
 
     public async Task SwapHeadlinerAsync(Guid calendarId, Guid oldArtistId, Guid newArtistId, CancellationToken ct)
     {
-        // Ensure atomicity so we never end up with two headliners or none
         using var transaction = await _context.Database.BeginTransactionAsync(ct);
 
         try
         {
             // 1. Remove headliner status from the previous artist
-            await _context.ArtistPerformances
+            int oldArtistRows = await _context.ArtistPerformances
                 .Where(ap => ap.EventVenueCalendarId == calendarId && ap.ArtistId == oldArtistId)
                 .ExecuteUpdateAsync(s => s.SetProperty(p => p.IsHeadliner, false), ct);
 
             // 2. Set the new artist as the headliner
-            await _context.ArtistPerformances
+            int newArtistRows = await _context.ArtistPerformances
                 .Where(ap => ap.EventVenueCalendarId == calendarId && ap.ArtistId == newArtistId)
                 .ExecuteUpdateAsync(s => s.SetProperty(p => p.IsHeadliner, true), ct);
+
+            if (oldArtistRows == 0 || newArtistRows == 0)
+                throw new InvalidOperationException("The exchange could not be completed: one of the artists is not assigned to this schedule.");
 
             await transaction.CommitAsync(ct);
         }
         catch
         {
-            await transaction.RollbackAsync(ct);
+            await transaction.RollbackAsync(ct); // ¡Aquí entrará tu test!
             throw;
         }
     }
