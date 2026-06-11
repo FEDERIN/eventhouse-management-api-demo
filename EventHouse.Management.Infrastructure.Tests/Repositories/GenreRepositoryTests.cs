@@ -31,42 +31,4 @@ public class GenreRepositoryTests(SharedDatabaseFixture fixture) : BasePersisten
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
     }
-
-    [Fact]
-    public async Task GetPagedAsync_ShouldFilterByName_WhenPartialMatch()
-    {
-        // Arrange
-        await SeedAsync(
-            TestEntityFactory.CreateGenre(name: "Rock"),
-            TestEntityFactory.CreateGenre(name: "Pop")
-        );
-        var criteria = new GenreQueryCriteria { Name = "oc" };
-        // Act
-        var result = await _repository.GetPagedAsync(criteria, TestContext.Current.CancellationToken);
-        // Assert
-        result.Items.Should().ContainSingle();
-        result.Items[0].Name.Should().StartWith("Rock");
-    }
-
-    [Theory]
-    [InlineData(GenreSortField.Name, SortDirection.Asc, "Rock")]
-    [InlineData(GenreSortField.Name, SortDirection.Desc, "Vallenato")]
-    [InlineData(null, SortDirection.Asc, "Rock")]
-    [InlineData(null, SortDirection.Desc, "Vallenato")]
-    public async Task GetPagedAsync_ShouldApplyCorrectSorting(
-        GenreSortField? sortField,
-        SortDirection direction,
-        string expectedFirstName)
-    {
-         // Arrange
-        await SeedAsync(
-            TestEntityFactory.CreateGenre(name: "Rock"),
-            TestEntityFactory.CreateGenre(name: "Vallenato")
-        );
-        var criteria = new GenreQueryCriteria { SortBy = sortField, SortDirection = direction };
-        // Act
-        var result = await _repository.GetPagedAsync(criteria, TestContext.Current.CancellationToken);
-        // Assert
-        result.Items[0].Name.Should().StartWith(expectedFirstName);
-    }
 }

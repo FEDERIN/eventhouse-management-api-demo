@@ -33,7 +33,13 @@ jobs:
 
     # Run Unit and Integration tests with Coverage
     - name: Run Tests
-      run: dotnet test EventHouse.sln --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage"
+      run: |
+        dotnet test EventHouse.sln \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --settings coverlet.runsettings \
+          --collect:"XPlat Code Coverage"
 
     # Generate Coverage Report
     - name: Generate Coverage Report

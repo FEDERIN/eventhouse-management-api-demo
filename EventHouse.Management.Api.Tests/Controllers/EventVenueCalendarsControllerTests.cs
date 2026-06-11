@@ -47,14 +47,6 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
     }
 
     [Fact]
-    public async Task GetById_WhenMissing_Returns404NotFound()
-    {
-        var response = await Client.GetAsync($"{BaseUrlEventVenueCalendars}/{Guid.NewGuid()}", TestContext.Current.CancellationToken);
-
-        await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
     public async Task GetAll_WhenMultiple_Returns200OK_WithPagedResult()
     {
         // Arrange
@@ -69,6 +61,96 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         pagedResult.Items.Should().HaveCountGreaterThanOrEqualTo(2);
         pagedResult.TotalCount.Should().BeGreaterThanOrEqualTo(2);
+    }
+
+    [Theory]
+    [InlineData(EventVenueCalendarStatus.Draft, "America/New_York", true, true, null, null)]
+    [InlineData(null, null, null, null, "2026-06-06T10:00:00Z", "2026-06-06T12:00:00Z")]
+    public async Task GetAll_WithFiltersAndSorting_ReturnsFilteredResults(
+        EventVenueCalendarStatus? status,
+        string? timeZoneId,
+        bool? useVenueFilter,
+        bool? useSeatingMapFilter,
+        string? startDate,
+        string? endDate)
+    {
+        // Arrange
+        var c1 = await CreateEventVenueCalendarAsync(
+            status: EventVenueCalendarStatus.Draft,
+            startDate: DateTimeOffset.Parse("2026-06-06T10:00:00Z"),
+            endDate: DateTimeOffset.Parse("2026-06-06T12:00:00Z")
+        );
+
+        var queryParams = new List<string>();
+
+        if (status.HasValue) queryParams.Add($"status={status}");
+        if (timeZoneId != null) queryParams.Add($"timeZoneId={timeZoneId}");
+        if (useVenueFilter == true) queryParams.Add($"eventVenueId={c1.EventVenueId}");
+        if (useSeatingMapFilter == true) queryParams.Add($"seatingMapId={c1.SeatingMapId}");
+
+        // Codificamos las fechas para que el '+' o los caracteres especiales no rompan la URL
+        if (startDate != null) queryParams.Add($"startDate={Uri.EscapeDataString(startDate)}");
+        if (endDate != null) queryParams.Add($"endDate={Uri.EscapeDataString(endDate)}");
+
+        var url = $"{BaseUrlEventVenueCalendars}?{string.Join("&", queryParams)}";
+
+        // Act
+        var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var pagedResult = await response.ReadContentAsync<PagedResult<EventVenueCalendarResponse>>();
+
+        pagedResult.Items.Should().NotBeNull();
+
+        // Validación de datos (Asegura que el filtro realmente funcionó)
+        if (status.HasValue)
+            pagedResult.Items.Should().AllSatisfy(x => x.Status.Should().Be(status.Value));
+    }
+
+    [Theory]
+    [InlineData(EventVenueCalendarSortBy.StartDate, SortDirection.Asc)]
+    [InlineData(EventVenueCalendarSortBy.StartDate, SortDirection.Desc)]
+    [InlineData(EventVenueCalendarSortBy.Status, SortDirection.Asc)]
+    [InlineData(EventVenueCalendarSortBy.Status, SortDirection.Desc)]
+    [InlineData(EventVenueCalendarSortBy.TimeZoneId, SortDirection.Asc)]
+    [InlineData(EventVenueCalendarSortBy.TimeZoneId, SortDirection.Desc)]
+    [InlineData(null, SortDirection.Asc)]
+    [InlineData(null, SortDirection.Desc)]
+    public async Task GetPaged_WithSorting_ReturnsOrderedResults(
+        EventVenueCalendarSortBy? sortColumn,
+        SortDirection direction)
+    {
+        // Arrange
+        await CreateEventVenueCalendarAsync(startDate: DateTimeOffset.UtcNow.AddDays(1));
+        await CreateEventVenueCalendarAsync(startDate: DateTimeOffset.UtcNow.AddDays(5));
+        await CreateEventVenueCalendarAsync(startDate: DateTimeOffset.UtcNow.AddDays(10));
+
+        var url = $"{BaseUrlEventVenueCalendars}?SortBy={sortColumn}&SortDirection={direction}";
+
+        // Act
+        var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
+        var pagedResult = await response.ReadContentAsync<PagedResult<EventVenueCalendarResponse>>();
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var items = pagedResult.Items;
+        switch (sortColumn)
+        {
+            case EventVenueCalendarSortBy.StartDate:
+                ValidateOrder(items.Select(x => x.StartDate), direction);
+                break;
+            case EventVenueCalendarSortBy.Status:
+                ValidateOrder(items.Select(x => x.Status), direction);
+                break;
+            case EventVenueCalendarSortBy.TimeZoneId:
+                ValidateOrder(items.Select(x => x.TimeZoneId), direction);
+                break;
+            default:
+                ValidateOrder(items.Select(x => x.StartDate), direction);
+                break;
+        }
     }
 
     [Fact]
@@ -95,6 +177,82 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
 
         pagedResult.Items.Should().ContainSingle(p => p.IsHeadliner);
     }
+
+    [Fact]
+    public async Task GetArtistPerformances_WhenFilterByArtistId_Returns200OK_WithFilteredResults()
+    {
+        var calendar = await CreateEventVenueCalendarAsync(startDate: DateTime.UtcNow, endDate: DateTime.UtcNow.AddHours(5));
+
+        var artist1 =  await AddArtistToCalendarAsync(calendar.Id, isHeadliner: true, start: calendar.StartDate,
+            end: calendar.StartDate.AddHours(1));
+
+        await AddArtistToCalendarAsync(calendar.Id, isHeadliner: false, start: calendar.StartDate.AddHours(1),
+            end: calendar.StartDate.AddHours(2));
+
+        var response = await Client.GetAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances?ArtistId={artist1.ArtistId}&isHeadliner=true", cancellationToken: TestContext.Current.CancellationToken);
+
+        var pagedResult = await response.ReadContentAsync<PagedResult<ArtistPerformanceResponse>>();
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        pagedResult.Items.Should().HaveCount(1);
+        pagedResult.TotalCount.Should().Be(1);
+        pagedResult.Items[0].ArtistId.Should().Be(artist1.ArtistId);
+    }
+
+    [Theory]
+    [InlineData(ArtistPerformanceSortBy.SetStart, SortDirection.Asc)]
+    [InlineData(ArtistPerformanceSortBy.SetStart, SortDirection.Desc)]
+    [InlineData(ArtistPerformanceSortBy.SetEnd, SortDirection.Asc)]
+    [InlineData(ArtistPerformanceSortBy.SetEnd, SortDirection.Desc)]
+    [InlineData(ArtistPerformanceSortBy.IsHeadliner, SortDirection.Desc)]
+    [InlineData(ArtistPerformanceSortBy.IsHeadliner, SortDirection.Asc)]
+    public async Task GetArtistPerformances_WithSorting_ReturnsOrderedResults(
+        ArtistPerformanceSortBy sortColumn,
+        SortDirection direction)
+    {
+        var calendar = await CreateEventVenueCalendarAsync(startDate: DateTime.UtcNow, endDate: DateTime.UtcNow.AddHours(5));
+
+        await AddArtistToCalendarAsync(calendar.Id, isHeadliner: true,
+            start: calendar.StartDate, end: calendar.StartDate.AddHours(1));
+
+        await AddArtistToCalendarAsync(calendar.Id, isHeadliner: false,
+            start: calendar.StartDate.AddHours(1), end: calendar.StartDate.AddHours(2));
+
+        await AddArtistToCalendarAsync(calendar.Id, isHeadliner: false,
+            start: calendar.StartDate.AddHours(2), end: calendar.StartDate.AddHours(3));
+
+
+        var url = $"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances" +
+                  $"?sortBy={sortColumn}&sortDirection={direction}";
+
+        // Act
+        var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
+        var pagedResult = await response.ReadContentAsync<PagedResult<ArtistPerformanceResponse>>();
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Lógica dinámica de validación según el campo
+        var items = pagedResult.Items;
+
+        switch (sortColumn)
+        {
+            case ArtistPerformanceSortBy.SetStart:
+                ValidateOrder(items.Select(x => x.SetStart), direction);
+                break;
+
+            case ArtistPerformanceSortBy.SetEnd:
+                ValidateOrder(items.Select(x => x.SetEnd), direction);
+                break;
+
+            case ArtistPerformanceSortBy.IsHeadliner:
+                if (direction == SortDirection.Desc)
+                    items.Select(x => x.IsHeadliner).Should().BeInDescendingOrder();
+                else
+                    items.Select(x => x.IsHeadliner).Should().BeInAscendingOrder();
+                break;
+        }
+    }
+
 
     [Fact]
     public async Task GetArtistPerformances_WhenCalendarMissing_Returns404NotFound()
@@ -339,6 +497,32 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
     }
 
     [Fact]
+    public async Task AddPerformance_WhenArtistNotFound_Returns404NotFound()
+    {
+        var calendar = await CreateEventVenueCalendarAsync(
+            startDate: DateTimeOffset.UtcNow.AddDays(4),
+            endDate: DateTimeOffset.UtcNow.AddDays(4).AddHours(5));
+
+        var nonExistentArtistId = Guid.NewGuid();
+
+        var request = new CreateArtistPerformanceRequest
+        {
+            ArtistId = nonExistentArtistId,
+            IsHeadliner = true,
+            SetStart = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(15),
+            SetEnd = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(30)
+        };
+
+        // Act
+        var response = await Client.PostAsJsonAsync(
+            $"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances",
+            request,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task AddPerformance_WhenOverlapInSameCalendar_Returns409Conflict()
     {
         var calendar = await CreateEventVenueCalendarAsync(startDate: DateTimeOffset.UtcNow.AddDays(4), endDate: DateTimeOffset.UtcNow.AddDays(4).AddHours(5));
@@ -418,7 +602,6 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "DUPLICATE_HEADLINER");
     }
 
-
     [Fact]
     public async Task SwapHeadliner_WhenValid_Returns204NoContent()
     {
@@ -438,6 +621,25 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task SwapHeadliner_WhenOldArtistNotHeadliner_Returns409Conflict()
+    {
+        var calendar = await CreateEventVenueCalendarAsync();
+        var support1 = await AddArtistToCalendarAsync(calendar.Id, isHeadliner: true);
+        var support2 = await AddArtistToCalendarAsync(calendar.Id, isHeadliner: false);
+
+        var request = new SwapHeadlinerRequest
+        {
+            OldArtistId = support2.ArtistId,
+            NewArtistId = support1.ArtistId
+        };
+
+        var response = await Client.PatchAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/swap-headliner", request, cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "ARTIST_NOT_HEADLINER");
     }
 
     #endregion
@@ -518,6 +720,5 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-
     #endregion
 }

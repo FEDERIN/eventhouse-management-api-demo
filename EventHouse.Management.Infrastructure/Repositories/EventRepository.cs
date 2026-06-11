@@ -76,11 +76,9 @@ internal class EventRepository(ManagementDbContext context) :
         if (criteria.Scope.HasValue)
             query = query.Where(e => e.Scope == criteria.Scope.Value);
 
-
-        var sortBy = criteria.SortBy ?? EventSortField.Name;
         bool asc = criteria.SortDirection == SortDirection.Asc;
 
-        query = sortBy switch
+        query = criteria.SortBy switch
         {
             EventSortField.Name =>
                 asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name),

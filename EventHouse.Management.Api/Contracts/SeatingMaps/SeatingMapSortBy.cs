@@ -3,6 +3,6 @@
 public enum SeatingMapSortBy
 {
     Name,
-    VenueName,
+    Version,
     IsActive
 }

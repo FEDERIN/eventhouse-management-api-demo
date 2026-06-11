@@ -2,6 +2,7 @@
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Microsoft.OpenApi.Any;
 using Core.Idempotency.Options;
+using Dapper;
 
 namespace EventHouse.Management.Api.Swagger.Filters;
 
@@ -39,7 +40,7 @@ public class IdempotencyHeaderOperationFilter(IConfiguration configuration) : IO
                 Format = "uuid",
                 Default = new OpenApiString(Guid.NewGuid().ToString())
             },
-            Description = $"Idempotency header configured. Allowed methods: {string.Join(", ", options.AllowedMethods)}"
+            Description = $"Idempotency header configured. Allowed methods: {string.Join(", ", options.AllowedMethods.Distinct().AsList())}"
         });
     }
 }

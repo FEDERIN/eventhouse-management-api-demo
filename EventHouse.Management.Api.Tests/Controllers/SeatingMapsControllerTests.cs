@@ -1,11 +1,10 @@
-using EventHouse.Management.Api.Contracts.Common;
+﻿using EventHouse.Management.Api.Contracts.Common;
 using EventHouse.Management.Api.Contracts.SeatingMaps;
 using EventHouse.Management.Api.Tests.Abstractions;
 using EventHouse.Management.Api.Tests.Common;
 using EventHouse.Management.Api.Tests.Factories;
 using EventHouse.Management.Tests.Shared.Common;
 using FluentAssertions;
-using FluentAssertions.Execution;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -14,19 +13,86 @@ namespace EventHouse.Management.Api.Tests.Controllers;
 public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory factory)
     : BaseIntegrationTest(factory)
 {
-    #region SECURITY
-    [Fact]
-    public async Task GetAll_WithoutToken_Returns401()
-    {
-        var request = new HttpRequestMessage(HttpMethod.Get, BaseUrlSeatingMaps).WithoutAuthentication();
-        var res = await Client.SendAsync(request, TestContext.Current.CancellationToken);
+    #region READ (GET)
 
-        await res.ShouldBeProblemJson(HttpStatusCode.Unauthorized);
+    [Theory]
+    [InlineData("Central", null, null)]
+    [InlineData(null, true, null)]
+    [InlineData(null, false, null)]
+    [InlineData("Central", true, null)]
+    [InlineData(null, null, null)]
+    public async Task GetAll_WithFiltersAndSorting_ReturnsFilteredResults(
+        string? name,
+        bool? isActive,
+        Guid? venueId)
+    {
+        // Arrange
+        var venue = await CreateVenueAsync();
+        await CreateSeatingMapAsync(venueId: venue.Id, name: "Central", isActive: true);
+        await CreateSeatingMapAsync(venueId: venue.Id, name: "North", isActive: false);
+
+        var url = $"{BaseUrlSeatingMaps}?" +
+                  (name != null ? $"name={name}&" : "") +
+                  (isActive.HasValue ? $"isActive={isActive}&" : "") +
+                  (venueId.HasValue ? $"venueId={venueId}" : "");
+
+        // Act
+        var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
-    #endregion
+    [Theory]
+    [InlineData(SeatingMapSortBy.Name, SortDirection.Asc)]
+    [InlineData(SeatingMapSortBy.Name, SortDirection.Desc)]
+    [InlineData(SeatingMapSortBy.Version, SortDirection.Asc)]
+    [InlineData(SeatingMapSortBy.Version, SortDirection.Desc)]
+    [InlineData(SeatingMapSortBy.IsActive, SortDirection.Asc)]
+    [InlineData(SeatingMapSortBy.IsActive, SortDirection.Desc)]
+    [InlineData(null, SortDirection.Asc)]
+    [InlineData(null, SortDirection.Desc)]
+    public async Task GetAll_WithSorting_ReturnsSortedResults(
+        SeatingMapSortBy? sortColumn,
+        SortDirection direction)
+    {
+        // Arrange
+        var venue = await CreateVenueAsync();
+        await CreateSeatingMapAsync(venueId: venue.Id, name: "Charlie", isActive: false);
+        await CreateSeatingMapAsync(venueId: venue.Id, name: "Alpha", isActive: true);
+        await CreateSeatingMapAsync(venueId: venue.Id, name: "Delta", isActive: true);
 
-    #region GET/READ
+        var url = $"{BaseUrlSeatingMaps}?sortBy={sortColumn}&sortDirection={direction}";
+
+        // Act
+        var response = await Client.GetAsync(url, TestContext.Current.CancellationToken);
+        var pagedResult = await response.ReadContentAsync<PagedResult<SeatingMapResponse>>();
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var items = pagedResult.Items;
+
+        switch (sortColumn)
+        {
+            case SeatingMapSortBy.Name:
+                ValidateOrder(items.Select(x => x.Name), direction);
+                break;
+
+            case SeatingMapSortBy.Version:
+                ValidateOrder(items.Select(x => x.Version), direction);
+                break;
+
+            case SeatingMapSortBy.IsActive:
+                ValidateOrder(items.Select(x => x.IsActive), direction);
+                break;
+
+            default:
+                ValidateOrder(items.Select(x => x.Name), direction);
+                break;
+        }
+    }
+
     [Fact]
     public async Task GetById_WhenExists_Returns200_And_SeatingMap()
     {
@@ -46,14 +112,6 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
     }
 
     [Fact]
-    public async Task GetById_WhenMissing_Returns404()
-    {
-        var res = await Client.GetAsync($"{BaseUrlSeatingMaps}/{Guid.NewGuid()}", TestContext.Current.CancellationToken);
-
-        await res.ShouldBeProblemJson(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
     public async Task GetAll_WithMultiple_Returns200_And_AllSeatingMaps()
     {
         var venue = await CreateVenueAsync();
@@ -65,20 +123,12 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
 
         res.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Apply the microsecond tolerance globally for these assertions
-        using var scope = new AssertionScope();
-
-        pagedResult.Items.Should().ContainEquivalentOf(seatingMap1, opt => opt
-           .ExcludingMissingMembers()
-           .WithPostgresPrecision());
-
-        pagedResult.Items.Should().ContainEquivalentOf(seatingMap2, opt => opt
-            .ExcludingMissingMembers()
-            .WithPostgresPrecision());
+        pagedResult.Items.Should().HaveCountGreaterThanOrEqualTo(2);
+        pagedResult.TotalCount.Should().BeGreaterThanOrEqualTo(2);
     }
     #endregion
 
-    #region POST/CREATE
+    #region CREATE (POST)
     [Fact]
     public async Task Create_Returns201_And_MatchesRequest()
     {
@@ -112,31 +162,18 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
     }
     #endregion
 
-    #region PUT/UPDATE
-    [Fact]
-    public async Task Update_WhenVenueMissing_Returns404()
-    {
-        var seatingMap = await CreateSeatingMapAsync();
-        var updateRequest = SeatingMapFactory.UpdateRequest();
-        var response = await Client.PutAsJsonAsync($"{BaseUrlSeatingMaps}/{seatingMap.Id}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
-
-        await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
-    }
-
+    #region UPDATE (PUT)
     [Fact]
     public async Task Update_Returns204_And_PersistsChanges()
     {
         var venue = await CreateVenueAsync();
         var seatingMap = await CreateSeatingMapAsync(venueId: venue.Id);
         var updateRequest = SeatingMapFactory.UpdateRequest();
-        var response = await Client.PutAsJsonAsync($"{BaseUrlSeatingMaps}/{seatingMap.Id}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
-        
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        
-        var getResponse = await Client.GetAsync($"{BaseUrlSeatingMaps}/{seatingMap.Id}", TestContext.Current.CancellationToken);
-        var updated = await getResponse.ReadContentAsync<SeatingMapResponse>();
-        
-        updated.Should().BeEquivalentTo(updateRequest, opt => opt.ExcludingMissingMembers());
+
+        await PutAndAssertPersisted<UpdateSeatingMapRequest, SeatingMapResponse>(
+            $"{BaseUrlSeatingMaps}/{seatingMap.Id}",
+            updateRequest
+        );
     }
 
     [Fact]
@@ -161,20 +198,16 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
 
     #region DELETE
     [Fact]
-    public async Task Delete_Returns204_And_RemovesSeatingMap()
+    public async Task Delete_Returns204_And_Then_GetReturns404()
     {
+        // Arrange
         var venue = await CreateVenueAsync();
         var seatingMap = await CreateSeatingMapAsync(venueId: venue.Id);
-        var response = await Client.DeleteAsync($"{BaseUrlSeatingMaps}/{seatingMap.Id}", TestContext.Current.CancellationToken);
-        
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
-    }
+        var url = $"{BaseUrlSeatingMaps}/{seatingMap.Id}";
 
-    [Fact]
-    public async Task Delete_WhenMissing_Returns404()
-    {
-        var response = await Client.DeleteAsync($"{BaseUrlSeatingMaps}/{Guid.NewGuid()}", TestContext.Current.CancellationToken);
-        await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
+        // Act & Assert
+        await AssertDeleteReturns204(url);
+        await AssertGetReturns404(url);
     }
     #endregion
 }

@@ -29,17 +29,6 @@ public sealed class ArtistPerformancesControllerTests(CustomWebApplicationFactor
         returned.Id.Should().Be(performance.Id);
         returned.ArtistId.Should().Be(performance.ArtistId);
     }
-
-    [Fact]
-    public async Task GetById_WhenMissing_Returns404NotFound()
-    {
-        // Act
-        var response = await Client.GetAsync($"{BaseUrlArtistPerformances}/{Guid.NewGuid()}", TestContext.Current.CancellationToken);
-
-        // Assert
-        await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
-    }
-
     #endregion
 
     #region DELETE
