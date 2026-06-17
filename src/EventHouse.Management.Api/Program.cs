@@ -86,10 +86,20 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+//builder.Services.AddDbContext<ManagementDbContext>(options =>
+//{
+//    options.UseNpgsql(builder.Configuration.GetConnectionString("ManagementConnection"))
+//           .UseSnakeCaseNamingConvention(); //Convert to snake_case for PostgreSQL
+//});
+
 builder.Services.AddDbContext<ManagementDbContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ManagementConnection"))
-           .UseSnakeCaseNamingConvention(); //Convert to snake_case for PostgreSQL
+    options.UseNpgsql(builder.Configuration.GetConnectionString("ManagementConnection"), o =>
+    {
+        o.CommandTimeout(90);
+        o.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+    })
+    .UseSnakeCaseNamingConvention();
 });
 
 
@@ -266,11 +276,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-//using (var scope = app.Services.CreateScope())
-//{
-//    var dbContext = scope.ServiceProvider.GetRequiredService<ManagementDbContext>();
-//    await dbContext.Database.MigrateAsync();
-//}
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ManagementDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 app.Run();
 
