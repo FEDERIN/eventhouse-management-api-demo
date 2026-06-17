@@ -3,25 +3,25 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.ShareKernel", "EventHouse.ShareKernel\EventHouse.ShareKernel.csproj", "{F0664617-8F2E-4AA9-A919-51F190FF4037}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.ShareKernel", "src\EventHouse.ShareKernel\EventHouse.ShareKernel.csproj", "{F0664617-8F2E-4AA9-A919-51F190FF4037}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Domain", "EventHouse.Management.Domain\EventHouse.Management.Domain.csproj", "{1994C13E-4C1D-4491-A729-73911C9E756B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Domain", "src\EventHouse.Management.Domain\EventHouse.Management.Domain.csproj", "{1994C13E-4C1D-4491-A729-73911C9E756B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Application", "EventHouse.Management.Application\EventHouse.Management.Application.csproj", "{DBE8113F-F5E8-47A7-AAC9-409F36BDEE6B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Application", "src\EventHouse.Management.Application\EventHouse.Management.Application.csproj", "{DBE8113F-F5E8-47A7-AAC9-409F36BDEE6B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Infrastructure", "EventHouse.Management.Infrastructure\EventHouse.Management.Infrastructure.csproj", "{B56535DA-911B-4049-A53C-7E68EF5A3478}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Infrastructure", "src\EventHouse.Management.Infrastructure\EventHouse.Management.Infrastructure.csproj", "{B56535DA-911B-4049-A53C-7E68EF5A3478}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Api", "EventHouse.Management.Api\EventHouse.Management.Api.csproj", "{D7565420-1EB5-42A2-A10F-DB9ADBE0E4DA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Api", "src\EventHouse.Management.Api\EventHouse.Management.Api.csproj", "{D7565420-1EB5-42A2-A10F-DB9ADBE0E4DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Domain.Tests", "EventHouse.Management.Domain.Tests\EventHouse.Management.Domain.Tests.csproj", "{D636A088-7494-4F31-BFC2-AE00ED89084A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Domain.Tests", "tests\EventHouse.Management.Domain.Tests\EventHouse.Management.Domain.Tests.csproj", "{D636A088-7494-4F31-BFC2-AE00ED89084A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Application.Tests", "EventHouse.Management.Application.Tests\EventHouse.Management.Application.Tests.csproj", "{F9D27ECA-09ED-458A-8D98-6E87D438667D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Application.Tests", "tests\EventHouse.Management.Application.Tests\EventHouse.Management.Application.Tests.csproj", "{F9D27ECA-09ED-458A-8D98-6E87D438667D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Api.Tests", "EventHouse.Management.Api.Tests\EventHouse.Management.Api.Tests.csproj", "{EFDC2BC2-72C0-4816-BC31-4D5FAB5BC485}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Api.Tests", "tests\EventHouse.Management.Api.Tests\EventHouse.Management.Api.Tests.csproj", "{EFDC2BC2-72C0-4816-BC31-4D5FAB5BC485}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Infrastructure.Tests", "EventHouse.Management.Infrastructure.Tests\EventHouse.Management.Infrastructure.Tests.csproj", "{7EFCB89C-3FB0-45E9-9470-9E6A8169416C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Infrastructure.Tests", "tests\EventHouse.Management.Infrastructure.Tests\EventHouse.Management.Infrastructure.Tests.csproj", "{7EFCB89C-3FB0-45E9-9470-9E6A8169416C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Tests.Shared", "EventHouse.Management.TestUtils\EventHouse.Management.Tests.Shared.csproj", "{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Tests.Shared", "tests\EventHouse.Management.TestUtils\EventHouse.Management.Tests.Shared.csproj", "{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{D107F4C8-89CC-BEA8-D3D7-CA6B7733353D}"
 	ProjectSection(SolutionItems) = preProject
@@ -31,6 +31,16 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8994C3F6-D0BF-4437-AB7A-F6D6032D6674}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{024EE08A-FA7A-4F16-A7A3-CCA66170CA50}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BABA7D1C-59A8-4A07-A310-3ECC6D27AFC3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{6B28FED8-81A5-48D9-9476-0F8F798F8921}"
+	ProjectSection(SolutionItems) = preProject
+		docs\diagram-flow.mmd = docs\diagram-flow.mmd
+		docs\diagram-flow.png = docs\diagram-flow.png
 	EndProjectSection
 EndProject
 Global
@@ -82,6 +92,18 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F0664617-8F2E-4AA9-A919-51F190FF4037} = {BABA7D1C-59A8-4A07-A310-3ECC6D27AFC3}
+		{1994C13E-4C1D-4491-A729-73911C9E756B} = {BABA7D1C-59A8-4A07-A310-3ECC6D27AFC3}
+		{DBE8113F-F5E8-47A7-AAC9-409F36BDEE6B} = {BABA7D1C-59A8-4A07-A310-3ECC6D27AFC3}
+		{B56535DA-911B-4049-A53C-7E68EF5A3478} = {BABA7D1C-59A8-4A07-A310-3ECC6D27AFC3}
+		{D7565420-1EB5-42A2-A10F-DB9ADBE0E4DA} = {BABA7D1C-59A8-4A07-A310-3ECC6D27AFC3}
+		{D636A088-7494-4F31-BFC2-AE00ED89084A} = {024EE08A-FA7A-4F16-A7A3-CCA66170CA50}
+		{F9D27ECA-09ED-458A-8D98-6E87D438667D} = {024EE08A-FA7A-4F16-A7A3-CCA66170CA50}
+		{EFDC2BC2-72C0-4816-BC31-4D5FAB5BC485} = {024EE08A-FA7A-4F16-A7A3-CCA66170CA50}
+		{7EFCB89C-3FB0-45E9-9470-9E6A8169416C} = {024EE08A-FA7A-4F16-A7A3-CCA66170CA50}
+		{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7} = {024EE08A-FA7A-4F16-A7A3-CCA66170CA50}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E847F8CD-98B6-4209-B768-33CBAD7321B2}

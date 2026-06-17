@@ -1,4 +1,7 @@
-# Build outputs
+
+
+init-db.sh
+.env# Build outputs
 bin/
 obj/
 
@@ -31,4 +34,7 @@ coverage-report/
 
 *.cobertura.xml
 
-EventHouse.Management.Api/.env
+src/EventHouse.Management.Api/.env
+
+init-db.sh
+.env
