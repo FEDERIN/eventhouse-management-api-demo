@@ -38,10 +38,75 @@ It is designed as a **production-grade portfolio project**, showcasing scalabili
 
 ```mermaid
 graph TD
+    %% =========================
+    %% CLIENTE Y ENTRY POINT
+    %% =========================
+    Client((Cliente))
+    Client --> API[EventHouse.Management.Api]
+
+    %% =========================
+    %% ARQUITECTURA INTERNA
+    %% =========================
+    subgraph Core [Core Domain & Application]
+        Application[Application Layer]
+        Domain[Domain Layer]
+    end
+
+    subgraph Infrastructure [Infrastructure Layer]
+        Infra[Infrastructure Implementation]
+        Gatekeeper[Idempotency Filter]
+    end
+
     API --> Application
+    API --> Infra
+
     Application --> Domain
-    Application --> Infrastructure
-    Infrastructure --> PostgreSQL[(PostgreSQL)]
+
+    Infra --> Application
+    Infra --> Domain
+
+    %% =========================
+    %% PERSISTENCIA
+    %% =========================
+    subgraph Storage [Storage & Data Services]
+        Postgres[(PostgreSQL)]
+
+        subgraph IdempotencyStore [Idempotency Storage]
+            Redis[(Redis)]
+            PgStore[(PostgreSQL Storage)]
+        end
+    end
+
+    Infra --> Postgres
+
+    Gatekeeper -- Check/Set Key --> Redis
+    Gatekeeper -. Alternative .-> PgStore
+
+    %% =========================
+    %% OBSERVABILIDAD
+    %% =========================
+    API -. Telemetry .-> OTel[OpenTelemetry SDK]
+
+    subgraph Observability [Observability Stack]
+        Jaeger[Jaeger]
+        Prometheus[Prometheus]
+        Grafana[Grafana]
+    end
+
+    OTel --> Jaeger
+    OTel --> Prometheus
+    Prometheus --> Grafana
+
+    %% =========================
+    %% ESTILOS
+    %% =========================
+    style API fill:#f06292,stroke:#880e4f,color:#fff
+
+    style Core fill:#e3f2fd,stroke:#2196f3
+    style Infrastructure fill:#fff3e0,stroke:#ff9800
+
+    style Storage fill:#f3e5f5,stroke:#9c27b0
+    style Observability fill:#e8f5e9,stroke:#4caf50
 ```
 
 ---
