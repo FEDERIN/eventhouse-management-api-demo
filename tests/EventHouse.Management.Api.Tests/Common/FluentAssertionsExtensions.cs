@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Equivalency;
 
-namespace EventHouse.Management.Tests.Shared.Common;
+namespace EventHouse.Management.Api.Tests.Common;
 
 public static class FluentAssertionsExtensions
 {

@@ -148,7 +148,6 @@ builder.Services.AddSwaggerGen(c =>
     });
     c.AddServer(new OpenApiServer { Url = "http://localhost:5185", Description = "Local" });
 
-    // Respeta nullability de C#
     c.SupportNonNullableReferenceTypes();
 
     c.EnableAnnotations();
@@ -202,7 +201,7 @@ builder.Services.AddRateLimiter(options =>
         await context.HttpContext.Response.WriteAsJsonAsync(problem, cancellationToken: token);
     };
 
-    // Política global por IP (demo)
+    // Global Policy by IP
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
     {
         var key =
@@ -266,6 +265,12 @@ app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ManagementDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 app.Run();
 

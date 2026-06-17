@@ -12,6 +12,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\EventHouse.Management.Domain\EventHouse.Management.Domain.csproj" />
+	  <ProjectReference Include="..\..\src\EventHouse.Management.Domain\EventHouse.Management.Domain.csproj" />
 	</ItemGroup>
 </Project>
