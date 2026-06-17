@@ -3,7 +3,6 @@ using EventHouse.Management.Api.Contracts.SeatingMaps;
 using EventHouse.Management.Api.Tests.Abstractions;
 using EventHouse.Management.Api.Tests.Common;
 using EventHouse.Management.Api.Tests.Factories;
-using EventHouse.Management.Tests.Shared.Common;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;

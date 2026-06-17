@@ -57,4 +57,4 @@ jobs:
 
     # Validate that the Dockerfile builds correctly (Smoke Test)
     - name: Build Docker Image
-      run: docker build -t eventhouse-api:test -f EventHouse.Management.Api/Dockerfile .
+      run: docker build -t eventhouse-api:test -f src/EventHouse.Management.Api/Dockerfile .
