@@ -16,11 +16,11 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_ENVIRONMENT": "Production",
         "Auth__DevSecret": "EVENTHOUSE_LOCAL_DEV_SECRET_32_CHARS_MINIMUM!!"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:7232;http://localhost:5185"
+      "applicationUrl": "https://localhost:7232;"
     },
     "IIS Express": {
       "commandName": "IISExpress",

@@ -1,0 +1,5202 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "EventHouse.Management.Api",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "https://eventhouse-management-api-demo.onrender.com",
+      "description": "Render Production"
+    },
+    {
+      "url": "http://localhost:5185",
+      "description": "Local"
+    }
+  ],
+  "paths": {
+    "/api/v1/artist-performances/{id}": {
+      "get": {
+        "tags": [
+          "ArtistPerformances"
+        ],
+        "summary": "Retrieve details of a specific artist performance.",
+        "operationId": "GetArtistPerformanceById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistPerformanceResponse"
+                },
+                "example": {
+                  "id": "7a123f64-5717-4562-b3fc-2c963f66afa6",
+                  "eventVenueCalendarId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  "artistId": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+                  "isHeadliner": true,
+                  "setStart": "2026-12-06T19:00:00\u002B00:00",
+                  "setEnd": "2026-12-06T20:30:00\u002B00:00"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/artist-performances/{calendarId}/{artistId}": {
+      "delete": {
+        "tags": [
+          "ArtistPerformances"
+        ],
+        "summary": "Remove an artist performance from a calendar.",
+        "description": "Removes the performance. If the calendar is Published and the artist is the headliner, the operation will fail.",
+        "operationId": "RemoveArtistPerformance",
+        "parameters": [
+          {
+            "name": "calendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "500520af-4d39-4233-84aa-48f872cd89b7"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/artists": {
+      "get": {
+        "tags": [
+          "Artists"
+        ],
+        "summary": "List artists with optional filtering, sorting, and pagination.",
+        "operationId": "ListArtists",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Filter artists by name (contains match).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter artists by category.",
+            "schema": {
+              "$ref": "#/components/schemas/ArtistCategory"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ArtistSortBy"
+            }
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SortDirection"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistSummaryPagedResult"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+                      "name": "The Rolling Stones",
+                      "category": "Band"
+                    }
+                  ],
+                  "totalCount": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "links": {
+                    "self": "/api/v1/artists?page=1\u0026pageSize=20",
+                    "first": "/api/v1/artists?page=1\u0026pageSize=20",
+                    "previous": null,
+                    "next": null,
+                    "last": "/api/v1/artists?page=1\u0026pageSize=20"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Artists"
+        ],
+        "summary": "Create a new artist in the system.",
+        "operationId": "CreateArtist",
+        "parameters": [
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "3368b3e4-e913-450c-bc06-bd8f384cb718"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateArtistRequest"
+              },
+              "example": {
+                "name": "The Rolling Stones",
+                "category": "Band"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateArtistRequest"
+              },
+              "example": {
+                "name": "The Rolling Stones",
+                "category": "Band"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateArtistRequest"
+              },
+              "example": {
+                "name": "The Rolling Stones",
+                "category": "Band"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "201": {
+            "description": "Created",
+            "headers": {
+              "Location": {
+                "description": "URL of the newly created resource",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistSummary"
+                },
+                "example": {
+                  "id": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+                  "name": "The Rolling Stones",
+                  "category": "Band"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/artists/{artistId}": {
+      "get": {
+        "tags": [
+          "Artists"
+        ],
+        "summary": "Retrieve a specific artist by their unique identifier.",
+        "operationId": "GetArtistById",
+        "parameters": [
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistDetail"
+                },
+                "example": {
+                  "id": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+                  "name": "The Rolling Stones",
+                  "category": "Band",
+                  "genres": [
+                    {
+                      "genreId": "d290f1ee-6c54-4b01-90e6-d701748f0852",
+                      "isPrimary": false,
+                      "status": "Active"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Artists"
+        ],
+        "summary": "Update an existing artist\u0027s details.",
+        "operationId": "UpdateArtist",
+        "parameters": [
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "e14f86be-ad4e-414d-adb5-44b9ffd154f7"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateArtistRequest"
+              },
+              "example": {
+                "name": "The Rolling Stones",
+                "category": "Band"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateArtistRequest"
+              },
+              "example": {
+                "name": "The Rolling Stones",
+                "category": "Band"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateArtistRequest"
+              },
+              "example": {
+                "name": "The Rolling Stones",
+                "category": "Band"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Artists"
+        ],
+        "summary": "Delete an artist from the system.",
+        "operationId": "DeleteArtist",
+        "parameters": [
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "854c720c-67d7-4bc2-bc0e-956e609b3835"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/artists/{artistId}/genres": {
+      "post": {
+        "tags": [
+          "Artists"
+        ],
+        "summary": "Adds a genre to an artist (idempotent).",
+        "operationId": "AddGenreToArtist",
+        "parameters": [
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "6c051696-4d07-48de-8289-7c6a4ca8c766"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddArtistGenreRequest"
+              },
+              "example": {
+                "genreId": "d290f1ee-6c54-4b01-90e6-d701748f0852",
+                "status": "Active",
+                "isPrimary": true
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddArtistGenreRequest"
+              },
+              "example": {
+                "genreId": "d290f1ee-6c54-4b01-90e6-d701748f0852",
+                "status": "Active",
+                "isPrimary": true
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/AddArtistGenreRequest"
+              },
+              "example": {
+                "genreId": "d290f1ee-6c54-4b01-90e6-d701748f0852",
+                "status": "Active",
+                "isPrimary": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/artists/{artistId}/genres/{genreId}": {
+      "delete": {
+        "tags": [
+          "Artists"
+        ],
+        "summary": "Removes a genre from an artist.",
+        "operationId": "RemoveGenreFromArtist",
+        "parameters": [
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "genreId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "2b117c02-7fcd-42bd-8a36-036b9e805f4d"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Artists"
+        ],
+        "summary": "Updates an artist-genre association status.",
+        "operationId": "UpdateArtistGenreStatus",
+        "parameters": [
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "genreId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "4dc88288-2841-4ce4-9a13-b8cbdc6ecd2d"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateArtistGenreStatusRequest"
+              },
+              "example": {
+                "status": "Active"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateArtistGenreStatusRequest"
+              },
+              "example": {
+                "status": "Active"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateArtistGenreStatusRequest"
+              },
+              "example": {
+                "status": "Active"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/artists/{artistId}/genres/{genreId}/primary": {
+      "patch": {
+        "tags": [
+          "Artists"
+        ],
+        "summary": "Sets a specific genre as primary for an artist.",
+        "operationId": "SetArtistPrimaryGenre",
+        "parameters": [
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "genreId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/auth/token": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Issues a demo JWT access token.",
+        "description": "Demo endpoint. Use username = \u0022demo\u0022 and password = \u0022demo\u0022.",
+        "operationId": "GetToken",
+        "parameters": [
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "266051cf-960e-4fbd-a3f9-af5e7f1aaadd"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRequest"
+              },
+              "example": {
+                "username": "demo",
+                "password": "demo"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRequest"
+              },
+              "example": {
+                "username": "demo",
+                "password": "demo"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRequest"
+              },
+              "example": {
+                "username": "demo",
+                "password": "demo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                },
+                "example": {
+                  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..",
+                  "tokenType": "Bearer",
+                  "expiresIn": 7200
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/events": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "List events with optional filtering, sorting, and pagination.",
+        "operationId": "ListEvents",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Filter events by name (contains match).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "description": "Filter events by description (contains match).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "Filter events by scope.",
+            "schema": {
+              "$ref": "#/components/schemas/EventScope"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/EventSortBy"
+            }
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SortDirection"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponsePagedResult"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "b123c456-8d89-1e12-4f45-7a7890123457",
+                      "name": "Summer Fest 2026",
+                      "description": "Annual open-air music festival.",
+                      "scope": "International"
+                    }
+                  ],
+                  "totalCount": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "links": {
+                    "self": "/api/v1/events?page=1\u0026pageSize=20",
+                    "first": "/api/v1/events?page=1\u0026pageSize=20",
+                    "previous": null,
+                    "next": null,
+                    "last": "/api/v1/events?page=1\u0026pageSize=20"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Create a new event in the system.",
+        "operationId": "CreateEvent",
+        "parameters": [
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "b293b6dc-f28e-4bec-a2b2-007a90262d7c"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventRequest"
+              },
+              "example": {
+                "name": "Summer Fest 2026",
+                "description": "Annual open-air music festival.",
+                "scope": "International"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventRequest"
+              },
+              "example": {
+                "name": "Summer Fest 2026",
+                "description": "Annual open-air music festival.",
+                "scope": "International"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventRequest"
+              },
+              "example": {
+                "name": "Summer Fest 2026",
+                "description": "Annual open-air music festival.",
+                "scope": "International"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "201": {
+            "description": "Created",
+            "headers": {
+              "Location": {
+                "description": "URL of the newly created resource",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                },
+                "example": {
+                  "id": "b123c456-8d89-1e12-4f45-7a7890123457",
+                  "name": "Summer Fest 2026",
+                  "description": "Annual open-air music festival.",
+                  "scope": "International"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/events/{eventId}": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Retrieve a specific event by its unique identifier.",
+        "operationId": "GetEventById",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                },
+                "example": {
+                  "id": "b123c456-8d89-1e12-4f45-7a7890123457",
+                  "name": "Summer Fest 2026",
+                  "description": "Annual open-air music festival.",
+                  "scope": "International"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Update an existing event in the system.",
+        "operationId": "UpdateEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "13996d86-8ff2-4a8b-b9e5-1def7a86ec9d"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventRequest"
+              },
+              "example": {
+                "name": "Summer Fest 2026",
+                "description": "Annual open-air music festival.",
+                "scope": "International"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventRequest"
+              },
+              "example": {
+                "name": "Summer Fest 2026",
+                "description": "Annual open-air music festival.",
+                "scope": "International"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventRequest"
+              },
+              "example": {
+                "name": "Summer Fest 2026",
+                "description": "Annual open-air music festival.",
+                "scope": "International"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Delete an existing event from the system.",
+        "operationId": "DeleteEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "1614922d-22dc-435d-a6bb-434acf067a51"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/event-venue-calendars/{eventVenueCalendarId}": {
+      "get": {
+        "tags": [
+          "EventVenueCalendars"
+        ],
+        "summary": "Retrieve a specific event venue calendar by their unique identifier.",
+        "operationId": "GetEventVenueCalendarById",
+        "parameters": [
+          {
+            "name": "eventVenueCalendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventVenueCalendarResponse"
+                },
+                "example": {
+                  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  "eventVenueId": "a123b456-7c89-0d12-3e45-6f7890123456",
+                  "seatingMapId": "22222222-2222-2222-2222-222222222222",
+                  "startDate": "2026-12-06T20:00:00\u002B01:00",
+                  "endDate": "2026-12-06T23:00:00\u002B01:00",
+                  "timeZoneId": "America/New_York",
+                  "status": "Published"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "EventVenueCalendars"
+        ],
+        "summary": "Update an existing event venue calendars details.",
+        "operationId": "UpdateEventVenueCalendar",
+        "parameters": [
+          {
+            "name": "eventVenueCalendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "c54e260e-a1eb-4c90-82ce-0eacb9964fdb"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventVenueCalendarRequest"
+              },
+              "example": {
+                "startDate": "2026-12-10T18:00:00\u002B01:00",
+                "endDate": "2026-12-10T22:00:00\u002B01:00",
+                "status": "Published"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventVenueCalendarRequest"
+              },
+              "example": {
+                "startDate": "2026-12-10T18:00:00\u002B01:00",
+                "endDate": "2026-12-10T22:00:00\u002B01:00",
+                "status": "Published"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventVenueCalendarRequest"
+              },
+              "example": {
+                "startDate": "2026-12-10T18:00:00\u002B01:00",
+                "endDate": "2026-12-10T22:00:00\u002B01:00",
+                "status": "Published"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/event-venue-calendars": {
+      "get": {
+        "tags": [
+          "EventVenueCalendars"
+        ],
+        "summary": "List event venue calendars with optional filtering, sorting, and pagination.",
+        "operationId": "ListEventVenueCalendars",
+        "parameters": [
+          {
+            "name": "eventVenueId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "seatingMapId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "timeZoneId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/EventVenueCalendarStatus"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/EventVenueCalendarSortBy"
+            }
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SortDirection"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventVenueCalendarResponsePagedResult"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                      "eventVenueId": "a123b456-7c89-0d12-3e45-6f7890123456",
+                      "seatingMapId": "22222222-2222-2222-2222-222222222222",
+                      "startDate": "2026-12-06T20:00:00\u002B01:00",
+                      "endDate": "2026-12-06T23:00:00\u002B01:00",
+                      "timeZoneId": "America/New_York",
+                      "status": "Published"
+                    }
+                  ],
+                  "totalCount": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "links": {
+                    "self": "/api/v1/event-venue-calendars?page=1\u0026pageSize=20",
+                    "first": "/api/v1/event-venue-calendars?page=1\u0026pageSize=20",
+                    "previous": null,
+                    "next": null,
+                    "last": "/api/v1/event-venue-calendars?page=1\u0026pageSize=20"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "EventVenueCalendars"
+        ],
+        "summary": "Create a new event venue calendar in the system.",
+        "operationId": "CreateEventVenueCalendar",
+        "parameters": [
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "050f2e44-95dd-460c-bb51-1d0d8f50d68e"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventVenueCalendarRequest"
+              },
+              "example": {
+                "eventVenueId": "a123b456-7c89-0d12-3e45-6f7890123456",
+                "seatingMapId": "22222222-2222-2222-2222-222222222222",
+                "timeZoneId": "America/New_York",
+                "startDate": "2026-12-06T20:00:00\u002B01:00",
+                "endDate": "2026-12-06T23:00:00\u002B01:00",
+                "status": "Draft"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventVenueCalendarRequest"
+              },
+              "example": {
+                "eventVenueId": "a123b456-7c89-0d12-3e45-6f7890123456",
+                "seatingMapId": "22222222-2222-2222-2222-222222222222",
+                "timeZoneId": "America/New_York",
+                "startDate": "2026-12-06T20:00:00\u002B01:00",
+                "endDate": "2026-12-06T23:00:00\u002B01:00",
+                "status": "Draft"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventVenueCalendarRequest"
+              },
+              "example": {
+                "eventVenueId": "a123b456-7c89-0d12-3e45-6f7890123456",
+                "seatingMapId": "22222222-2222-2222-2222-222222222222",
+                "timeZoneId": "America/New_York",
+                "startDate": "2026-12-06T20:00:00\u002B01:00",
+                "endDate": "2026-12-06T23:00:00\u002B01:00",
+                "status": "Draft"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "201": {
+            "description": "Created",
+            "headers": {
+              "Location": {
+                "description": "URL of the newly created resource",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventVenueCalendarResponse"
+                },
+                "example": {
+                  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  "eventVenueId": "a123b456-7c89-0d12-3e45-6f7890123456",
+                  "seatingMapId": "22222222-2222-2222-2222-222222222222",
+                  "startDate": "2026-12-06T20:00:00\u002B01:00",
+                  "endDate": "2026-12-06T23:00:00\u002B01:00",
+                  "timeZoneId": "America/New_York",
+                  "status": "Published"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/event-venue-calendars/{eventVenueCalendarId}/artist-performances": {
+      "get": {
+        "tags": [
+          "EventVenueCalendars"
+        ],
+        "summary": "Retrieve the line-up for a specific calendar slot.",
+        "operationId": "ListArtistPerformancesForCalendar",
+        "parameters": [
+          {
+            "name": "eventVenueCalendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "IsHeadliner",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ArtistId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ArtistPerformanceSortBy"
+            }
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SortDirection"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistPerformanceResponsePagedResultDto"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "7a123f64-5717-4562-b3fc-2c963f66afa6",
+                      "eventVenueCalendarId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                      "artistId": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+                      "isHeadliner": true,
+                      "setStart": "2026-12-06T19:00:00\u002B00:00",
+                      "setEnd": "2026-12-06T20:30:00\u002B00:00"
+                    }
+                  ],
+                  "totalCount": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "links": {
+                    "self": "/api/v1/artist-performances?page=1\u0026pageSize=20",
+                    "first": "/api/v1/artist-performances?page=1\u0026pageSize=20",
+                    "previous": null,
+                    "next": null,
+                    "last": "/api/v1/artist-performances?page=1\u0026pageSize=20"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "EventVenueCalendars"
+        ],
+        "summary": "Creates an artist performance for a calendar.",
+        "operationId": "CreateArtistPerformanceForCalendar",
+        "parameters": [
+          {
+            "name": "eventVenueCalendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "c99c8ff0-3630-42d9-858f-62f8340e69c8"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateArtistPerformanceRequest"
+              },
+              "example": {
+                "artistId": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+                "isHeadliner": true,
+                "setStart": "2026-12-06T20:00:00\u002B01:00",
+                "setEnd": "2026-12-06T22:30:00\u002B01:00"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateArtistPerformanceRequest"
+              },
+              "example": {
+                "artistId": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+                "isHeadliner": true,
+                "setStart": "2026-12-06T20:00:00\u002B01:00",
+                "setEnd": "2026-12-06T22:30:00\u002B01:00"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateArtistPerformanceRequest"
+              },
+              "example": {
+                "artistId": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+                "isHeadliner": true,
+                "setStart": "2026-12-06T20:00:00\u002B01:00",
+                "setEnd": "2026-12-06T22:30:00\u002B01:00"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "201": {
+            "description": "Created",
+            "headers": {
+              "Location": {
+                "description": "URL of the newly created resource",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistPerformanceResponse"
+                },
+                "example": {
+                  "id": "7a123f64-5717-4562-b3fc-2c963f66afa6",
+                  "eventVenueCalendarId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  "artistId": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+                  "isHeadliner": true,
+                  "setStart": "2026-12-06T19:00:00\u002B00:00",
+                  "setEnd": "2026-12-06T20:30:00\u002B00:00"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/event-venue-calendars/{calendarId}/artist-performances/{artistId}/times": {
+      "patch": {
+        "tags": [
+          "EventVenueCalendars"
+        ],
+        "summary": "Update set times for an artist performance.",
+        "description": "Updates the start and end times. Validates overlaps and calendar boundaries.",
+        "operationId": "UpdateArtistPerformanceTimes",
+        "parameters": [
+          {
+            "name": "calendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePerformanceDatesRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePerformanceDatesRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePerformanceDatesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/event-venue-calendars/{eventVenueCalendarId}/artist-performances/swap-headliner": {
+      "patch": {
+        "tags": [
+          "EventVenueCalendars"
+        ],
+        "summary": "Atomic swap of the headliner role.",
+        "operationId": "SwapArtistHeadliner",
+        "parameters": [
+          {
+            "name": "eventVenueCalendarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwapHeadlinerRequest"
+              },
+              "example": {
+                "oldArtistId": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+                "newArtistId": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwapHeadlinerRequest"
+              },
+              "example": {
+                "oldArtistId": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+                "newArtistId": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/SwapHeadlinerRequest"
+              },
+              "example": {
+                "oldArtistId": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+                "newArtistId": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/event-venues/{eventVenueId}": {
+      "get": {
+        "tags": [
+          "EventVenues"
+        ],
+        "summary": "Retrieve a specific event venue by their unique identifier.",
+        "operationId": "GetEventVenueById",
+        "parameters": [
+          {
+            "name": "eventVenueId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventVenueResponse"
+                },
+                "example": {
+                  "id": "a123b456-7c89-0d12-3e45-6f7890123456",
+                  "eventId": "b123c456-8d89-1e12-4f45-7a7890123457",
+                  "venueId": "c123d456-9e89-2f12-5a45-8b7890123458",
+                  "status": "Active",
+                  "eventName": "Summer Fest 2026",
+                  "venueName": "Madison Square Garden"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/event-venues": {
+      "get": {
+        "tags": [
+          "EventVenues"
+        ],
+        "summary": "List event venues with optional filtering, sorting, and pagination.",
+        "operationId": "ListEventVenues",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "venueId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/EventVenueStatus"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/EventVenueSortBy"
+            }
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SortDirection"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventVenueResponsePagedResult"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "a123b456-7c89-0d12-3e45-6f7890123456",
+                      "eventId": "b123c456-8d89-1e12-4f45-7a7890123457",
+                      "venueId": "c123d456-9e89-2f12-5a45-8b7890123458",
+                      "status": "Active",
+                      "eventName": "Summer Fest 2026",
+                      "venueName": "Madison Square Garden"
+                    }
+                  ],
+                  "totalCount": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "links": {
+                    "self": "/api/v1/event-venues?page=1\u0026pageSize=20",
+                    "first": "/api/v1/event-venues?page=1\u0026pageSize=20",
+                    "previous": null,
+                    "next": null,
+                    "last": "/api/v1/event-venues?page=1\u0026pageSize=20"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "EventVenues"
+        ],
+        "summary": "Create a new event venue in the system.",
+        "operationId": "CreateEventVenue",
+        "parameters": [
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "b49ca17c-8192-438c-b384-2589e95572a8"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventVenueRequest"
+              },
+              "example": {
+                "eventId": "b123c456-8d89-1e12-4f45-7a7890123457",
+                "venueId": "c123d456-9e89-2f12-5a45-8b7890123458",
+                "status": "Active"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventVenueRequest"
+              },
+              "example": {
+                "eventId": "b123c456-8d89-1e12-4f45-7a7890123457",
+                "venueId": "c123d456-9e89-2f12-5a45-8b7890123458",
+                "status": "Active"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventVenueRequest"
+              },
+              "example": {
+                "eventId": "b123c456-8d89-1e12-4f45-7a7890123457",
+                "venueId": "c123d456-9e89-2f12-5a45-8b7890123458",
+                "status": "Active"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "201": {
+            "description": "Created",
+            "headers": {
+              "Location": {
+                "description": "URL of the newly created resource",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventVenueResponse"
+                },
+                "example": {
+                  "id": "a123b456-7c89-0d12-3e45-6f7890123456",
+                  "eventId": "b123c456-8d89-1e12-4f45-7a7890123457",
+                  "venueId": "c123d456-9e89-2f12-5a45-8b7890123458",
+                  "status": "Active",
+                  "eventName": "Summer Fest 2026",
+                  "venueName": "Madison Square Garden"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/event-venues/{eventVenueId}/status": {
+      "put": {
+        "tags": [
+          "EventVenues"
+        ],
+        "summary": "Update an existing event venues details.",
+        "operationId": "UpdateEventVenueStatus",
+        "parameters": [
+          {
+            "name": "eventVenueId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "11e3620e-f116-4719-a717-4ff738571121"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventVenueStatusRequest"
+              },
+              "example": {
+                "status": "Active"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventVenueStatusRequest"
+              },
+              "example": {
+                "status": "Active"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventVenueStatusRequest"
+              },
+              "example": {
+                "status": "Active"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/genres": {
+      "get": {
+        "tags": [
+          "Genres"
+        ],
+        "summary": "List genres with optional filtering, sorting, and pagination.",
+        "operationId": "ListGenres",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Filter genres by name (contains match).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/GenreSortBy"
+            }
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SortDirection"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenreResponsePagedResult"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "d290f1ee-6c54-4b01-90e6-d701748f0852",
+                      "name": "Rock"
+                    }
+                  ],
+                  "totalCount": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "links": {
+                    "self": "/api/v1/genres?page=1\u0026pageSize=20",
+                    "first": "/api/v1/genres?page=1\u0026pageSize=20",
+                    "previous": null,
+                    "next": null,
+                    "last": "/api/v1/genres?page=1\u0026pageSize=20"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Genres"
+        ],
+        "summary": "Create a new genre in the system.",
+        "operationId": "CreateGenre",
+        "parameters": [
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "0646ea83-921c-4359-bde9-6979424abd94"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGenreRequest"
+              },
+              "example": {
+                "name": "Rock"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGenreRequest"
+              },
+              "example": {
+                "name": "Rock"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGenreRequest"
+              },
+              "example": {
+                "name": "Rock"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "201": {
+            "description": "Created",
+            "headers": {
+              "Location": {
+                "description": "URL of the newly created resource",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenreResponse"
+                },
+                "example": {
+                  "id": "d290f1ee-6c54-4b01-90e6-d701748f0852",
+                  "name": "Rock"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/genres/{genreId}": {
+      "get": {
+        "tags": [
+          "Genres"
+        ],
+        "summary": "Retrieve a specific genre by its unique identifier.",
+        "operationId": "GetGenreById",
+        "parameters": [
+          {
+            "name": "genreId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenreResponse"
+                },
+                "example": {
+                  "id": "d290f1ee-6c54-4b01-90e6-d701748f0852",
+                  "name": "Rock"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Genres"
+        ],
+        "summary": "Update an existing genre in the system.",
+        "operationId": "UpdateGenre",
+        "parameters": [
+          {
+            "name": "genreId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "955e9139-c7ba-443c-803f-0f749e222e19"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGenreRequest"
+              },
+              "example": {
+                "name": "Rock"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGenreRequest"
+              },
+              "example": {
+                "name": "Rock"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGenreRequest"
+              },
+              "example": {
+                "name": "Rock"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Genres"
+        ],
+        "summary": "Delete an existing genre from the system.",
+        "operationId": "DeleteGenre",
+        "parameters": [
+          {
+            "name": "genreId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "5fde3947-84f9-4614-92a8-6179d4e9a0df"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/seatingMaps/{seatingMapId}": {
+      "get": {
+        "tags": [
+          "SeatingMaps"
+        ],
+        "summary": "Retrieve a specific seating map by their unique identifier.",
+        "operationId": "GetSeatingMapById",
+        "parameters": [
+          {
+            "name": "seatingMapId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatingMapResponse"
+                },
+                "example": {
+                  "id": "22222222-2222-2222-2222-222222222222",
+                  "venueId": "c123d456-9e89-2f12-5a45-8b7890123458",
+                  "name": "Main Floor Seating",
+                  "version": 1,
+                  "isActive": true,
+                  "createdAtUtc": "2026-06-20T21:40:59.5454705Z"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SeatingMaps"
+        ],
+        "summary": "Update an existing seating maps details.",
+        "operationId": "UpdateSeatingMap",
+        "parameters": [
+          {
+            "name": "seatingMapId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "e5e6184b-f12b-405d-8926-2a4f7176fdc2"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSeatingMapRequest"
+              },
+              "example": {
+                "version": 1,
+                "name": "Main Floor Seating",
+                "isActive": true
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSeatingMapRequest"
+              },
+              "example": {
+                "version": 1,
+                "name": "Main Floor Seating",
+                "isActive": true
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSeatingMapRequest"
+              },
+              "example": {
+                "version": 1,
+                "name": "Main Floor Seating",
+                "isActive": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SeatingMaps"
+        ],
+        "summary": "Delete a seating map from the system.",
+        "operationId": "DeleteSeatingMap",
+        "parameters": [
+          {
+            "name": "seatingMapId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "236b263a-62c7-456c-aafb-9e83951d8959"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/seatingMaps": {
+      "get": {
+        "tags": [
+          "SeatingMaps"
+        ],
+        "summary": "List seating maps with optional filtering, sorting, and pagination.",
+        "operationId": "ListSeatingMaps",
+        "parameters": [
+          {
+            "name": "venueId",
+            "in": "query",
+            "description": "Venue ID to filter seating maps by.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Seating map name.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "in": "query",
+            "description": "Indicates whether the seatingMap is currently active.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SeatingMapSortBy"
+            }
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SortDirection"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatingMapResponsePagedResult"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "22222222-2222-2222-2222-222222222222",
+                      "venueId": "c123d456-9e89-2f12-5a45-8b7890123458",
+                      "name": "Main Floor Seating",
+                      "version": 1,
+                      "isActive": true,
+                      "createdAtUtc": "2026-06-20T21:40:59.5657303Z"
+                    }
+                  ],
+                  "totalCount": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "links": {
+                    "self": "/api/v1/seatingMaps?page=1\u0026pageSize=20",
+                    "first": "/api/v1/seatingMaps?page=1\u0026pageSize=20",
+                    "previous": null,
+                    "next": null,
+                    "last": "/api/v1/seatingMaps?page=1\u0026pageSize=20"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "SeatingMaps"
+        ],
+        "summary": "Create a new seating map in the system.",
+        "operationId": "CreateSeatingMap",
+        "parameters": [
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "302f90c6-b490-488e-82f2-327de328a580"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSeatingMapRequest"
+              },
+              "example": {
+                "venueId": "c123d456-9e89-2f12-5a45-8b7890123458",
+                "name": "Main Floor Seating",
+                "isActive": true
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSeatingMapRequest"
+              },
+              "example": {
+                "venueId": "c123d456-9e89-2f12-5a45-8b7890123458",
+                "name": "Main Floor Seating",
+                "isActive": true
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSeatingMapRequest"
+              },
+              "example": {
+                "venueId": "c123d456-9e89-2f12-5a45-8b7890123458",
+                "name": "Main Floor Seating",
+                "isActive": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "201": {
+            "description": "Created",
+            "headers": {
+              "Location": {
+                "description": "URL of the newly created resource",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatingMapResponse"
+                },
+                "example": {
+                  "id": "22222222-2222-2222-2222-222222222222",
+                  "venueId": "c123d456-9e89-2f12-5a45-8b7890123458",
+                  "name": "Main Floor Seating",
+                  "version": 1,
+                  "isActive": true,
+                  "createdAtUtc": "2026-06-20T21:40:59.5742944Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/venues": {
+      "get": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "List venues with optional filtering, sorting, and pagination.",
+        "operationId": "ListVenues",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Filter venues by name (contains match).",
+            "schema": {
+              "maxLength": 200,
+              "minLength": 5,
+              "type": "string"
+            }
+          },
+          {
+            "name": "address",
+            "in": "query",
+            "description": "Physical address of the venue.",
+            "schema": {
+              "maxLength": 200,
+              "minLength": 2,
+              "type": "string"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "description": "City where the venue is located.",
+            "schema": {
+              "maxLength": 100,
+              "minLength": 2,
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "Region or state where the venue is located.",
+            "schema": {
+              "maxLength": 100,
+              "minLength": 2,
+              "type": "string"
+            }
+          },
+          {
+            "name": "countryCode",
+            "in": "query",
+            "description": "ISO-3166-1 alpha-2 country code.",
+            "schema": {
+              "maxLength": 2,
+              "minLength": 2,
+              "pattern": "^[A-Z]{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "capacity",
+            "in": "query",
+            "description": "Maximum capacity of the venue. Null if not specified.",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 0,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "isActive",
+            "in": "query",
+            "description": "Indicates whether the venue is currently active.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/VenueSortBy"
+            }
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SortDirection"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VenueResponsePagedResult"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "c123d456-9e89-2f12-5a45-8b7890123458",
+                      "name": "Madison Square Garden",
+                      "address": "4 Pennsylvania Plaza, New York, NY 10001",
+                      "city": "New York",
+                      "region": "NY",
+                      "countryCode": "US",
+                      "latitude": 40.7505,
+                      "longitude": -73.9934,
+                      "timeZoneId": "America/New_York",
+                      "capacity": 20000,
+                      "isActive": true
+                    }
+                  ],
+                  "totalCount": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "links": {
+                    "self": "/api/v1/venues?page=1\u0026pageSize=20",
+                    "first": "/api/v1/venues?page=1\u0026pageSize=20",
+                    "previous": null,
+                    "next": null,
+                    "last": "/api/v1/venues?page=1\u0026pageSize=20"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Create a new venue in the system.",
+        "operationId": "CreateVenue",
+        "parameters": [
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "624c35ba-a986-44af-ac45-0aadd7c1878b"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVenueRequest"
+              },
+              "example": {
+                "name": "Madison Square Garden",
+                "address": "4 Pennsylvania Plaza, New York, NY 10001",
+                "city": "New York",
+                "region": "NY",
+                "countryCode": "US",
+                "latitude": 40.7505,
+                "longitude": -73.9934,
+                "timeZoneId": "America/New_York",
+                "capacity": 20000,
+                "isActive": true
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVenueRequest"
+              },
+              "example": {
+                "name": "Madison Square Garden",
+                "address": "4 Pennsylvania Plaza, New York, NY 10001",
+                "city": "New York",
+                "region": "NY",
+                "countryCode": "US",
+                "latitude": 40.7505,
+                "longitude": -73.9934,
+                "timeZoneId": "America/New_York",
+                "capacity": 20000,
+                "isActive": true
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVenueRequest"
+              },
+              "example": {
+                "name": "Madison Square Garden",
+                "address": "4 Pennsylvania Plaza, New York, NY 10001",
+                "city": "New York",
+                "region": "NY",
+                "countryCode": "US",
+                "latitude": 40.7505,
+                "longitude": -73.9934,
+                "timeZoneId": "America/New_York",
+                "capacity": 20000,
+                "isActive": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "201": {
+            "description": "Created",
+            "headers": {
+              "Location": {
+                "description": "URL of the newly created resource",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VenueResponse"
+                },
+                "example": {
+                  "id": "c123d456-9e89-2f12-5a45-8b7890123458",
+                  "name": "Madison Square Garden",
+                  "address": "4 Pennsylvania Plaza, New York, NY 10001",
+                  "city": "New York",
+                  "region": "NY",
+                  "countryCode": "US",
+                  "latitude": 40.7505,
+                  "longitude": -73.9934,
+                  "timeZoneId": "America/New_York",
+                  "capacity": 20000,
+                  "isActive": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/venues/{venueId}": {
+      "get": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Retrieve a specific venue by their unique identifier.",
+        "operationId": "GetVenueById",
+        "parameters": [
+          {
+            "name": "venueId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VenueResponse"
+                },
+                "example": {
+                  "id": "c123d456-9e89-2f12-5a45-8b7890123458",
+                  "name": "Madison Square Garden",
+                  "address": "4 Pennsylvania Plaza, New York, NY 10001",
+                  "city": "New York",
+                  "region": "NY",
+                  "countryCode": "US",
+                  "latitude": 40.7505,
+                  "longitude": -73.9934,
+                  "timeZoneId": "America/New_York",
+                  "capacity": 20000,
+                  "isActive": true
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Update an existing venue\u0027s details.",
+        "operationId": "UpdateVenue",
+        "parameters": [
+          {
+            "name": "venueId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "7eb2f1b0-7279-4373-9dc8-49e94da53abb"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVenueRequest"
+              },
+              "example": {
+                "name": "Madison Square Garden",
+                "address": "4 Pennsylvania Plaza, New York, NY 10001",
+                "city": "New York",
+                "region": "NY",
+                "countryCode": "US",
+                "latitude": 40.7505,
+                "longitude": -73.9934,
+                "timeZoneId": "America/New_York",
+                "capacity": 20000,
+                "isActive": true
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVenueRequest"
+              },
+              "example": {
+                "name": "Madison Square Garden",
+                "address": "4 Pennsylvania Plaza, New York, NY 10001",
+                "city": "New York",
+                "region": "NY",
+                "countryCode": "US",
+                "latitude": 40.7505,
+                "longitude": -73.9934,
+                "timeZoneId": "America/New_York",
+                "capacity": 20000,
+                "isActive": true
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVenueRequest"
+              },
+              "example": {
+                "name": "Madison Square Garden",
+                "address": "4 Pennsylvania Plaza, New York, NY 10001",
+                "city": "New York",
+                "region": "NY",
+                "countryCode": "US",
+                "latitude": 40.7505,
+                "longitude": -73.9934,
+                "timeZoneId": "America/New_York",
+                "capacity": 20000,
+                "isActive": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Delete a venue from the system.",
+        "operationId": "DeleteVenue",
+        "parameters": [
+          {
+            "name": "venueId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "description": "Idempotency header configured. Allowed methods: POST, PUT, DELETE",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "default": "910f3adc-a6fd-40b8-b5fc-15af60228238"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddArtistGenreRequest": {
+        "required": [
+          "genreId",
+          "isPrimary",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "genreId": {
+            "type": "string",
+            "description": "The unique identifier of the genre to be associated with the artist.",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ArtistGenreStatus"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Indicates if this genre is the primary genre for the artist."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArtistCategory": {
+        "enum": [
+          "Singer",
+          "Band",
+          "DJ",
+          "Host",
+          "Comedian",
+          "Influencer",
+          "Dancer"
+        ],
+        "type": "string",
+        "description": "Category that classifies the artist.\r\nSerialized as string in JSON."
+      },
+      "ArtistDetail": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the artist.",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Public display name of the artist."
+          },
+          "category": {
+            "$ref": "#/components/schemas/ArtistCategory"
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArtistGenreResponse"
+            },
+            "description": "Genres associated with the artist."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArtistGenreResponse": {
+        "type": "object",
+        "properties": {
+          "genreId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "isPrimary": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ArtistGenreStatus"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArtistGenreStatus": {
+        "enum": [
+          "Active",
+          "Inactive"
+        ],
+        "type": "string"
+      },
+      "ArtistPerformanceResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventVenueCalendarId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "artistId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "isHeadliner": {
+            "type": "boolean"
+          },
+          "setStart": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "setEnd": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArtistPerformanceResponsePagedResultDto": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArtistPerformanceResponse"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArtistPerformanceSortBy": {
+        "enum": [
+          "SetStart",
+          "SetEnd",
+          "IsHeadliner"
+        ],
+        "type": "string"
+      },
+      "ArtistSortBy": {
+        "enum": [
+          "Name",
+          "Category"
+        ],
+        "type": "string"
+      },
+      "ArtistSummary": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the artist.",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Public display name of the artist."
+          },
+          "category": {
+            "$ref": "#/components/schemas/ArtistCategory"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArtistSummaryPagedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArtistSummary"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateArtistPerformanceRequest": {
+        "required": [
+          "artistId"
+        ],
+        "type": "object",
+        "properties": {
+          "artistId": {
+            "type": "string",
+            "description": "Unique identifier for the performing artist.",
+            "format": "uuid"
+          },
+          "isHeadliner": {
+            "type": "boolean",
+            "description": "Indicates if the artist is the main act (Headliner) for this slot.\r\nNote: Business rule restricts this to one headliner per calendar slot."
+          },
+          "setStart": {
+            "type": "string",
+            "description": "Scheduled start date and time.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "setEnd": {
+            "type": "string",
+            "description": "Scheduled end date and time.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents the request to schedule an artist\u0027s performance at a specific venue and time slot."
+      },
+      "CreateArtistRequest": {
+        "required": [
+          "category",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 2,
+            "type": "string",
+            "description": "Public display name of the artist."
+          },
+          "category": {
+            "$ref": "#/components/schemas/ArtistCategory"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateEventRequest": {
+        "required": [
+          "name",
+          "scope"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 2,
+            "type": "string",
+            "description": "Event name."
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional event description.",
+            "nullable": true
+          },
+          "scope": {
+            "$ref": "#/components/schemas/EventScope"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateEventVenueCalendarRequest": {
+        "required": [
+          "eventVenueId",
+          "seatingMapId",
+          "startDate",
+          "status",
+          "timeZoneId"
+        ],
+        "type": "object",
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "description": "Start date and time in ISO-8601 format with offset.",
+            "format": "date-time",
+            "example": "2025-12-06T22:00:00\u002B01:00"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "End date and time in ISO-8601 format with offset.",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2025-12-07T00:00:00\u002B01:00"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EventVenueCalendarStatus"
+          },
+          "eventVenueId": {
+            "type": "string",
+            "description": "The unique identifier of the physical venue where the event will take place.",
+            "format": "uuid"
+          },
+          "seatingMapId": {
+            "type": "string",
+            "description": "The unique identifier of the specific seating configuration to be used for this event.",
+            "format": "uuid"
+          },
+          "timeZoneId": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Event time zone (IANA). If not provided, UTC is used."
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateEventVenueRequest": {
+        "required": [
+          "eventId",
+          "status",
+          "venueId"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/EventVenueStatus"
+          },
+          "eventId": {
+            "type": "string",
+            "description": "The unique identifier of the event to be associated with the event venue.",
+            "format": "uuid"
+          },
+          "venueId": {
+            "type": "string",
+            "description": "The unique identifier of the venue to be associated with the event venue.",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateGenreRequest": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 2,
+            "type": "string",
+            "description": "Name of the genre. Must be between 2 and 200 characters."
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateSeatingMapRequest": {
+        "required": [
+          "name",
+          "venueId"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 2,
+            "type": "string",
+            "description": "Seating map name."
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Indicates whether the seatingMap is currently active."
+          },
+          "venueId": {
+            "type": "string",
+            "description": "The unique identifier of the venue to be associated with the seating map.",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateVenueRequest": {
+        "required": [
+          "address",
+          "city",
+          "countryCode",
+          "name",
+          "region"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 2,
+            "type": "string",
+            "description": "Venue name."
+          },
+          "address": {
+            "maxLength": 200,
+            "minLength": 2,
+            "type": "string",
+            "description": "Physical address of the venue."
+          },
+          "city": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string",
+            "description": "City where the venue is located."
+          },
+          "region": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string",
+            "description": "Region or state where the venue is located."
+          },
+          "countryCode": {
+            "maxLength": 2,
+            "minLength": 2,
+            "pattern": "^[A-Z]{2}$",
+            "type": "string",
+            "description": "ISO-3166-1 alpha-2 country code."
+          },
+          "latitude": {
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number",
+            "description": "Latitude coordinate of the venue\u0027s location.",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number",
+            "description": "Longitude coordinate of the venue\u0027s location.",
+            "format": "double",
+            "nullable": true
+          },
+          "timeZoneId": {
+            "maxLength": 64,
+            "type": "string",
+            "description": "Time zone identifier (IANA), e.g. \u0022America/New_York\u0022.",
+            "nullable": true
+          },
+          "capacity": {
+            "maximum": 2147483647,
+            "minimum": 0,
+            "type": "integer",
+            "description": "Maximum capacity of the venue. Null if not specified.",
+            "format": "int32",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Indicates whether the venue is currently active."
+          }
+        },
+        "additionalProperties": false
+      },
+      "EventHouseProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          },
+          "errorCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "traceId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": {}
+      },
+      "EventResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the event.",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Event name."
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional event description.",
+            "nullable": true
+          },
+          "scope": {
+            "$ref": "#/components/schemas/EventScope"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EventResponsePagedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventResponse"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EventScope": {
+        "enum": [
+          "Local",
+          "National",
+          "International"
+        ],
+        "type": "string",
+        "description": "Geographical scope of the event.\r\nSerialized as string in JSON."
+      },
+      "EventSortBy": {
+        "enum": [
+          "Name",
+          "Description",
+          "Scope"
+        ],
+        "type": "string"
+      },
+      "EventVenueCalendarResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventVenueId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "seatingMapId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "timeZoneId": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EventVenueCalendarStatus"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EventVenueCalendarResponsePagedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventVenueCalendarResponse"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EventVenueCalendarSortBy": {
+        "enum": [
+          "StartDate",
+          "EndDate",
+          "TimeZoneId",
+          "Status"
+        ],
+        "type": "string"
+      },
+      "EventVenueCalendarStatus": {
+        "enum": [
+          "Draft",
+          "Published",
+          "Cancelled"
+        ],
+        "type": "string"
+      },
+      "EventVenueResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The unique identifier of the event venue.",
+            "format": "uuid"
+          },
+          "eventId": {
+            "type": "string",
+            "description": "The unique identifier of the event to be associated with the event venue.",
+            "format": "uuid"
+          },
+          "venueId": {
+            "type": "string",
+            "description": "The unique identifier of the venue to be associated with the event venue.",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EventVenueStatus"
+          },
+          "eventName": {
+            "type": "string",
+            "description": "Gets the name of the event.",
+            "nullable": true
+          },
+          "venueName": {
+            "type": "string",
+            "description": "Gets the name of the venue.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EventVenueResponsePagedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventVenueResponse"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EventVenueSortBy": {
+        "enum": [
+          "Status"
+        ],
+        "type": "string"
+      },
+      "EventVenueStatus": {
+        "enum": [
+          "Active",
+          "Inactive"
+        ],
+        "type": "string"
+      },
+      "GenreResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the genre.",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Public display name of the genre."
+          }
+        },
+        "additionalProperties": false
+      },
+      "GenreResponsePagedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GenreResponse"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          }
+        },
+        "additionalProperties": false
+      },
+      "GenreSortBy": {
+        "enum": [
+          "Name"
+        ],
+        "type": "string"
+      },
+      "PaginationLinks": {
+        "type": "object",
+        "properties": {
+          "self": {
+            "type": "string",
+            "nullable": true
+          },
+          "first": {
+            "type": "string",
+            "nullable": true
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true
+          },
+          "next": {
+            "type": "string",
+            "nullable": true
+          },
+          "last": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SeatingMapResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the seating map.",
+            "format": "uuid"
+          },
+          "venueId": {
+            "type": "string",
+            "description": "Unique identifier of the venue.",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Seating map name."
+          },
+          "version": {
+            "type": "integer",
+            "description": "Current version of the seating map (for concurrency control).",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Indicates whether the seatingMap is currently active."
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "description": "The date and time the seating map was created in UTC.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SeatingMapResponsePagedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeatingMapResponse"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SeatingMapSortBy": {
+        "enum": [
+          "Name",
+          "Version",
+          "IsActive"
+        ],
+        "type": "string"
+      },
+      "SortDirection": {
+        "enum": [
+          "Asc",
+          "Desc"
+        ],
+        "type": "string"
+      },
+      "SwapHeadlinerRequest": {
+        "required": [
+          "newArtistId",
+          "oldArtistId"
+        ],
+        "type": "object",
+        "properties": {
+          "oldArtistId": {
+            "type": "string",
+            "description": "Unique identifier for the performing artist.",
+            "format": "uuid"
+          },
+          "newArtistId": {
+            "type": "string",
+            "description": "Unique identifier for the performing artist.",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TokenRequest": {
+        "required": [
+          "password",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Username used to authenticate."
+          },
+          "password": {
+            "type": "string",
+            "description": "Password used to authenticate."
+          }
+        },
+        "additionalProperties": false
+      },
+      "TokenResponse": {
+        "required": [
+          "accessToken",
+          "expiresIn",
+          "tokenType"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "JWT access token."
+          },
+          "tokenType": {
+            "type": "string",
+            "description": "Token type."
+          },
+          "expiresIn": {
+            "type": "integer",
+            "description": "Token lifetime in seconds.",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateArtistGenreStatusRequest": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ArtistGenreStatus"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateArtistRequest": {
+        "required": [
+          "category",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 2,
+            "type": "string",
+            "description": "Public display name of the artist."
+          },
+          "category": {
+            "$ref": "#/components/schemas/ArtistCategory"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateEventRequest": {
+        "required": [
+          "name",
+          "scope"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 2,
+            "type": "string",
+            "description": "Event name."
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional event description.",
+            "nullable": true
+          },
+          "scope": {
+            "$ref": "#/components/schemas/EventScope"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateEventVenueCalendarRequest": {
+        "required": [
+          "startDate",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "description": "Start date and time in ISO-8601 format with offset.",
+            "format": "date-time",
+            "example": "2025-12-06T22:00:00\u002B01:00"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "End date and time in ISO-8601 format with offset.",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2025-12-07T00:00:00\u002B01:00"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EventVenueCalendarStatus"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateEventVenueStatusRequest": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/EventVenueStatus"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateGenreRequest": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 2,
+            "type": "string",
+            "description": "Name of the genre. Must be between 2 and 200 characters."
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdatePerformanceDatesRequest": {
+        "type": "object",
+        "properties": {
+          "setStart": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "setEnd": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateSeatingMapRequest": {
+        "required": [
+          "name",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 2,
+            "type": "string",
+            "description": "Seating map name."
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Indicates whether the seatingMap is currently active."
+          },
+          "version": {
+            "type": "integer",
+            "description": "The current version of the seating map. Must match the version on the server for the update to succeed.",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateVenueRequest": {
+        "required": [
+          "address",
+          "city",
+          "countryCode",
+          "name",
+          "region"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 2,
+            "type": "string",
+            "description": "Venue name."
+          },
+          "address": {
+            "maxLength": 200,
+            "minLength": 2,
+            "type": "string",
+            "description": "Physical address of the venue."
+          },
+          "city": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string",
+            "description": "City where the venue is located."
+          },
+          "region": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string",
+            "description": "Region or state where the venue is located."
+          },
+          "countryCode": {
+            "maxLength": 2,
+            "minLength": 2,
+            "pattern": "^[A-Z]{2}$",
+            "type": "string",
+            "description": "ISO-3166-1 alpha-2 country code."
+          },
+          "latitude": {
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number",
+            "description": "Latitude coordinate of the venue\u0027s location.",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number",
+            "description": "Longitude coordinate of the venue\u0027s location.",
+            "format": "double",
+            "nullable": true
+          },
+          "timeZoneId": {
+            "maxLength": 64,
+            "type": "string",
+            "description": "Time zone identifier (IANA), e.g. \u0022America/New_York\u0022.",
+            "nullable": true
+          },
+          "capacity": {
+            "maximum": 2147483647,
+            "minimum": 0,
+            "type": "integer",
+            "description": "Maximum capacity of the venue. Null if not specified.",
+            "format": "int32",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Indicates whether the venue is currently active."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ValidationProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "additionalProperties": {}
+      },
+      "VenueResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "region": {
+            "type": "string",
+            "nullable": true
+          },
+          "countryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "timeZoneId": {
+            "type": "string",
+            "nullable": true
+          },
+          "capacity": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VenueResponsePagedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VenueResponse"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VenueSortBy": {
+        "enum": [
+          "Name",
+          "Address",
+          "City",
+          "Region",
+          "CountryCode",
+          "Capacity",
+          "IsActive"
+        ],
+        "type": "string"
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "description": "JWT Authorization header. Example: Bearer {token}",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/problem\u002Bjson": {
+            "schema": {
+              "$ref": "#/components/schemas/EventHouseProblemDetails"
+            },
+            "example": {
+              "type": "urn:eventhouse:error:UNAUTHORIZED",
+              "title": "Unauthorized",
+              "status": 401,
+              "detail": "A valid JWT access token is required.",
+              "errorCode": "UNAUTHORIZED",
+              "traceId": "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Forbidden",
+        "content": {
+          "application/problem\u002Bjson": {
+            "schema": {
+              "$ref": "#/components/schemas/EventHouseProblemDetails"
+            },
+            "example": {
+              "type": "urn:eventhouse:error:FORBIDDEN",
+              "title": "Forbidden",
+              "status": 403,
+              "detail": "You do not have permission to access this resource.",
+              "errorCode": "FORBIDDEN",
+              "traceId": "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01"
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal Server Error",
+        "content": {
+          "application/problem\u002Bjson": {
+            "schema": {
+              "$ref": "#/components/schemas/EventHouseProblemDetails"
+            },
+            "example": {
+              "type": "urn:eventhouse:error:INTERNAL_ERROR",
+              "title": "Internal Server Error",
+              "status": 500,
+              "detail": "An unexpected error occurred.",
+              "errorCode": "INTERNAL_ERROR",
+              "traceId": "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not Found",
+        "content": {
+          "application/problem\u002Bjson": {
+            "schema": {
+              "$ref": "#/components/schemas/EventHouseProblemDetails"
+            },
+            "example": {
+              "type": "urn:eventhouse:error:NOT_FOUND",
+              "title": "Not Found",
+              "status": 404,
+              "detail": "The requested resource was not found.",
+              "errorCode": "NOT_FOUND",
+              "traceId": "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Conflict",
+        "content": {
+          "application/problem\u002Bjson": {
+            "schema": {
+              "$ref": "#/components/schemas/EventHouseProblemDetails"
+            },
+            "example": {
+              "type": "urn:eventhouse:error:CONFLICT",
+              "title": "Conflict",
+              "status": 409,
+              "detail": "The request conflicts with the current state of the resource.",
+              "errorCode": "CONFLICT",
+              "traceId": "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Validation error",
+        "content": {
+          "application/problem\u002Bjson": {
+            "schema": {
+              "$ref": "#/components/schemas/ValidationProblemDetails"
+            },
+            "example": {
+              "type": "urn:eventhouse:error:VALIDATION_ERROR",
+              "title": "Validation error",
+              "status": 400,
+              "detail": "One or more validation errors occurred.",
+              "errors": {
+                "name": [
+                  "The Name field is required."
+                ]
+              },
+              "traceId": "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Too Many Requests",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds to wait before retrying the request.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        },
+        "content": {
+          "application/problem\u002Bjson": {
+            "schema": {
+              "$ref": "#/components/schemas/EventHouseProblemDetails"
+            },
+            "example": {
+              "type": "urn:eventhouse:error:RATE_LIMIT_EXCEEDED",
+              "title": "Too Many Requests",
+              "status": 429,
+              "detail": "Rate limit exceeded. Please retry later.",
+              "errorCode": "RATE_LIMIT_EXCEEDED",
+              "traceId": "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01"
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
+}

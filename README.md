@@ -149,13 +149,13 @@ dotnet run --project EventHouse.Management.Api
 ### Create Migration
 
 ```bash
-dotnet ef migrations add <MigrationName> --project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api --output-dir Persistence/Migrations
+dotnet ef migrations add <MigrationName> --project src/EventHouse.Management.Infrastructure --startup-project src/EventHouse.Management.Api --output-dir Persistence/Migrations
 ```
 
 ### Update Database
 
 ```bash
-dotnet ef database update --project EventHouse.Management.Infrastructure --startup-project EventHouse.Management.Api
+dotnet ef database update --project src/EventHouse.Management.Infrastructure --startup-project src/EventHouse.Management.Api
 ```
 
 ---

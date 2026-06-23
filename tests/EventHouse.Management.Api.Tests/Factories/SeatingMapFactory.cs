@@ -10,13 +10,15 @@ public static class SeatingMapFactory
     public static CreateSeatingMapRequest CreateRequest(
         Guid? venueId = null,
         string? name = null,
-        bool isActive = true)
+        bool isActive = true,
+        int version = 1)
     {
         return new CreateSeatingMapRequest
         {
             VenueId = venueId ?? Guid.NewGuid(),
             Name = name ?? $"{Faker.Commerce.ProductName()} {Faker.Random.Int(1, 999)}",
             IsActive = isActive,
+            Version = version
         };
     }
 

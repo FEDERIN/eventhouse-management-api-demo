@@ -74,7 +74,7 @@ public sealed class SeatingMapsController(IMediator mediator) : BaseApiControlle
         var command = new CreateSeatingMapCommand(
                 body.VenueId,
                 body.Name,
-                Version: 1,
+                body.Version,
                 body.IsActive
             );
 

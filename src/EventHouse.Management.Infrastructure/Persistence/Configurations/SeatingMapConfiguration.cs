@@ -39,8 +39,8 @@ public class SeatingMapConfiguration : IEntityTypeConfiguration<SeatingMap>
            .HasForeignKey(c => c.SeatingMapId)
            .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(e => new { e.VenueId, e.Name })
+        builder.HasIndex(e => new { e.VenueId, e.Name, e.Version })
                .IsUnique()
-               .HasDatabaseName("UX_SeatingMap_Venue_Name");
+               .HasDatabaseName("UX_SeatingMap_Venue_Name_Version");
     }
 }

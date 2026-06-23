@@ -20,7 +20,6 @@ namespace EventHouse.Management.Api.Controllers;
 public sealed class EventVenuesController(IMediator mediator) : BaseApiController
 {
     #region READ
-
     [HttpGet("{eventVenueId:guid}")]
     [SwaggerOperation(
         OperationId = "GetEventVenueById",

@@ -20,7 +20,6 @@
       interval: 5s
       timeout: 5s
       retries: 5
-
   redis:
     image: redis:7-alpine
     container_name: core-redis
@@ -29,7 +28,6 @@
       - "6379:6379"
     networks:
       - otel-network
-
   eventhouse-api:
     build:
       context: ..
@@ -57,14 +55,14 @@
 
       # Connection Strings (Mapped to your Extension Methods)
       - ConnectionStrings__Idempotency=${IDEMPOTENCY_CONNECTION}
-      - ConnectionStrings__ManagementConnection=Host=postgres;Port=5432;Database=${MANAGEMENT_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - ConnectionStrings__ManagementConnection=${CONNECTION_MANAGEMENT}
 
       # Configure which HTTP methods should be considered for idempotency (This was missing)
       - Idempotency__AllowedMethods__0=POST
       - Idempotency__AllowedMethods__1=PUT
       - Idempotency__AllowedMethods__2=DELETE
     ports:
-      - "5185:8080"
+      - "5186:8080"
     networks:
       - otel-network
     healthcheck:
