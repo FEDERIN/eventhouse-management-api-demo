@@ -22,32 +22,12 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
 {
     private readonly IMediator _mediator = mediator;
 
-    [HttpGet]    
-    [SwaggerOperation(
-        OperationId = "ListVenues",
-        Summary = "List venues with optional filtering, sorting, and pagination."
-        )]
-    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(VenuePagedResultExample))]
-    [SwaggerRequestExample(typeof(GetVenuesRequest), typeof(GetVenuesRequestExample))]
-    [ProducesOkAttribute<PagedResult<VenueResponse>>]
-    [ProducesValidationProblemAttribute]
-    [ProducesTooManyRequestsProblemAttribute]
-    public async Task<ActionResult<PagedResult<VenueResponse>>> GetAll(
-        [FromQuery] GetVenuesRequest query,
-        CancellationToken cancellationToken)
-    {
-        var resultDto = await _mediator.Send(
-            GetAllVenuesQueryMapper.FromContract(query),
-            cancellationToken);
-
-        return Ok(VenueMapper.ToContract(resultDto, Request));
-    }
-
+    #region READ
     [HttpGet("{venueId:guid}")]
     [SwaggerOperation(
-        OperationId = "GetVenueById",
-        Summary = "Retrieve a specific venue by their unique identifier."
-        )]
+    OperationId = "GetVenueById",
+    Summary = "Retrieve a specific venue by their unique identifier."
+    )]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(VenueResponseExample))]
     [ProducesOkAttribute<VenueResponse>]
     [ProducesNotFoundProblem]
@@ -58,6 +38,29 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
         return Ok(VenueMapper.ToContract(resultDto));
     }
 
+    [HttpGet]
+    [SwaggerOperation(
+    OperationId = "ListVenues",
+    Summary = "List venues with optional filtering, sorting, and pagination."
+    )]
+    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(VenuePagedResultExample))]
+    [SwaggerRequestExample(typeof(GetVenuesRequest), typeof(GetVenuesRequestExample))]
+    [ProducesOkAttribute<PagedResult<VenueResponse>>]
+    [ProducesValidationProblemAttribute]
+    [ProducesTooManyRequestsProblemAttribute]
+    public async Task<ActionResult<PagedResult<VenueResponse>>> GetAll(
+    [FromQuery] GetVenuesRequest query,
+    CancellationToken cancellationToken)
+    {
+        var resultDto = await _mediator.Send(
+            GetAllVenuesQueryMapper.FromContract(query),
+            cancellationToken);
+
+        return Ok(VenueMapper.ToContract(resultDto, Request));
+    }
+    #endregion
+
+    #region WRITE
     [HttpPost]
     [SwaggerOperation(
         OperationId = "CreateVenue",
@@ -68,7 +71,6 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
     [ProducesCreated<VenueResponse>]
     [ProducesValidationProblemAttribute]
     [ProducesConflictProblem]
-
     public async Task<ActionResult<VenueResponse>> Create([FromBody] CreateVenueRequest body, CancellationToken cancellationToken)
     {
 
@@ -117,7 +119,9 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
 
         return NoContent();
     }
+    #endregion
 
+    #region DELETE
     [HttpDelete("{venueId:guid}")]
     [SwaggerOperation(OperationId = "DeleteVenue",
         Summary = "Delete a venue from the system."
@@ -131,4 +135,5 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
 
         return NoContent();
     }
+    #endregion
 }

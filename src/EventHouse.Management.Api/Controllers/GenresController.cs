@@ -22,6 +22,21 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
 {
     private readonly IMediator _mediator = mediator;
 
+    #region READ
+    [HttpGet("{genreId:guid}")]
+    [SwaggerOperation(
+    OperationId = "GetGenreById",
+    Summary = "Retrieve a specific genre by its unique identifier.")]
+    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GenreResponseExample))]
+    [ProducesOkAttribute<GenreResponse>]
+    [ProducesNotFoundProblem]
+    public async Task<ActionResult<GenreResponse>> GetById(Guid genreId, CancellationToken cancellationToken)
+    {
+        var resultDto = await _mediator.Send(new GetGenreByIdQuery(genreId), cancellationToken);
+
+        return Ok(GenreMapper.ToContract(resultDto));
+    }
+
     [HttpGet]
     [SwaggerOperation(
         OperationId = "ListGenres",
@@ -41,21 +56,9 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
 
         return Ok(GenreMapper.ToContract(result, Request));
     }
+    #endregion
 
-    [HttpGet("{genreId:guid}")]
-    [SwaggerOperation(
-        OperationId = "GetGenreById",
-        Summary = "Retrieve a specific genre by its unique identifier.")]
-    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GenreResponseExample))]
-    [ProducesOkAttribute<GenreResponse>]
-    [ProducesNotFoundProblem]
-    public async Task<ActionResult<GenreResponse>> GetById(Guid genreId, CancellationToken cancellationToken)
-    {
-        var resultDto = await _mediator.Send(new GetGenreByIdQuery(genreId), cancellationToken);
-
-        return Ok(GenreMapper.ToContract(resultDto));
-    }
-
+    #region WRITE
     [HttpPost]
     [SwaggerOperation(
         OperationId = "CreateGenre",
@@ -77,23 +80,25 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
 
     [HttpPut("{genreId:guid}")]
     [SwaggerOperation(
-        OperationId = "UpdateGenre",
-        Summary = "Update an existing genre in the system.")]
+    OperationId = "UpdateGenre",
+    Summary = "Update an existing genre in the system.")]
     [SwaggerRequestExample(typeof(UpdateGenreRequest), typeof(UpdateGenreRequestExample))]
     [ProducesNoContentAttribute]
     [ProducesValidationProblemAttribute]
     [ProducesNotFoundProblem]
     [ProducesConflictProblem]
     public async Task<IActionResult> Update(
-        Guid genreId,
-        [FromBody] UpdateGenreRequest body,
-        CancellationToken cancellationToken)
+    Guid genreId,
+    [FromBody] UpdateGenreRequest body,
+    CancellationToken cancellationToken)
     {
         await _mediator.Send(new UpdateGenreCommand(genreId, body.Name), cancellationToken);
 
         return NoContent();
     }
+    #endregion
 
+    #region DELETE
     [HttpDelete("{genreId:guid}")]
     [SwaggerOperation(
         OperationId = "DeleteGenre",
@@ -107,4 +112,5 @@ public sealed class GenresController(IMediator mediator) : BaseApiController
 
         return NoContent();
     }
+    #endregion
 }

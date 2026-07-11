@@ -18,6 +18,7 @@ namespace EventHouse.Management.Infrastructure.Repositories
             { "UX_Genres_Name", ("GENRE_NAME_ALREADY_EXISTS", "The name already exists in another genre.", false) }
         };
 
+        #region WRITE
         public async Task AddAsync(Genre entity, CancellationToken cancellationToken = default)
         {
             await _context.Genres.AddAsync(entity, cancellationToken);
@@ -53,7 +54,9 @@ namespace EventHouse.Management.Infrastructure.Repositories
 
             return true;
         }
+        #endregion
 
+        #region READ
         public async Task<Genre?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _context.Genres.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
@@ -83,5 +86,6 @@ namespace EventHouse.Management.Infrastructure.Repositories
 
             return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
         }
+        #endregion
     }
 }

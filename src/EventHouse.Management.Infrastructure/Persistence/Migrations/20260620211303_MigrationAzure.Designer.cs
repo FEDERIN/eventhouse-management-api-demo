@@ -3,6 +3,7 @@ using System;
 using EventHouse.Management.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ManagementDbContext))]
-    partial class ManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260620211303_MigrationAzure")]
+    partial class MigrationAzure
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -333,9 +336,9 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                     b.HasIndex("VenueId")
                         .HasDatabaseName("ix_seating_maps_venue_id");
 
-                    b.HasIndex("VenueId", "Name", "Version")
+                    b.HasIndex("VenueId", "Name")
                         .IsUnique()
-                        .HasDatabaseName("UX_SeatingMap_Venue_Name_Version");
+                        .HasDatabaseName("UX_SeatingMap_Venue_Name");
 
                     b.ToTable("SeatingMaps", null, t =>
                         {

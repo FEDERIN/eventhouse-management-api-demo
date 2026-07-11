@@ -10,4 +10,8 @@ public sealed class CreateSeatingMapRequest : SeatingMapUpsertRequest{
     [SwaggerSchema(Description = "The unique identifier of the venue to be associated with the seating map.")]
     [Required]
     public Guid VenueId { get; init; }
+
+    [SwaggerSchema(Description = "The version of the Seating Map")]
+    [Required]
+    public int Version { get; init; }
 }

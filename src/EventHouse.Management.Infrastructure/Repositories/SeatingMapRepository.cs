@@ -14,7 +14,7 @@ public class SeatingMapRepository(ManagementDbContext context) :
 {
     private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
     {
-        { "UX_SeatingMap_Venue_Name", ("SEATING_MAP_ALREADY_EXISTS_IN_VENUE", "The name already exists in another seating map for the venue.", false) }
+        { "UX_SeatingMap_Venue_Name_Version", ("SEATING_MAP_ALREADY_EXISTS_IN_VENUE", "The name and version already exists in another seating map for the venue.", false) }
     };
 
     #region WRITE

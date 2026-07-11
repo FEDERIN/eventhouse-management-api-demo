@@ -12,15 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ManagementDbContext))]
-    [Migration("20260514153743_InitialPostgres")]
-    partial class InitialPostgres
+    [Migration("20260621001207_UpdateUniqueSeatingMap")]
+    partial class UpdateUniqueSeatingMap
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.27")
+                .HasAnnotation("ProductVersion", "8.0.28")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -336,9 +336,9 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                     b.HasIndex("VenueId")
                         .HasDatabaseName("ix_seating_maps_venue_id");
 
-                    b.HasIndex("VenueId", "Name")
+                    b.HasIndex("VenueId", "Name", "Version")
                         .IsUnique()
-                        .HasDatabaseName("UX_SeatingMap_Venue_Name");
+                        .HasDatabaseName("UX_SeatingMap_Venue_Name_Version");
 
                     b.ToTable("SeatingMaps", null, t =>
                         {
