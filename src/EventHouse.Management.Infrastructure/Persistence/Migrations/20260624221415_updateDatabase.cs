@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EventHouse.Management.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrationAzure : Migration
+    public partial class updateDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -296,9 +296,9 @@ namespace EventHouse.Management.Infrastructure.Persistence.Migrations
                 column: "venue_id");
 
             migrationBuilder.CreateIndex(
-                name: "UX_SeatingMap_Venue_Name",
+                name: "UX_SeatingMap_Venue_Name_Version",
                 table: "SeatingMaps",
-                columns: new[] { "venue_id", "name" },
+                columns: new[] { "venue_id", "name", "version" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

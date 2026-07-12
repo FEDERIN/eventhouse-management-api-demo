@@ -18,6 +18,11 @@ internal static class RepositoryExtensions
         services.AddScoped<IEventVenueCalendarRepository, EventVenueCalendarRepository>();
         services.AddScoped<IArtistPerformanceRepository, ArtistPerformanceRepository>();
         #endregion
+
+        #region Decorate
+        services.Decorate<IGenreRepository, CachedGenreRepository>();
+        #endregion
+
         return services;
     }
 }

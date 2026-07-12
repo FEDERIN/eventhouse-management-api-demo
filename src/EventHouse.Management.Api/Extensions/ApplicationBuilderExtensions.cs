@@ -1,4 +1,5 @@
-﻿using Core.Idempotency;
+﻿using Core.Cache.DependencyInjection;
+using Core.Idempotency;
 using EventHouse.Management.Api.Middlewares;
 using EventHouse.Management.Api.Swagger;
 using Microsoft.OpenApi;
@@ -54,6 +55,7 @@ public static class ApplicationBuilderExtensions
         // 3. Correlation middleware and data infrastructure
         app.UseMiddleware<CorrelationIdMiddleware>();
         app.UseIdempotency();
+        app.UseCoreCache();
 
         // 4. Access security
         app.UseAuthentication();
