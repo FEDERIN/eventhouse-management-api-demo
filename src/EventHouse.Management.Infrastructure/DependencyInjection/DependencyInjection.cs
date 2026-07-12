@@ -12,6 +12,7 @@ public static class DependencyInjection
     {
         services.AddDatabaseInfrastructure(config);
         services.AddIdempotencyProvider(config);
+        services.AddCacheInfrastructure(config);
         services.AddRepositories();
         services.AddSingleton<IExceptionMapper, ExceptionMapper>();
 
