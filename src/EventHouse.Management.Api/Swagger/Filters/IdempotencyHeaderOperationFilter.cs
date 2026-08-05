@@ -1,8 +1,8 @@
-﻿using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using Microsoft.OpenApi.Any;
-using Core.Idempotency.Options;
+﻿using Core.Idempotency.Options;
 using Dapper;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace EventHouse.Management.Api.Swagger.Filters;
 
@@ -12,26 +12,31 @@ public class IdempotencyHeaderOperationFilter(IConfiguration configuration) : IO
 
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        var section = _configuration.GetSection("Idempotency");
-        var options = section.Get<IdempotencyOptions>();
+        var section = _configuration.GetSection("Core:Idempotency");
+        var options = new IdempotencyOptions();
+        section.Bind(options);
+
+        options.AllowedMethods.Clear();
+        var values = section.GetSection("AllowedMethods").Get<string[]>();
+
+        if (values is null)
+            return;
+
+        options.AddAllowedMethods(values);
 
         if (options == null || !options.Enabled) return;
 
         var currentMethod = context.ApiDescription.HttpMethod?.ToUpper();
 
-        if (options.AllowedMethods == null || !options.AllowedMethods.Contains(currentMethod))
+        if (options.AllowedMethods == null || string.IsNullOrEmpty(currentMethod) 
+            || !options.AllowedMethods.Contains(currentMethod))
             return;
 
         operation.Parameters ??= [];
 
-        var existingHeader = operation.Parameters.FirstOrDefault(p =>
-        p.Name.Equals(options.HeaderName ?? "X-Idempotency-Key", StringComparison.OrdinalIgnoreCase));
-
-        if (existingHeader != null) return;
-
         operation.Parameters.Add(new OpenApiParameter
         {
-            Name = options.HeaderName ?? "X-Idempotency-Key",
+            Name = "Idempotency-Key",
             In = ParameterLocation.Header,
             Required = false,
             Schema = new OpenApiSchema

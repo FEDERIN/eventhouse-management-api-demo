@@ -1,4 +1,5 @@
-﻿using EventHouse.Management.Api.Common.Errors;
+﻿using Core.Idempotency.Exceptions;
+using EventHouse.Management.Api.Common.Errors;
 using EventHouse.Management.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Options;
@@ -26,18 +27,24 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next)
 
             var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
 
-            var (statusCode, errorCode, title, detail) = exceptionMapper.Map(ex);
+            var (statusCode, errorCode, title, detail, type) = exceptionMapper.Map(ex);
 
             var problem = new EventHouseProblemDetails
             {
                 Status = statusCode,
                 Title = title,
                 Detail = detail,
-                Type = $"urn:eventhouse:error:{errorCode}",
+                Type = string.IsNullOrEmpty(type) ? $"urn:eventhouse:error:{errorCode}" : type,
                 Instance = context.Request.Path,
                 ErrorCode = errorCode,
                 TraceId = traceId
             };
+
+            if (ex is IdempotencyFingerprintMismatchException)
+            {
+                problem.Extensions["idempotencyKey"] =
+                    context.Request.Headers["Idempotency-Key"].ToString();
+            }
 
             if (context.RequestServices.GetService<IHostEnvironment>()?.IsDevelopment() == true)
             {

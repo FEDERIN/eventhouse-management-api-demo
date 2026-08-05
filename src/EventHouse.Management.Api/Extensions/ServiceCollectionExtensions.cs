@@ -140,17 +140,24 @@ public static class ServiceCollectionExtensions
     {
         services.AddDbContext<ManagementDbContext>(options =>
         {
-            options.UseNpgsql(configuration.GetConnectionString("ManagementConnection"),
-                npgsqlOptions =>
-                {
-                    npgsqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: 3,
-                        maxRetryDelay: TimeSpan.FromSeconds(2),
-                        errorCodesToAdd: ["40001", "40P01"]
-                    );
-                })
+            options.UseNpgsql(
+                configuration.GetConnectionString("ManagementConnection"))
                 .UseSnakeCaseNamingConvention();
         });
+
+        //services.AddDbContext<ManagementDbContext>(options =>
+        //{
+        //    options.UseNpgsql(configuration.GetConnectionString("ManagementConnection"),
+        //        npgsqlOptions =>
+        //        {
+        //            npgsqlOptions.EnableRetryOnFailure(
+        //                maxRetryCount: 3,
+        //                maxRetryDelay: TimeSpan.FromSeconds(2),
+        //                errorCodesToAdd: ["40001", "40P01"]
+        //            );
+        //        })
+        //        .UseSnakeCaseNamingConvention();
+        //});
     }
 
     private static void AddCustomHealthChecks(this IServiceCollection services)

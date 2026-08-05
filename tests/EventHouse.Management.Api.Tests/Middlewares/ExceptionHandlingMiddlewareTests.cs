@@ -32,7 +32,7 @@ public sealed class ExceptionHandlingMiddlewareTests
         Assert.Equal("Invalid input", json["detail"]!.ToString());
         Assert.Equal("urn:eventhouse:error:BAD_REQUEST", json["type"]!.ToString());
         Assert.Equal("/test", json["instance"]!.ToString());
-        Assert.True(!string.IsNullOrWhiteSpace(json["traceId"]?.ToString()));
+        Assert.False(string.IsNullOrWhiteSpace(json["traceId"]?.ToString()));
 
         Assert.Null(json["exceptionType"]);
         Assert.Null(json["exceptionMessage"]);
@@ -146,14 +146,16 @@ public sealed class ExceptionHandlingMiddlewareTests
 
     private sealed class FakeExceptionMapper : IExceptionMapper
     {
-        public (int StatusCode, string ErrorCode, string Title, string Detail) Map(Exception ex)
-            => ex switch
+        public (int StatusCode, string ErrorCode, string Title, string Detail, string Type) Map(Exception ex)
+        {
+            return ex switch
             {
-                ArgumentException ae => (400, "BAD_REQUEST", "Bad request", ae.Message),
+                ArgumentException ae => (400, "BAD_REQUEST", "Bad request", ae.Message, string.Empty),
 
-                InvalidOperationException ioe => (409, "CONFLICT", "Conflict", ioe.Message),
+                InvalidOperationException ioe => (409, "CONFLICT", "Conflict", ioe.Message, string.Empty),
 
-                _ => (500, "UNEXPECTED_ERROR", "Unexpected error", "An unexpected error occurred.")
+                _ => (500, "UNEXPECTED_ERROR", "Unexpected error", "An unexpected error occurred.", string.Empty)
             };
+        }
     }
 }

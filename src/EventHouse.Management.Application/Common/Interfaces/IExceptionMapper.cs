@@ -2,5 +2,5 @@
 
 public interface IExceptionMapper
 {
-    (int StatusCode, string ErrorCode, string Title, string Detail) Map(Exception exception);
+    (int StatusCode, string ErrorCode, string Title, string Detail, string Type) Map(Exception exception);
 }
