@@ -1,5 +1,7 @@
-﻿using Core.Cache.DependencyInjection;
+﻿using Core.Cache.Abstractions;
+using Core.Cache.DependencyInjection;
 using Core.Cache.Options;
+using EventHouse.Management.Infrastructure.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,54 +9,25 @@ namespace EventHouse.Management.Infrastructure.DependencyInjection;
 
 internal static class CacheExtensions
 {
-    public static IServiceCollection AddCacheInfrastructure(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    public static IServiceCollection AddCacheInfrastructure(this IServiceCollection services, IConfiguration config)
     {
-        ArgumentNullException.ThrowIfNull(services);
-        ArgumentNullException.ThrowIfNull(configuration);
+        var distributedCache = config.GetSection("Core:Cache");
 
-        var section = configuration.GetSection("Cache");
-
-        if (!section.Exists())
+        if (!distributedCache.Exists())
             return services;
 
         services.AddCoreCache(options =>
         {
-            section.Bind(options);
+            distributedCache.Bind(options);
 
-            ConfigureRedis(section, options);
+            if (options.DefaultProvider == CacheProviderType.Redis)
+            {
+                options.Redis.Configuration = 
+                config.CreateRedisConfiguration("MainRedis");
+            }
         });
 
+
         return services;
-    }
-
-    private static void ConfigureRedis(
-        IConfigurationSection cacheSection,
-        CacheOptions options)
-    {
-        ArgumentNullException.ThrowIfNull(cacheSection);
-        ArgumentNullException.ThrowIfNull(options);
-
-        if (!options.Redis.Enabled)
-            return;
-
-        var redisSection = cacheSection.GetSection("Redis");
-
-        var host = redisSection["Host"];
-
-        if (string.IsNullOrWhiteSpace(host))
-            throw new InvalidOperationException(
-                "Cache:Redis:Host is required when Redis is enabled.");
-
-        var password = redisSection["Password"];
-
-        options.Redis.Configuration = redis =>
-        {
-            redis.EndPoints.Add(host);
-
-            if (!string.IsNullOrWhiteSpace(password))
-                redis.Password = password;
-        };
     }
 }
