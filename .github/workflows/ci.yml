@@ -1,5 +1,8 @@
 name: CI Build & Test
 
+permissions:
+  contents: read
+  
 # Trigger the workflow on push or pull request to the main branch
 on:
   push:
