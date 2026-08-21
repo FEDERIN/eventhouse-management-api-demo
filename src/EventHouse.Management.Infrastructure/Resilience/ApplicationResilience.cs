@@ -13,13 +13,13 @@ internal sealed class ApplicationResilience(
 
     public async Task ExecuteSqlAsync(
         Func<CancellationToken, Task> operation,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(operation);
 
         try
         {
-            await _sqlPipeline.ExecuteAsync(operation, cancellationToken);
+            await _sqlPipeline.ExecuteAsync(operation, ct);
         }
         catch (Exception ex)
         {
@@ -29,13 +29,13 @@ internal sealed class ApplicationResilience(
 
     public async Task<TResult> ExecuteSqlAsync<TResult>(
         Func<CancellationToken, Task<TResult>> operation,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(operation);
 
         try
         {
-            return await _sqlPipeline.ExecuteAsync(operation, cancellationToken);
+            return await _sqlPipeline.ExecuteAsync(operation, ct);
         }
         catch (Exception ex)
         {

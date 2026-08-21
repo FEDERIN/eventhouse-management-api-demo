@@ -7,7 +7,7 @@ using EventHouse.Management.Application.DTOs;
 
 namespace EventHouse.Management.Api.Mappers.EventVenueCalendars;
 
-public static class EventVenueCalendarMapper
+internal static class EventVenueCalendarMapper
 {
     public static EventVenueCalendarResponse ToContract(EventVenueCalendarDto dto) => new()
     {

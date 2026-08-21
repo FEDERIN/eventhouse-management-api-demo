@@ -23,10 +23,10 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
         }
 
         // Act
-        var res = await Client.GetAsync($"{BaseUrlEvents}?page=1&pageSize=2", cancellationToken: TestContext.Current.CancellationToken);
+        var res = await Client.GetAsync($"{BaseUrlEvents}?page=1&pageSize=2", TestContext.Current.CancellationToken);
         res.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var page = await res.Content.ReadFromJsonAsync<PagedResult<EventResponse>>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
+        var page = await res.Content.ReadFromJsonAsync<PagedResult<EventResponse>>(JsonTestOptions.Default, TestContext.Current.CancellationToken);
         page.Should().NotBeNull();
 
         page!.Items.Should().NotBeNull();
@@ -126,13 +126,13 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
         };
 
         // Act
-        var post = await Client.PostAsJsonAsync(BaseUrlEvents, request, cancellationToken: TestContext.Current.CancellationToken);
+        var post = await Client.PostAsJsonAsync(BaseUrlEvents, request, TestContext.Current.CancellationToken);
 
         // Assert: 201
         post.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Assert: body
-        var created = await post.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
+        var created = await post.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, TestContext.Current.CancellationToken);
 
         created.Should().NotBeNull();
         created!.Id.Should().NotBeEmpty();
@@ -148,10 +148,10 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
         location.Should().EndWith(created.Id.ToString());
 
         // Roundtrip: GET by id returns 200 and same resource
-        var get = await Client.GetAsync($"{BaseUrlEvents}/{created.Id}", cancellationToken: TestContext.Current.CancellationToken);
+        var get = await Client.GetAsync($"{BaseUrlEvents}/{created.Id}", TestContext.Current.CancellationToken);
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var fetched = await get.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
+        var fetched = await get.Content.ReadFromJsonAsync<EventResponse>(JsonTestOptions.Default, TestContext.Current.CancellationToken);
 
         fetched.Should().BeEquivalentTo(created, opt => opt
             .ExcludingMissingMembers()
@@ -167,7 +167,7 @@ public sealed class EventsControllerTests(CustomWebApplicationFactory factory)
             Name = "A", // too short (min 2)
             Description = null,
             Scope = EventScope.Local
-        }, cancellationToken: TestContext.Current.CancellationToken);
+        }, TestContext.Current.CancellationToken);
 
         await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }

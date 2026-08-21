@@ -6,7 +6,7 @@ using EventHouse.Management.Application.DTOs;
 
 namespace EventHouse.Management.Api.Mappers.Events;
 
-public static class EventMapper
+internal static class EventMapper
 {
     public static EventResponse ToContract(EventDto dto)
     {

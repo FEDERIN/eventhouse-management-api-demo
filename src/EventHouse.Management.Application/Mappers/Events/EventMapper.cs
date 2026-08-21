@@ -1,4 +1,4 @@
-﻿
+﻿using EventHouse.Management.Application.Commands.Events.Create;
 using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Domain.Entities;
 
@@ -6,6 +6,15 @@ namespace EventHouse.Management.Application.Mappers.Events;
 
 internal class EventsMapper
 {
+    public static Event ToEntity(CreateEventCommand request)
+    {
+        return new Event(
+            Guid.NewGuid(),
+            request.Name,
+            request.Description,
+            EventScopeMapper.ToDomainRequired(request.Scope));
+    }
+
     public static EventDto ToDto(Event entity)
     {
         return new EventDto

@@ -8,7 +8,7 @@ internal sealed class UpdatePerformanceDatesCommandHandler(
     IEventVenueCalendarRepository calendarRepository)
     : IRequestHandler<UpdatePerformanceDatesCommand>
 {
-    public async Task Handle(UpdatePerformanceDatesCommand request, CancellationToken ct)
+    public async Task Handle(UpdatePerformanceDatesCommand request, CancellationToken ct = default)
     {
         var calendar = await calendarRepository.GetByIdWithPerformancesAsync(request.EventVenueCalendar, ct)
             ?? throw new NotFoundException("EventVenueCalendar", request.EventVenueCalendar);

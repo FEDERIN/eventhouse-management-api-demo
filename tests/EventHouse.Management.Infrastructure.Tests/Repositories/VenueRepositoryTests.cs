@@ -32,7 +32,7 @@ public sealed class VenueRepositoryTests(SharedDatabaseFixture fixture) : BasePe
             "Eastern Standard Time",
             2000,
             true);
-
+        
         //Act
         var act = async () => await _repository.UpdateAsync(venue, TestContext.Current.CancellationToken);
 

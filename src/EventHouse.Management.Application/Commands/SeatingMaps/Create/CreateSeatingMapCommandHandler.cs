@@ -2,7 +2,6 @@
 using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Application.Mappers.SeatingMaps;
-using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Domain.Exceptions;
 using MediatR;
 
@@ -11,21 +10,15 @@ namespace EventHouse.Management.Application.Commands.SeatingMaps.Create;
 internal sealed class CreateSeatingMapCommandHandler(ISeatingMapRepository seatingMapRepository, IVenueRepository venueRepository)
     : IRequestHandler<CreateSeatingMapCommand, SeatingMapDto>
 {
-    public async Task<SeatingMapDto> Handle(CreateSeatingMapCommand request, CancellationToken cancellationToken)
+    public async Task<SeatingMapDto> Handle(CreateSeatingMapCommand request, CancellationToken ct)
     {
-        var venueExists = await venueRepository.ExistsAsync(request.VenueId, cancellationToken);
+        var venueExists = await venueRepository.ExistsAsync(request.VenueId, ct);
         if (!venueExists)
             throw new NotFoundException("Venue", request.VenueId);
 
-        var entity = new SeatingMap(
-             Guid.NewGuid(),
-            request.VenueId,
-            request.Name,
-            request.Version == 0 ? 1 : request.Version,
-            request.IsActive
-        );
-        
-        await seatingMapRepository.AddAsync(entity, cancellationToken);
+        var entity = SeatingMapMapper.ToEntity(request);
+
+        await seatingMapRepository.AddAsync(entity, ct);
 
         return SeatingMapMapper.ToDto(entity);
     }

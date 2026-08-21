@@ -7,13 +7,11 @@ namespace EventHouse.Management.Application.Commands.Artists.SetPrimaryGenre;
 internal sealed class SetPrimaryArtistGenreCommandHandler(IArtistRepository artistRepository) :
     IRequestHandler<SetPrimaryArtistGenreCommand>
 {
-    private readonly IArtistRepository _artistRepository = artistRepository;
-
     public async Task Handle(
         SetPrimaryArtistGenreCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        var artist = await _artistRepository.GetByIdAsync(request.ArtistId, cancellationToken)
+        var artist = await artistRepository.GetByIdAsync(request.ArtistId, ct)
             ?? throw new NotFoundException("Artist", request.ArtistId);
 
         var genrePrimary = artist.Genres.FirstOrDefault(a => a.IsPrimary);
@@ -23,7 +21,7 @@ internal sealed class SetPrimaryArtistGenreCommandHandler(IArtistRepository arti
         if (changed)
         {
             var genreOldId = genrePrimary == null ? Guid.Empty : genrePrimary.GenreId;
-             await _artistRepository.SetPrimaryGenreAsync(artist.Id, genreOldId, request.GenreId, cancellationToken);
+             await artistRepository.SetPrimaryGenreAsync(artist.Id, genreOldId, request.GenreId, ct);
         }
     }
 }

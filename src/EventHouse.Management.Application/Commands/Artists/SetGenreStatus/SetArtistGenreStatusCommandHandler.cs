@@ -8,16 +8,14 @@ namespace EventHouse.Management.Application.Commands.Artists.SetGenreStatus;
 internal sealed class SetArtistGenreStatusCommandHandler(IArtistRepository artistRepository)
     : IRequestHandler<SetArtistGenreStatusCommand>
 {
-    private readonly IArtistRepository _artistRepository = artistRepository;
-
-    public async Task Handle(SetArtistGenreStatusCommand request, CancellationToken cancellationToken)
+    public async Task Handle(SetArtistGenreStatusCommand request, CancellationToken ct)
     {
-        var artist = await _artistRepository.GetTrackedByIdAsync(request.ArtistId, cancellationToken)
+        var artist = await artistRepository.GetTrackedByIdAsync(request.ArtistId, ct)
             ?? throw new NotFoundException("Artist", request.ArtistId);
 
         var changed = artist.SetGenreStatus(request.GenreId, ArtistGenreStatusMapper.ToDomainRequired(request.Status));
 
         if(changed)
-            await _artistRepository.UpdateAsync(artist, cancellationToken);
+            await artistRepository.UpdateAsync(artist, ct);
     }
 }

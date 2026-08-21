@@ -9,13 +9,11 @@ namespace EventHouse.Management.Application.Queries.Artists.GetById;
 internal sealed class GetArtistByIdQueryHandler(IArtistRepository repository)
         : IRequestHandler<GetArtistByIdQuery, ArtistDto>
 {
-    private readonly IArtistRepository _repository = repository;
-
-    public async Task<ArtistDto> Handle(GetArtistByIdQuery request, CancellationToken cancellationToken)
+    public async Task<ArtistDto> Handle(GetArtistByIdQuery request, CancellationToken ct)
     {
-        var entity = await _repository.GetByIdAsync(request.Id, cancellationToken)
+        var entity = await repository.GetByIdAsync(request.Id, ct)
             ?? throw new NotFoundException("Artist", request.Id);
 
-        return ArtistMapper.ToDto(entity);
+        return ArtistMapper.ToDtoWithRelation(entity);
     }
 }

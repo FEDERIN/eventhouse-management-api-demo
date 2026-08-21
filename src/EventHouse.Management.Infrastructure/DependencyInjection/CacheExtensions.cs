@@ -1,6 +1,5 @@
 ﻿using Core.Cache.Abstractions;
 using Core.Cache.DependencyInjection;
-using Core.Cache.Options;
 using EventHouse.Management.Infrastructure.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

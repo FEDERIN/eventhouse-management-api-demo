@@ -3,7 +3,7 @@ using EventHouse.Management.Application.Queries.EventVenues.GetAll;
 
 namespace EventHouse.Management.Api.Mappers.EventVenues;
 
-public static class GetAllEventVenuesQueryMapper
+internal static class GetAllEventVenuesQueryMapper
 {
     public static GetAllEventVenuesQuery FromContract(GetEventVenuesRequest request)
         => new()

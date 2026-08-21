@@ -1,5 +1,4 @@
-﻿using EventHouse.Management.Application.Common.Enums;
-using FluentValidation;
+﻿using FluentValidation;
 using System.Linq.Expressions;
 
 namespace EventHouse.Management.Application.Commands.EventVenueCalendars;
@@ -11,16 +10,15 @@ internal abstract class EventVenueCalendarCommandValidatorBase<TCommand> : Abstr
         RuleLevelCascadeMode = CascadeMode.Stop;
     }
 
-    protected void ApplyEventVenueCalendarRules(
+    protected void ApplyEventVenueCalendarDateRules(
         Func<TCommand, DateTimeOffset> startDateSelector,
-        Expression<Func<TCommand, DateTimeOffset?>> endDateExpression,
-        Expression<Func<TCommand, EventVenueCalendarStatusDto>> status)
+        Expression<Func<TCommand, DateTimeOffset?>> endDateExpression)
     {
         RuleFor(endDateExpression)
-            .Must((cmd, end) => end is null || end.Value >= startDateSelector(cmd))
-            .WithMessage("EndDate must be greater than or equal to StartDate.");
-
-        RuleFor(status)
-            .IsInEnum().WithMessage("The provided status is not valid.");
+            .Must((cmd, end) =>
+                end is null ||
+                end.Value >= startDateSelector(cmd))
+            .WithMessage(
+                "EndDate must be greater than or equal to StartDate.");
     }
 }

@@ -32,7 +32,7 @@ public sealed class AddArtistPerformanceValidatorTests : ValidatorTestBase<AddAr
             SetEnd = start.AddHours(-1)
         };
 
-        ShouldHaveValidationError(command, x => x,
+        ShouldHaveValidationError(command, x => x, 
             "SetEnd must be greater than or equal to SetStart when both are specified, and both must be provided if either is.");
     }
 
@@ -57,7 +57,7 @@ public sealed class AddArtistPerformanceValidatorTests : ValidatorTestBase<AddAr
     {
         var command = CreateValidCommand() with { SetStart = DateTimeOffset.UtcNow, SetEnd = null };
 
-        ShouldHaveValidationError(command, x => x,
+        ShouldHaveValidationError(command, x => x, 
             "SetEnd must be greater than or equal to SetStart when both are specified, and both must be provided if either is.");
     }
 

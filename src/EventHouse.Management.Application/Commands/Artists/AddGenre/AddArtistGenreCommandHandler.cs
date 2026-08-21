@@ -11,18 +11,15 @@ internal sealed class AddArtistGenreCommandHandler(
     IGenreRepository genreRepository)
     : IRequestHandler<AddArtistGenreCommand>
 {
-    private readonly IArtistRepository _artistRepository = artistRepository;
-    private readonly IGenreRepository _genreRepository = genreRepository;
-
-    public async Task Handle(AddArtistGenreCommand request, CancellationToken cancellationToken)
+    public async Task Handle(AddArtistGenreCommand request, CancellationToken ct)
     {
-        var artist = await _artistRepository.GetTrackedByIdAsync(request.ArtistId, cancellationToken)
+        var artist = await artistRepository.GetTrackedByIdAsync(request.ArtistId, ct)
             ?? throw new NotFoundException("Artist", request.ArtistId);
 
         if (artist.Genres.Any(g => g.GenreId == request.GenreId))
             return;
 
-        _ = await _genreRepository.GetByIdAsync(request.GenreId, cancellationToken)
+        _ = await genreRepository.GetByIdAsync(request.GenreId, ct)
                         ?? throw new NotFoundException("Genre", request.GenreId);
 
         var domainResult = artist.AddGenre(request.GenreId,
@@ -30,6 +27,6 @@ internal sealed class AddArtistGenreCommandHandler(
 
 
         if (domainResult is AddGenreOutcome.Added)
-            await _artistRepository.UpdateAsync(artist, cancellationToken);
+            await artistRepository.UpdateAsync(artist, ct);
     }
 }

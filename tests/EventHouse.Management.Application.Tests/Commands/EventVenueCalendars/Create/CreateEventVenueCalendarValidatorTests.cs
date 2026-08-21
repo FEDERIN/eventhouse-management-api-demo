@@ -1,5 +1,4 @@
 ﻿using EventHouse.Management.Application.Commands.EventVenueCalendars.Create;
-using EventHouse.Management.Application.Common.Enums;
 
 namespace EventHouse.Management.Application.Tests.Commands.EventVenueCalendars.Create;
 
@@ -60,21 +59,12 @@ public sealed class CreateEventVenueCalendarValidatorTests : ValidatorTestBase<C
         ShouldHaveValidationError(command, x => x.EndDate, "EndDate must be greater than or equal to StartDate.");
     }
 
-    [Fact]
-    public void Should_HaveError_When_Status_Is_Invalid_Enum_Value()
-    {
-        var command = CreateValidCommand() with { Status = (EventVenueCalendarStatusDto)99 };
-
-        ShouldHaveValidationError(command, x => x.Status, "The provided status is not valid.");
-    }
-
     private static CreateEventVenueCalendarCommand CreateValidCommand() =>
         new(
             Guid.NewGuid(),
             Guid.NewGuid(),
             DateTime.UtcNow.AddDays(1),
             DateTime.UtcNow.AddDays(1).AddHours(2),
-            "America/New_York",
-            EventVenueCalendarStatusDto.Draft
+            "America/New_York"
         );
 }

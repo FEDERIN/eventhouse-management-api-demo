@@ -154,7 +154,7 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
         var request = EventVenueFactory.CreateRequest(@event.Id, venue.Id, EventVenueStatus.Active);
 
         // Act
-        var response = await Client.PostAsJsonAsync(BaseUrlEventVenues, request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync(BaseUrlEventVenues, request, TestContext.Current.CancellationToken);
         var created = await response.ReadContentAsync<EventVenueResponse>();
 
         // Assert
@@ -177,7 +177,7 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
         };
 
         // Act
-        var response = await Client.PostAsJsonAsync(BaseUrlEventVenues, request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync(BaseUrlEventVenues, request, TestContext.Current.CancellationToken);
 
         // Assert
         await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
@@ -191,7 +191,7 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
         var requestMissingVenue = EventVenueFactory.CreateRequest(@event.Id, Guid.NewGuid());
 
         // Act 1
-        var res1 = await Client.PostAsJsonAsync(BaseUrlEventVenues, requestMissingVenue, cancellationToken: TestContext.Current.CancellationToken);
+        var res1 = await Client.PostAsJsonAsync(BaseUrlEventVenues, requestMissingVenue, TestContext.Current.CancellationToken);
         await res1.ShouldBeProblemJson(HttpStatusCode.NotFound);
 
         // Arrange 2
@@ -199,7 +199,7 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
         var requestMissingEvent = EventVenueFactory.CreateRequest(Guid.NewGuid(), venue.Id);
 
         // Act 2
-        var res2 = await Client.PostAsJsonAsync(BaseUrlEventVenues, requestMissingEvent, cancellationToken: TestContext.Current.CancellationToken);
+        var res2 = await Client.PostAsJsonAsync(BaseUrlEventVenues, requestMissingEvent, TestContext.Current.CancellationToken);
         await res2.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
@@ -215,13 +215,13 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
         var updateRequest = new UpdateEventVenueStatusRequest { Status = EventVenueStatus.Inactive };
 
         // Act
-        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenues}/{existing.Id}/{StatusPath}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenues}/{existing.Id}/{StatusPath}", updateRequest, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify: Volvemos a consultar para asegurar persistencia
-        var verifyRes = await Client.GetAsync($"{BaseUrlEventVenues}/{existing.Id}", cancellationToken: TestContext.Current.CancellationToken);
+        var verifyRes = await Client.GetAsync($"{BaseUrlEventVenues}/{existing.Id}", TestContext.Current.CancellationToken);
         var updated = await verifyRes.ReadContentAsync<EventVenueResponse>();
         updated.Status.Should().Be(EventVenueStatus.Inactive);
     }
@@ -233,14 +233,14 @@ public sealed class EventVenuesControllerTests(CustomWebApplicationFactory facto
         var existing = await CreateEventVenueAsync();
         var updateRequest = new UpdateEventVenueStatusRequest { Status = EventVenueStatus.Inactive };
 
-        var response1 = await Client.PutAsJsonAsync($"{BaseUrlEventVenues}/{existing.Id}/{StatusPath}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
-        var response2 = await Client.PutAsJsonAsync($"{BaseUrlEventVenues}/{existing.Id}/{StatusPath}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
+        var response1 = await Client.PutAsJsonAsync($"{BaseUrlEventVenues}/{existing.Id}/{StatusPath}", updateRequest, TestContext.Current.CancellationToken);
+        var response2 = await Client.PutAsJsonAsync($"{BaseUrlEventVenues}/{existing.Id}/{StatusPath}", updateRequest, TestContext.Current.CancellationToken);
 
         // Assert
         response1.StatusCode.Should().Be(HttpStatusCode.NoContent);
         response2.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var verifyRes = await Client.GetAsync($"{BaseUrlEventVenues}/{existing.Id}", cancellationToken: TestContext.Current.CancellationToken);
+        var verifyRes = await Client.GetAsync($"{BaseUrlEventVenues}/{existing.Id}", TestContext.Current.CancellationToken);
         var updated = await verifyRes.ReadContentAsync<EventVenueResponse>();
         updated.Status.Should().Be(EventVenueStatus.Inactive);
     }

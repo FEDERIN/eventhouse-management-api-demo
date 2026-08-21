@@ -7,9 +7,9 @@ namespace EventHouse.Management.Application.Commands.SeatingMaps.Delete;
 internal sealed class DeleteSeatingMapCommandHandler(ISeatingMapRepository seatingMapRepository) 
     : IRequestHandler<DeleteSeatingMapCommand>
 {
-    public async Task Handle(DeleteSeatingMapCommand request, CancellationToken cancellationToken)
+    public async Task Handle(DeleteSeatingMapCommand request, CancellationToken ct)
     {
-        var result = await seatingMapRepository.DeleteAsync(request.Id, cancellationToken);
+        var result = await seatingMapRepository.DeleteAsync(request.Id, ct);
 
         if (result is false)
             throw new NotFoundException("SeatingMap", request.Id);

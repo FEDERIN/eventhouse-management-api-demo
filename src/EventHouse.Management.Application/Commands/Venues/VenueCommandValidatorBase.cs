@@ -18,9 +18,9 @@ internal abstract class VenueCommandValidatorBase<TCommand> : AbstractValidator<
         Expression<Func<TCommand, string>> city,
         Expression<Func<TCommand, string>> region,
         Expression<Func<TCommand, string>> countryCode,
-        Expression<Func<TCommand, decimal?>> latitude,
-        Expression<Func<TCommand, decimal?>> longitude,
-        Expression<Func<TCommand, string?>> timeZoneId,
+        Expression<Func<TCommand, decimal>> latitude,
+        Expression<Func<TCommand, decimal>> longitude,
+        Expression<Func<TCommand, string>> timeZoneId,
         Expression<Func<TCommand, int?>> capacity)
     {
         RuleFor(name)
@@ -53,15 +53,13 @@ internal abstract class VenueCommandValidatorBase<TCommand> : AbstractValidator<
             .WithMessage("CountryCode must be a valid ISO-3166-1 alpha-2 code (e.g. 'ES').");
 
         RuleFor(latitude)
-            .InclusiveBetween(-90m, 90m)
-            .When(x => latitude.Compile()(x).HasValue);
+            .InclusiveBetween(-90m, 90m);
 
         RuleFor(longitude)
-            .InclusiveBetween(-180m, 180m)
-            .When(x => longitude.Compile()(x).HasValue);
+            .InclusiveBetween(-180m, 180m);
 
         RuleFor(timeZoneId)
-            .Must(tz => tz is null || TZConvert.KnownIanaTimeZoneNames.Contains(tz.Trim()))
+            .Must(tz => TZConvert.KnownIanaTimeZoneNames.Contains(tz.Trim()))
             .WithMessage("TimeZoneId must be a valid IANA time zone (e.g. 'Europe/Malta').");
 
         RuleFor(capacity)

@@ -89,10 +89,9 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
         Guid? eventVenueId = null,
         Guid? seatingMapId = null,
         DateTimeOffset? startDate = null,
-        DateTimeOffset? endDate = null,
-        EventVenueCalendarStatus status = EventVenueCalendarStatus.Draft)
+        DateTimeOffset? endDate = null)
     {
-        var request = await CreateEventVenueCalendarRequestAsync(eventVenueId, seatingMapId, startDate, endDate, status);
+        var request = await CreateEventVenueCalendarRequestAsync(eventVenueId, seatingMapId, startDate, endDate);
         var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request);
         return await response.ReadContentAsync<EventVenueCalendarResponse>();
     }
@@ -101,8 +100,7 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
         Guid? eventVenueId = null,
         Guid? seatingMapId = null,
         DateTimeOffset? startDate = null,
-        DateTimeOffset? endDate = null,
-        EventVenueCalendarStatus status = EventVenueCalendarStatus.Draft)
+        DateTimeOffset? endDate = null)
     {
         var venueId = Guid.Empty;
 
@@ -123,7 +121,6 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
         {
             EventVenueId = eventVenueId.GetValueOrDefault(),
             SeatingMapId = seatingMapId.GetValueOrDefault(),
-            Status = status,
             StartDate = startDate ?? DateTime.UtcNow,
             EndDate = endDate ?? (startDate?.AddHours(10) ?? DateTime.UtcNow.AddHours(10)),
             TimeZoneId = "America/New_York",

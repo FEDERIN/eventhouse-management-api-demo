@@ -4,6 +4,7 @@ using EventHouse.Management.Application.Common.Sorting;
 using EventHouse.Management.Application.Queries.EventVenues.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
+using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,45 +13,38 @@ namespace EventHouse.Management.Infrastructure.Repositories;
 internal class EventVenueRepository(ManagementDbContext context) :
     BaseRepository(context), IEventVenueRepository
 {
-    private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> EventVenueMappings = new()
+    protected override Dictionary<string, UniqueConstraintMapping> IndexMappings =>
+    new()
     {
-        { "UX_EventVenues_Event_Venue", ("EVENT_ALREADY_ASSIGNED", "This event is already assigned to this venue.", false) }
+        ["UX_EventVenues_Event_Venue"] = new(
+            "EVENT_ALREADY_ASSIGNED",
+            "This event is already assigned to this venue.")
     };
 
     #region WRITE
-    public async Task AddAsync(EventVenue entity, CancellationToken cancellationToken = default)
-    {
-        await _context.EventVenues.AddAsync(entity, cancellationToken);
-        await SaveChangesWithUniqueCheckAsync(EventVenueMappings, cancellationToken);
-    }
+    public Task AddAsync(EventVenue entity, CancellationToken ct = default)
+        => AddAsync<EventVenue>(entity, ct);
 
-    public async Task UpdateAsync(EventVenue entity, CancellationToken cancellationToken = default)
-    {
-        if (_context.Entry(entity).State == EntityState.Detached)
-            throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
-
-        await SaveChangesWithUniqueCheckAsync(EventVenueMappings, cancellationToken);
-    }
+    public Task UpdateAsync(EventVenue entity, CancellationToken ct = default)
+        => UpdateAsync<EventVenue>(entity, ct);
     #endregion
 
     #region READ
-    public async Task<EventVenue?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<EventVenue?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return await _context.EventVenues
             .AsNoTracking()
             .Include(ev => ev.Event)
             .Include(ev => ev.Venue)
-            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
     }
 
-    public async Task<EventVenue?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.EventVenues.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-    }
+    public Task<EventVenue?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default)
+        => GetTrackedByIdAsync<EventVenue>(id, ct);
 
     public async Task<PagedResultDto<EventVenue>> GetPagedAsync(
         EventVenueQueryCriteria criteria,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
         IQueryable<EventVenue> query = _context.EventVenues.AsNoTracking();
 
@@ -82,16 +76,16 @@ internal class EventVenueRepository(ManagementDbContext context) :
         return await query.ToPagedResultAsync(
             criteria.Page,
             criteria.PageSize,
-            cancellationToken
+            ct
         );
     }
     #endregion
 
 
     #region VALIDATIONS
-    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsAsync(Guid id, CancellationToken ct = default)
     {
-        return await ExistsAsync<EventVenue>(id, cancellationToken);
+        return await ExistsAsync<EventVenue>(id, ct);
     }
     #endregion
 }

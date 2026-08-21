@@ -9,11 +9,9 @@ namespace EventHouse.Management.Application.Queries.Events.GetById;
 internal sealed class GetEventByIdQueryHandler(IEventRepository repository)
         : IRequestHandler<GetEventByIdQuery, EventDto>
 {
-    private readonly IEventRepository _repository = repository;
-
-    public async Task<EventDto> Handle(GetEventByIdQuery request, CancellationToken cancellationToken)
+    public async Task<EventDto> Handle(GetEventByIdQuery request, CancellationToken ct)
     {
-        var entity = await _repository.GetByIdAsync(request.Id, cancellationToken)
+        var entity = await repository.GetByIdAsync(request.Id, ct)
         ?? throw new NotFoundException("Event", request.Id);
 
         return EventsMapper.ToDto(entity);

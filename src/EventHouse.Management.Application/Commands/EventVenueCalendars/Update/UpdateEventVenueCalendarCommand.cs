@@ -6,6 +6,6 @@ namespace EventHouse.Management.Application.Commands.EventVenueCalendars.Update;
 public sealed record UpdateEventVenueCalendarCommand(
     Guid Id,
     DateTimeOffset StartDate,
-    DateTimeOffset? EndDate,
+    DateTimeOffset EndDate,
     EventVenueCalendarStatusDto Status
 ) : IRequest;

@@ -7,16 +7,14 @@ namespace EventHouse.Management.Application.Commands.Genres.Update;
 
 internal sealed class UpdateGenreCommandHandler(IGenreRepository genreRepository) : IRequestHandler<UpdateGenreCommand, UpdateResult>
 {
-    private readonly IGenreRepository _genreRepository = genreRepository;
-
-    public async Task<UpdateResult> Handle(UpdateGenreCommand request, CancellationToken cancellationToken)
+    public async Task<UpdateResult> Handle(UpdateGenreCommand request, CancellationToken ct)
     {
-        var entity = await _genreRepository.GetTrackedByIdAsync(request.Id, cancellationToken)
+        var entity = await genreRepository.GetTrackedByIdAsync(request.Id, ct)
             ?? throw new NotFoundException("Genre", request.Id);
 
         entity.Update(request.Name);
 
-        await _genreRepository.UpdateAsync(entity, cancellationToken);
+        await genreRepository.UpdateAsync(entity, ct);
         return UpdateResult.Success;
     }
 }

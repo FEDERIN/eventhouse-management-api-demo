@@ -4,7 +4,7 @@ using MediatR;
 
 namespace EventHouse.Management.Application.Commands.Events.Create;
 
-public record CreateEventCommand(
+public sealed record CreateEventCommand(
     string Name,
     string? Description,
     EventScopeDto Scope

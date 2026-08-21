@@ -1,4 +1,5 @@
 ﻿using EventHouse.Management.Domain.Entities;
+using EventHouse.Management.Domain.Exceptions.Venues;
 
 namespace EventHouse.Management.Domain.Tests.Entities;
 
@@ -11,9 +12,9 @@ public sealed class VenueTests
     private static readonly string City = "Valletta";
     private static readonly string Region = "Malta";
     private static readonly string CountryCode = "MT";
-    private static readonly decimal? Latitude = 35.8989m;
-    private static readonly decimal? Longitude = 14.5146m;
-    private static readonly string? TimeZoneId = TimeZoneInfo.GetSystemTimeZones().First().Id;
+    private static readonly decimal Latitude = 35.8989m;
+    private static readonly decimal Longitude = 14.5146m;
+    private static readonly string TimeZoneId = TimeZoneInfo.GetSystemTimeZones().First().Id;
     private static readonly int? Capacity = 500;
     private static readonly bool IsActive = true;
     private static readonly string TextTooLong = new('A', 201);
@@ -42,8 +43,8 @@ public sealed class VenueTests
         Assert.Equal(City, venue.City);
         Assert.Equal(Region, venue.Region);
         Assert.Equal(CountryCode, venue.CountryCode);
-        Assert.Equal(Latitude, venue.Latitude);
-        Assert.Equal(Longitude, venue.Longitude);
+        Assert.Equal(Latitude, venue.Coordinates.Latitude);
+        Assert.Equal(Longitude, venue.Coordinates.Longitude);
         Assert.Equal(TimeZoneId, venue.TimeZoneId);
         Assert.Equal(Capacity, venue.Capacity);
         Assert.Equal(IsActive, venue.IsActive);
@@ -60,9 +61,9 @@ public sealed class VenueTests
             City,
             Region,
             CountryCode,
-            null,
-            null,
-            null,
+            0m,
+            0m,
+            TimeZoneId,
             Capacity,
             IsActive);
 
@@ -73,9 +74,9 @@ public sealed class VenueTests
         Assert.Equal(City, venue.City);
         Assert.Equal(Region, venue.Region);
         Assert.Equal(CountryCode, venue.CountryCode);
-        Assert.Null(venue.Latitude);
-        Assert.Null(venue.Longitude);
-        Assert.Null(venue.TimeZoneId);
+        Assert.Equal(0m, venue.Coordinates.Latitude);
+        Assert.Equal(0m, venue.Coordinates.Longitude);
+        Assert.Equal(TimeZoneId, venue.TimeZoneId);
         Assert.Equal(Capacity, venue.Capacity);
         Assert.Equal(IsActive, venue.IsActive);
     }
@@ -306,7 +307,7 @@ public sealed class VenueTests
     [Fact]
     public void Should_throw_when_latitude_is_out_of_range()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.Throws<InvalidLatitudeException>(() =>
         new Venue(
                 Id,
                 Name,
@@ -324,7 +325,7 @@ public sealed class VenueTests
     [Fact]
     public void Should_throw_when_longitude_is_out_of_range()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.Throws<InvalidLongitudeException>(() =>
         new Venue(
                 Id,
                 Name,
@@ -337,45 +338,6 @@ public sealed class VenueTests
                 TimeZoneId,
                 Capacity,
                 IsActive));
-    }
-
-    [Fact]
-    public void Should_throw_when_longitude_is_good_but_latitude_is_null()
-    {
-        Assert.Throws<ArgumentException>(() =>
-        new Venue(
-                Id,
-                Name,
-                Address,
-                City,
-                Region,
-                CountryCode,
-                null,
-                100,
-                TimeZoneId,
-                Capacity,
-                IsActive));
-    }
-
-
-    [Fact]
-    public void Should_throw_when_timeZoneId_is_Invalid()
-    {
-        var ex = Assert.Throws<ArgumentException>(() =>
-            new Venue(
-                    Id,
-                    Name,
-                    Address,
-                    City,
-                    Region,
-                    CountryCode,
-                    Latitude,
-                    Longitude,
-                    "America/Miami",
-                    Capacity,
-                    IsActive));
-
-        Assert.Equal("timeZoneId", ex.ParamName);
     }
 
     [Fact]

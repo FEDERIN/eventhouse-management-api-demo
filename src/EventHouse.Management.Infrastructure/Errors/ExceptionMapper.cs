@@ -3,6 +3,7 @@ using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Domain.Exceptions;
 using EventHouse.Management.Domain.Exceptions.Calendars;
+using EventHouse.Management.Domain.Exceptions.Venues;
 using Npgsql;
 
 namespace EventHouse.Management.Infrastructure.Errors;
@@ -28,6 +29,15 @@ internal sealed class ExceptionMapper : IExceptionMapper
 
             CannotRemovePublishedHeadlinerException crphe =>
                 (409, "CANNOT_REMOVE_PUBLISHED_HEADLINER", "Cannot remove published headliner", crphe.Message, string.Empty),
+
+            InvalidTimeRangeException itre =>
+                (409, "INVALID_TIME_RANGE", "Invalid time range", itre.Message, string.Empty),
+
+            InvalidLatitudeException ile =>
+                (409, "INVALID_LATITUDE", "Invalid latitude", ile.Message, string.Empty),
+
+            InvalidLongitudeException ole =>
+                (409, "INVALID_LONGITUDE", "Invalid longitude", ole.Message, string.Empty),
 
             ConflictException ce =>
                 (409, ce.Code, ce.Title, ce.Message, string.Empty),

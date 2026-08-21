@@ -3,8 +3,6 @@ using EventHouse.Management.Api.Contracts.ArtistPerformances;
 using EventHouse.Management.Api.Mappers.ArtistPerformances;
 using EventHouse.Management.Api.Swagger;
 using EventHouse.Management.Api.Swagger.Examples.Contracts.ArtistPerformances;
-using EventHouse.Management.Application.Commands.ArtistPerformances.Remove;
-using EventHouse.Management.Application.Queries.ArtistPerformances.GetById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -16,22 +14,28 @@ namespace EventHouse.Management.Api.Controllers;
 [Route("api/v1/artist-performances")]
 public sealed class ArtistPerformancesController(IMediator mediator) : BaseApiController
 {
+    #region READ
     [HttpGet("{id:guid}")]
     [ActionName(nameof(GetById))]
     [SwaggerOperation(
         OperationId = "GetArtistPerformanceById",
         Summary = "Retrieve details of a specific artist performance.")]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(ArtistPerformanceResponseExample))]
-    [ProducesOkAttribute<ArtistPerformanceResponse>]
+    [ProducesOk<ArtistPerformanceResponse>]
     [ProducesNotFoundProblem]
     public async Task<ActionResult<ArtistPerformanceResponse>> GetById(
         Guid id,
-        CancellationToken ct)
+        CancellationToken ct = default)
     {
-        var resultDto = await mediator.Send(new GetArtistPerformanceByIdQuery(id), ct);
+        var resultDto = await mediator.Send(
+            GetArtistPerformanceByIdQueryMapper.FromContract(id),
+            ct);
+
         return Ok(ArtistPerformanceMapper.ToContract(resultDto));
     }
+    #endregion
 
+    #region DELETE
     [HttpDelete("{calendarId:guid}/{artistId:guid}")]
     [SwaggerOperation(
         OperationId = "RemoveArtistPerformance",
@@ -43,9 +47,13 @@ public sealed class ArtistPerformancesController(IMediator mediator) : BaseApiCo
     public async Task<IActionResult> RemovePerformance(
         Guid calendarId,
         Guid artistId,
-        CancellationToken ct)
+        CancellationToken ct = default)
     {
-        await mediator.Send(new RemoveArtistPerformanceCommand(calendarId, artistId), ct);
+        await mediator.Send(
+            RemoveArtistPerformanceCommandMapper.FromContract(calendarId, artistId)
+            , ct);
+
         return NoContent();
     }
+    #endregion
 }

@@ -20,13 +20,13 @@ internal class ArtistPerformanceConfiguration : IEntityTypeConfiguration<ArtistP
 
         builder.Property(e => e.EventVenueCalendarId)
             .IsRequired();
-
+        
         builder.Property(e => e.ArtistId)
             .IsRequired();
 
         builder.Property(e => e.IsHeadliner)
             .IsRequired();
-
+        
         builder.Property(e => e.SetStart);
         builder.Property(e => e.SetEnd);
 

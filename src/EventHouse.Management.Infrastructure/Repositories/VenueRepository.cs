@@ -4,6 +4,7 @@ using EventHouse.Management.Application.Common.Sorting;
 using EventHouse.Management.Application.Queries.Venues.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
+using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,56 +12,35 @@ namespace EventHouse.Management.Infrastructure.Repositories;
 internal class VenueRepository(ManagementDbContext context) :
     BaseRepository(context), IVenueRepository
 {
-    private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
+    protected override Dictionary<string, UniqueConstraintMapping> IndexMappings =>
+    new()
     {
-        { "UX_Venues_Name", ("VENUE_NAME_ALREADY_EXISTS", "The name already exists in another venue.", false) }
+        ["UX_Venues_Name"] = new("VENUE_NAME_ALREADY_EXISTS", "The name already exists in another venue.")
     };
 
-    public async Task AddAsync(Venue entity, CancellationToken cancellationToken = default)
+    public Task AddAsync(Venue entity, CancellationToken ct = default)
+    => AddAsync<Venue>(entity, ct);
+
+    public Task UpdateAsync(Venue entity, CancellationToken ct = default)
+    => UpdateAsync<Venue>(entity, ct);
+
+    public Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)
+        => DeleteAsync<Venue>(id, ct);
+
+    public async Task<bool> ExistsAsync(Guid id, CancellationToken ct = default)
     {
-        await _context.Venues.AddAsync(entity, cancellationToken);
-        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
+        return await ExistsAsync<Venue>(id, ct);
     }
 
-    public async Task UpdateAsync(Venue entity, CancellationToken cancellationToken = default)
-    {
-    if (_context.Entry(entity).State == EntityState.Detached)
-        throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
+    public Task<Venue?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        => GetByIdAsync<Venue>(id, ct);
 
-        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
-    }
-
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var entity = await GetTrackedByIdAsync(id, cancellationToken);
-
-        if (entity is null)
-            return false;
-
-        _context.Venues.Remove(entity);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return true;
-    }
-
-    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await ExistsAsync<Venue>(id, cancellationToken);
-    }
-
-    public async Task<Venue?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Venues.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-    }
-
-    public async Task<Venue?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Venues.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-    }
+    public Task<Venue?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default)
+    => GetTrackedByIdAsync<Venue>(id, ct);
 
     public async Task<PagedResultDto<Venue>> GetPagedAsync(
         VenueQueryCriteria criteria,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
         IQueryable<Venue> query = _context.Venues.AsNoTracking();
 
@@ -87,7 +67,7 @@ internal class VenueRepository(ManagementDbContext context) :
 
         query = ApplyVenueSorting(query, criteria.SortBy, criteria.SortDirection);
 
-        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
+        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, ct);
     }
 
     private static IQueryable<Venue> ApplyVenueSorting(

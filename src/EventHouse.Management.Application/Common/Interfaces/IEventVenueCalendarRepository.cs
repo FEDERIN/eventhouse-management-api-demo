@@ -8,25 +8,25 @@ namespace EventHouse.Management.Application.Common.Interfaces;
 public interface IEventVenueCalendarRepository
 {
     #region WRITE
-    Task AddAsync(EventVenueCalendar entity, CancellationToken cancellationToken = default);
-    Task UpdateAsync(EventVenueCalendar entity, CancellationToken cancellationToken = default);
-    Task SwapHeadlinerAsync(Guid eventVenueCalendar, Guid oldArtistId, Guid newArtistId, CancellationToken ct);
+    Task AddAsync(EventVenueCalendar entity, CancellationToken ct = default);
+    Task UpdateAsync(EventVenueCalendar entity, CancellationToken ct = default);
+    Task SwapHeadlinerAsync(Guid eventVenueCalendar, Guid oldArtistId, Guid newArtistId, CancellationToken ct = default);
     #endregion
 
     #region READ
-    Task<EventVenueCalendar?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<EventVenueCalendar?> GetByIdWithPerformancesAsync(Guid id, CancellationToken ct);
-    Task<PagedResultDto<EventVenueCalendar>> GetPagedAsync(EventVenueCalendarQueryCriteria criteria, CancellationToken cancellationToken = default);
+    Task<EventVenueCalendar?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<EventVenueCalendar?> GetByIdWithPerformancesAsync(Guid id, CancellationToken ct = default);
+    Task<PagedResultDto<EventVenueCalendar>> GetPagedAsync(EventVenueCalendarQueryCriteria criteria, CancellationToken ct = default);
     #endregion
 
     #region VALIDATIONS
-    Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(Guid id, CancellationToken ct = default);
 
     Task<bool> IsSlotOccupiedAsync(
         Guid eventVenueId,
         DateTime startUtc,
         DateTime endUtc,
         Guid? excludeId = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken ct = default);
     #endregion
 }

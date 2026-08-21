@@ -8,16 +8,14 @@ namespace EventHouse.Management.Application.Commands.ArtistPerformances.Swap;
 internal sealed class SwapHeadlinerCommandHandler(IEventVenueCalendarRepository calendarRepository)
     : IRequestHandler<SwapHeadlinerCommand>
 {
-    private readonly IEventVenueCalendarRepository _calendarRepository = calendarRepository;
-
-    public async Task Handle(SwapHeadlinerCommand request, CancellationToken ct)
+    public async Task Handle(SwapHeadlinerCommand request, CancellationToken ct = default)
     {
-        var eventVenueCalendar = await _calendarRepository.GetByIdWithPerformancesAsync(request.EventVenueCalendar, ct)
+        var eventVenueCalendar = await calendarRepository.GetByIdWithPerformancesAsync(request.EventVenueCalendar, ct)
             ?? throw new NotFoundException(nameof(EventVenueCalendar), request.EventVenueCalendar);
 
         eventVenueCalendar.SwapHeadliner(request.OldArtistId, request.NewArtistId);
 
-        await _calendarRepository.SwapHeadlinerAsync(
+        await calendarRepository.SwapHeadlinerAsync(
             request.EventVenueCalendar,
             request.OldArtistId,
             request.NewArtistId,

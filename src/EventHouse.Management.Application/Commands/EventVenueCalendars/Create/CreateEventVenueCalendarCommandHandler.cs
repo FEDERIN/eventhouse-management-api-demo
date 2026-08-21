@@ -2,9 +2,9 @@
 using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Mappers.EventVenueCalendars;
-using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Domain.Exceptions;
 using MediatR;
+
 namespace EventHouse.Management.Application.Commands.EventVenueCalendars.Create;
 
 internal sealed class CreateEventVenueCalendarCommandHandler(
@@ -15,24 +15,23 @@ internal sealed class CreateEventVenueCalendarCommandHandler(
 {
     public async Task<EventVenueCalendarDto> Handle(
         CreateEventVenueCalendarCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
         var eventVenueExists = await eventVenueRepository
-            .ExistsAsync(request.EventVenueId, cancellationToken);
+            .ExistsAsync(request.EventVenueId, ct);
         
         if (!eventVenueExists)
             throw new NotFoundException("EventVenue", request.EventVenueId);
 
         var startUtc = request.StartDate.UtcDateTime;
-        var endUtc = request.EndDate?.UtcDateTime
-                     ?? startUtc.Date.AddDays(1).AddTicks(-1).ToUniversalTime();
+        var endUtc = request.EndDate.UtcDateTime;
 
         var isOccupied = await calendarEventRepository.IsSlotOccupiedAsync(
             request.EventVenueId,
             startUtc,
             endUtc,
             null,
-            cancellationToken);
+            ct);
 
         if (isOccupied)
             throw new ConflictException(
@@ -42,22 +41,14 @@ internal sealed class CreateEventVenueCalendarCommandHandler(
 
 
         var seatingMapExists = await seatingMapRepository
-            .ExistsAsync(request.SeatingMapId, cancellationToken);
+            .ExistsAsync(request.SeatingMapId, ct);
 
         if(!seatingMapExists)
             throw new NotFoundException("SeatingMap", request.SeatingMapId);
 
-        var entity = new EventVenueCalendar(
-            Guid.NewGuid(),
-            request.EventVenueId,
-            request.SeatingMapId,
-            request.StartDate,
-            request.EndDate,
-            request.TimeZoneId,
-            EventVenueCalendarStatusMapper.ToDomainRequired(request.Status)
-        );
+        var entity = EventVenueCalendarMapper.ToEntity(request);
 
-        await calendarEventRepository.AddAsync(entity, cancellationToken);
+        await calendarEventRepository.AddAsync(entity, ct);
 
         return EventVenueCalendarMapper.ToDto(entity);
     }

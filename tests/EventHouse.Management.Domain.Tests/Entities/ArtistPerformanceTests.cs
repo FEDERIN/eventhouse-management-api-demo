@@ -1,4 +1,5 @@
 ﻿using EventHouse.Management.Domain.Entities;
+using EventHouse.Management.Domain.ValueObjects;
 
 namespace EventHouse.Management.Domain.Tests.Entities;
 
@@ -18,7 +19,8 @@ public sealed class ArtistPerformanceTests
             setEndLocal: DateTimeOffset.UtcNow.AddHours(1)
         ));
 
-        Assert.Equal("EventVenueCalendarId is required.", ex.Message);
+        Assert.Equal("Value does not fall within the expected range. (Parameter 'eventVenueCalendarId')",
+            ex.Message);
     }
 
     [Fact]
@@ -33,7 +35,8 @@ public sealed class ArtistPerformanceTests
             setEndLocal: DateTimeOffset.UtcNow.AddHours(1)
         ));
 
-        Assert.Equal("ArtistId is required.", ex.Message);
+        Assert.Equal("Value does not fall within the expected range. (Parameter 'artistId')",
+            ex.Message);
     }
 
     #endregion
@@ -41,46 +44,59 @@ public sealed class ArtistPerformanceTests
     #region ValidateTimeRange Exceptions
 
     [Fact]
-    public void ValidateTimeRange_ShouldThrowArgumentException_WhenStartIsBeforeCalendarStart()
+    public void ValidateTimeRange_ShouldThrow_WhenPerformanceStartsBeforeCalendar()
     {
-        // Arrange
         var performance = new ArtistPerformance(
             Guid.NewGuid(),
             Guid.NewGuid(),
             false,
             DateTimeOffset.Parse("2024-01-01T09:00:00Z"),
-            DateTimeOffset.Parse("2024-01-01T11:00:00Z")
-        );
+            DateTimeOffset.Parse("2024-01-01T11:00:00Z"));
 
-        var calendarStartUtc = new DateTime(2024, 1, 1, 10, 0, 0, DateTimeKind.Utc);
+        var calendarRange = TimeRange.Create(
+            new DateTime(2024, 1, 1, 10, 0, 0, DateTimeKind.Utc),
+            new DateTime(2024, 1, 1, 20, 0, 0, DateTimeKind.Utc));
 
-        // Act & Assert
-        var ex = Assert.Throws<ArgumentException>(() =>
-            performance.ValidateTimeRange(calendarStartUtc, null)
-        );
-
-        Assert.Equal("Performance cannot start before the calendar slot begins.", ex.Message);
+        Assert.Throws<ArgumentException>(() =>
+            performance.ValidateTimeRange(calendarRange));
     }
 
     [Fact]
-    public void ValidateTimeRange_ShouldThrowArgumentException_WhenStartIsGreaterThanOrEqualToEnd()
+    public void ValidateTimeRange_ShouldNotThrow_WhenPerformanceIsWithinCalendar()
     {
         var performance = new ArtistPerformance(
             Guid.NewGuid(),
             Guid.NewGuid(),
             false,
-            DateTimeOffset.Parse("2024-01-01T12:00:00Z"),
-            DateTimeOffset.Parse("2024-01-01T11:00:00Z")
-        );
+            DateTimeOffset.Parse("2024-01-01T11:00:00Z"),
+            DateTimeOffset.Parse("2024-01-01T12:00:00Z"));
 
-        var calendarStartUtc = new DateTime(2024, 1, 1, 8, 0, 0, DateTimeKind.Utc);
+        var calendarRange = TimeRange.Create(
+            new DateTime(2024, 1, 1, 10, 0, 0, DateTimeKind.Utc),
+            new DateTime(2024, 1, 1, 20, 0, 0, DateTimeKind.Utc));
 
-        // Act & Assert
-        var ex = Assert.Throws<ArgumentException>(() =>
-            performance.ValidateTimeRange(calendarStartUtc, null)
-        );
+        var exception = Record.Exception(() =>
+            performance.ValidateTimeRange(calendarRange));
 
-        Assert.Equal("Start time must be earlier than end time.", ex.Message);
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ValidateTimeRange_ShouldThrow_WhenPerformanceEndsAfterCalendar()
+    {
+        var performance = new ArtistPerformance(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            false,
+            DateTimeOffset.Parse("2024-01-01T19:00:00Z"),
+            DateTimeOffset.Parse("2024-01-01T21:00:00Z"));
+
+        var calendarRange = TimeRange.Create(
+            new DateTime(2024, 1, 1, 10, 0, 0, DateTimeKind.Utc),
+            new DateTime(2024, 1, 1, 20, 0, 0, DateTimeKind.Utc));
+
+        Assert.Throws<ArgumentException>(() =>
+            performance.ValidateTimeRange(calendarRange));
     }
 
     #endregion

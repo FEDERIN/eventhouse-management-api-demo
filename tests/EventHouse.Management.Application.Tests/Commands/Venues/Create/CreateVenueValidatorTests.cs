@@ -71,9 +71,6 @@ public sealed class CreateVenueValidatorTests : ValidatorTestBase<CreateVenueCom
     {
         var command = ValidCommand() with
         {
-            Latitude = null,
-            Longitude = null,
-            TimeZoneId = null,
             Capacity = null
         };
 

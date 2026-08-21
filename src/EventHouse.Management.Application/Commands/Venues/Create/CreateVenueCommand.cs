@@ -9,9 +9,9 @@ namespace EventHouse.Management.Application.Commands.Venues.Create
         string City,
         string Region,
         string CountryCode,
-        decimal? Latitude,
-        decimal? Longitude,
-        string? TimeZoneId,
+        decimal Latitude,
+        decimal Longitude,
+        string TimeZoneId,
         int? Capacity,
         bool IsActive
     ) : IRequest<VenueDto>;

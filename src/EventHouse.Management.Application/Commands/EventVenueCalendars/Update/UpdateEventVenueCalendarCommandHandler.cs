@@ -1,6 +1,6 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
-using EventHouse.Management.Application.Mappers.EventVenueCalendars;
 using EventHouse.Management.Application.Exceptions;
+using EventHouse.Management.Application.Mappers.EventVenueCalendars;
 using EventHouse.Management.Domain.Exceptions;
 using MediatR;
 
@@ -11,20 +11,20 @@ internal sealed class UpdateEventVenueCalendarCommandHandler(
     IEventVenueCalendarRepository repository)
     : IRequestHandler<UpdateEventVenueCalendarCommand>
 {
-    public async Task Handle(UpdateEventVenueCalendarCommand request, CancellationToken cancellationToken)
+    public async Task Handle(UpdateEventVenueCalendarCommand request, CancellationToken ct)
     {
-        var entity = await repository.GetByIdWithPerformancesAsync(request.Id, cancellationToken)
+        var entity = await repository.GetByIdWithPerformancesAsync(request.Id, ct)
             ?? throw new NotFoundException("EventVenueCalendar", request.Id);
 
         var startUtc = request.StartDate.UtcDateTime;
-        var endUtc = request.EndDate?.UtcDateTime ?? startUtc.Date.AddDays(1).AddTicks(-1).ToUniversalTime();
+        var endUtc = request.EndDate.UtcDateTime;
 
         var isOccupied = await repository.IsSlotOccupiedAsync(
             entity.EventVenueId,
             startUtc,
             endUtc,
             excludeId: request.Id,
-            cancellationToken);
+            ct);
 
         if (isOccupied)
             throw new ConflictException("CALENDAR_SLOT_OCCUPIED", "Slot Occupied", "...");
@@ -32,8 +32,8 @@ internal sealed class UpdateEventVenueCalendarCommandHandler(
         entity.UpdateDates(request.StartDate, request.EndDate);
 
         var newStatus = EventVenueCalendarStatusMapper.ToDomainRequired(request.Status);
-        entity.UpdateStatus(newStatus);
+        entity.ChangeStatus(newStatus);
 
-        await repository.UpdateAsync(entity, cancellationToken);
+        await repository.UpdateAsync(entity, ct);
     }
 }

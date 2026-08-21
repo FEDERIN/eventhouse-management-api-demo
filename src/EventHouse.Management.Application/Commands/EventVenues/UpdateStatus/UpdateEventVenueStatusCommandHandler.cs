@@ -8,14 +8,14 @@ namespace EventHouse.Management.Application.Commands.EventVenues.UpdateStatus;
 internal sealed class UpdateEventVenueStatusCommandHandler(IEventVenueRepository repository)
     : IRequestHandler<UpdateEventVenueStatusCommand>
 {
-    public async Task Handle(UpdateEventVenueStatusCommand request, CancellationToken cancellationToken)
+    public async Task Handle(UpdateEventVenueStatusCommand request, CancellationToken ct)
     {
-        var entity = await repository.GetTrackedByIdAsync(request.Id, cancellationToken)
+        var entity = await repository.GetTrackedByIdAsync(request.Id, ct)
                     ?? throw new NotFoundException("EventVenue", request.Id);
 
         var hasChanged = entity.ChangeStatus(EventVenueStatusMapper.ToDomainRequired(request.Status));
 
         if (hasChanged)
-            await repository.UpdateAsync(entity, cancellationToken);
+            await repository.UpdateAsync(entity, ct);
     }
 }

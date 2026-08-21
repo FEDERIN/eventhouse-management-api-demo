@@ -9,7 +9,7 @@ namespace EventHouse.Management.Application.Queries.SeatingMaps.GetAll;
 internal sealed class GetAllSeatingMapsQueryHandler(ISeatingMapRepository seatingMapRepository)
     : IRequestHandler<GetAllSeatingMapsQuery, PagedResultDto<SeatingMapDto>>
 {
-    public async Task<PagedResultDto<SeatingMapDto>> Handle(GetAllSeatingMapsQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResultDto<SeatingMapDto>> Handle(GetAllSeatingMapsQuery request, CancellationToken ct)
     {
         var criteria = new SeatingMapQueryCriteria
         {
@@ -24,7 +24,7 @@ internal sealed class GetAllSeatingMapsQueryHandler(ISeatingMapRepository seatin
 
         var result = await seatingMapRepository.GetPagedAsync(
             criteria,
-            cancellationToken
+            ct
         );
 
         return result.MapTo(SeatingMapMapper.ToDto);

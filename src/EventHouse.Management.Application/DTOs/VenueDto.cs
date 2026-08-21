@@ -8,9 +8,9 @@ public class VenueDto
     public string? City { get; set; }
     public string? Region { get; set; }
     public string? CountryCode { get; set; }
-    public decimal? Latitude { get; set; }
-    public decimal? Longitude { get; set; }
-    public string? TimeZoneId { get; set; }
+    public decimal Latitude { get; set; }
+    public decimal Longitude { get; set; }
+    public required string TimeZoneId { get; set; }
     public int? Capacity { get; set; }
     public bool IsActive { get; set; } = true;
 }

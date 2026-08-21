@@ -9,9 +9,7 @@ namespace EventHouse.Management.Application.Queries.Events.GetAll;
 internal sealed class GetAllEventsQueryHandler(IEventRepository eventRepository)
     : IRequestHandler<GetAllEventsQuery, PagedResultDto<EventDto>>
 {
-    private readonly IEventRepository _eventRepository = eventRepository;
-
-    public async Task<PagedResultDto<EventDto>> Handle(GetAllEventsQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResultDto<EventDto>> Handle(GetAllEventsQuery request, CancellationToken ct)
     {
         var criteria = new EventQueryCriteria
         {
@@ -24,9 +22,9 @@ internal sealed class GetAllEventsQueryHandler(IEventRepository eventRepository)
             SortDirection = request.SortDirection
         };
 
-        var result = await _eventRepository.GetPagedAsync(
+        var result = await eventRepository.GetPagedAsync(
             criteria,
-            cancellationToken
+            ct
         );
 
 

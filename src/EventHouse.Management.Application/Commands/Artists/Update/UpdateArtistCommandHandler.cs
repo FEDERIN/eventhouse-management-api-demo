@@ -9,16 +9,14 @@ namespace EventHouse.Management.Application.Commands.Artists.Update;
 internal sealed class UpdateArtistCommandHandler(IArtistRepository artistRepository)
     : IRequestHandler<UpdateArtistCommand, UpdateResult>
 {
-    private readonly IArtistRepository _artistRepository = artistRepository;
-
-    public async Task<UpdateResult> Handle(UpdateArtistCommand request, CancellationToken cancellationToken)
+    public async Task<UpdateResult> Handle(UpdateArtistCommand request, CancellationToken ct)
     {
-        var entity = await _artistRepository.GetTrackedByIdAsync(request.Id, cancellationToken)
+        var entity = await artistRepository.GetTrackedByIdAsync(request.Id, ct)
         ?? throw new NotFoundException("Artist", request.Id);
 
         entity.Update(request.Name, ArtistCategoryMapper.ToDomainRequired(request.Category));
 
-        await _artistRepository.UpdateAsync(entity, cancellationToken);
+        await artistRepository.UpdateAsync(entity, ct);
 
         return UpdateResult.Success;
     }

@@ -5,32 +5,28 @@ using EventHouse.Management.Application.Queries.EventVenueCalendars.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Domain.Enums;
 using EventHouse.Management.Infrastructure.Persistence;
+using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories;
 
-public class EventVenueCalendarRepository(ManagementDbContext context) 
+internal class EventVenueCalendarRepository(ManagementDbContext context)
     : BaseRepository(context), IEventVenueCalendarRepository
 {
-
-    private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> EventVenueCalendarMappings = [];
+    protected override IReadOnlyDictionary<string, UniqueConstraintMapping> IndexMappings
+        => Empty;
+    private static readonly IReadOnlyDictionary<string, UniqueConstraintMapping> Empty =
+    new Dictionary<string, UniqueConstraintMapping>();
 
     #region WRITE
-    public async Task AddAsync(EventVenueCalendar entity, CancellationToken cancellationToken = default)
-    {
-        await _context.EventVenueCalendars.AddAsync(entity, cancellationToken);
-        await SaveChangesWithUniqueCheckAsync(EventVenueCalendarMappings, cancellationToken);
-    }
-    public async Task UpdateAsync(EventVenueCalendar entity, CancellationToken cancellationToken = default)
-    {
-        if (_context.Entry(entity).State == EntityState.Detached)
-            throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
+    public Task AddAsync(EventVenueCalendar entity, CancellationToken ct = default)
+        => AddAsync<EventVenueCalendar>(entity, ct);
 
-        await SaveChangesWithUniqueCheckAsync(EventVenueCalendarMappings, cancellationToken);
-    }
+    public Task UpdateAsync(EventVenueCalendar entity, CancellationToken ct = default)
+        => UpdateAsync<EventVenueCalendar>(entity, ct);
 
-    public async Task SwapHeadlinerAsync(Guid calendarId, Guid oldArtistId, Guid newArtistId, CancellationToken ct)
+    public async Task SwapHeadlinerAsync(Guid calendarId, Guid oldArtistId, Guid newArtistId, CancellationToken ct = default)
     {
         using var transaction = await _context.Database.BeginTransactionAsync(ct);
 
@@ -60,21 +56,17 @@ public class EventVenueCalendarRepository(ManagementDbContext context)
     #endregion
 
     #region READ
-    public async Task<EventVenueCalendar?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.EventVenueCalendars
-            .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-    }
+    public Task<EventVenueCalendar?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    => GetByIdAsync<EventVenueCalendar>(id, ct);
 
-    public async Task<EventVenueCalendar?> GetByIdWithPerformancesAsync(Guid id, CancellationToken ct)
+    public async Task<EventVenueCalendar?> GetByIdWithPerformancesAsync(Guid id, CancellationToken ct = default)
     {
         return await _context.EventVenueCalendars
             .Include(c => c.Performances)
             .FirstOrDefaultAsync(c => c.Id == id, ct);
     }
 
-    public async Task<PagedResultDto<EventVenueCalendar>> GetPagedAsync(EventVenueCalendarQueryCriteria criteria, CancellationToken cancellationToken = default)
+    public async Task<PagedResultDto<EventVenueCalendar>> GetPagedAsync(EventVenueCalendarQueryCriteria criteria, CancellationToken ct = default)
     {
         IQueryable<EventVenueCalendar> query = _context.EventVenueCalendars.AsNoTracking();
 
@@ -94,29 +86,29 @@ public class EventVenueCalendarRepository(ManagementDbContext context)
             query = query.Where(ev => ev.Status == criteria.Status.Value);
 
         if (!string.IsNullOrEmpty(criteria.TimeZoneId))
-            query = query.Where(ev => ev.TimeZoneId == criteria.TimeZoneId);
+            query = query.Where(ev => ev.TimeZoneId.Value == criteria.TimeZoneId);
 
         query = ApplyEventVenueCalendarSorting(query, criteria.SortBy, criteria.SortDirection);
 
-        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
+        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, ct);
     }
     #endregion
 
     #region VALIDATIONS
 
-    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    public Task<bool> ExistsAsync(Guid id, CancellationToken ct = default)
     {
         return _context.EventVenueCalendars
             .AsNoTracking()
-            .AnyAsync(e => e.Id == id, cancellationToken);
+            .AnyAsync(e => e.Id == id, ct);
     }
 
-    public async Task<bool> IsSlotOccupiedAsync(Guid eventVenueId, DateTime startUtc, DateTime endUtc, Guid? excludeId = null, CancellationToken cancellationToken = default)
+    public async Task<bool> IsSlotOccupiedAsync(Guid eventVenueId, DateTime startUtc, DateTime endUtc, Guid? excludeId = null, CancellationToken ct = default)
     {
         var targetVenueId = await _context.EventVenues
             .Where(ev => ev.Id == eventVenueId)
             .Select(ev => ev.VenueId)
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(ct);
 
         if (targetVenueId == Guid.Empty) return false;
 
@@ -130,7 +122,7 @@ public class EventVenueCalendarRepository(ManagementDbContext context)
                 c.Status != EventVenueCalendarStatus.Cancelled &&
                 c.StartDate < endUtc &&
                 c.EndDate > startUtc,
-                cancellationToken);
+                ct);
     }
     #endregion
 
@@ -153,8 +145,8 @@ public class EventVenueCalendarRepository(ManagementDbContext context)
                     : query.OrderByDescending(x => x.EndDate).ThenByDescending(x => x.StartDate),
 
             EventVenueCalendarSortField.TimeZoneId =>
-                asc ? query.OrderBy(x => x.TimeZoneId).ThenBy(x => x.StartDate)
-                    : query.OrderByDescending(x => x.TimeZoneId).ThenByDescending(x => x.StartDate),
+                asc ? query.OrderBy(x => x.TimeZoneId.Value).ThenBy(x => x.StartDate)
+                    : query.OrderByDescending(x => x.TimeZoneId.Value).ThenByDescending(x => x.StartDate),
 
             EventVenueCalendarSortField.Status =>
                 asc ? query.OrderBy(x => x.Status).ThenBy(x => x.StartDate)

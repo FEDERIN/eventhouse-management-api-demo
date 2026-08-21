@@ -11,9 +11,9 @@ namespace EventHouse.Management.Application.Queries.ArtistPerformances.GetAll;
 internal sealed class GetAllArtistPerformancesQueryHandler(IArtistPerformanceRepository artistPerformanceRepository, IEventVenueCalendarRepository eventVenueCalendarRepository)
     : IRequestHandler<GetAllArtistPerformancesQuery, PagedResultDto<ArtistPerformanceDto>>
 {
-    public async Task<PagedResultDto<ArtistPerformanceDto>> Handle(GetAllArtistPerformancesQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResultDto<ArtistPerformanceDto>> Handle(GetAllArtistPerformancesQuery request, CancellationToken ct)
     {
-        var calendarExists = await eventVenueCalendarRepository.ExistsAsync(request.EventVenueCalendarId, cancellationToken);
+        var calendarExists = await eventVenueCalendarRepository.ExistsAsync(request.EventVenueCalendarId, ct);
 
         if (!calendarExists)
         {
@@ -31,7 +31,7 @@ internal sealed class GetAllArtistPerformancesQueryHandler(IArtistPerformanceRep
             SortDirection = request.SortDirection
         };
 
-        var result = await artistPerformanceRepository.GetPagedAsync(criteria, cancellationToken);
+        var result = await artistPerformanceRepository.GetPagedAsync(criteria, ct);
 
         return result.MapTo(ArtistPerformanceMapper.ToDto);
     }

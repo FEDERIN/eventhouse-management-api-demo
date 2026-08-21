@@ -3,7 +3,7 @@ using EventHouse.Management.Application.Queries.ArtistPerformances.GetAll;
 
 namespace EventHouse.Management.Api.Mappers.ArtistPerformances;
 
-public static class GetAllArtistPerformancesQueryMapper
+internal static class GetAllArtistPerformancesQueryMapper
 {
     public static GetAllArtistPerformancesQuery FromContract(Guid eventVenueCalendarId,
     GetArtistPerformancesRequest request)

@@ -33,7 +33,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
     {
         var existing = await CreateEventVenueCalendarAsync();
 
-        var response = await Client.GetAsync($"{BaseUrlEventVenueCalendars}/{existing.Id}", cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.GetAsync($"{BaseUrlEventVenueCalendars}/{existing.Id}", TestContext.Current.CancellationToken);
         var returned = await response.ReadContentAsync<EventVenueCalendarResponse>();
 
         // Assert
@@ -53,7 +53,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         await CreateEventVenueCalendarAsync();
 
         // Act
-        var response = await Client.GetAsync(BaseUrlEventVenueCalendars, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.GetAsync(BaseUrlEventVenueCalendars, TestContext.Current.CancellationToken);
         var pagedResult = await response.ReadContentAsync<PagedResult<EventVenueCalendarResponse>>();
 
         // Assert
@@ -64,10 +64,10 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
 
     [Theory]
     [InlineData(EventVenueCalendarStatus.Draft, "America/New_York", true, true, null, null)]
-    [InlineData(null, null, null, null, "2026-06-06T10:00:00Z", "2026-06-06T12:00:00Z")]
+    [InlineData(null, "America/New_York", null, null, "2026-06-06T10:00:00Z", "2026-06-06T12:00:00Z")]
     public async Task GetAll_WithFiltersAndSorting_ReturnsFilteredResults(
         EventVenueCalendarStatus? status,
-        string? timeZoneId,
+        string timeZoneId,
         bool? useVenueFilter,
         bool? useSeatingMapFilter,
         string? startDate,
@@ -75,7 +75,6 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
     {
         // Arrange
         var c1 = await CreateEventVenueCalendarAsync(
-            status: EventVenueCalendarStatus.Draft,
             startDate: DateTimeOffset.Parse("2026-06-06T10:00:00Z"),
             endDate: DateTimeOffset.Parse("2026-06-06T12:00:00Z")
         );
@@ -83,11 +82,12 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         var queryParams = new List<string>();
 
         if (status.HasValue) queryParams.Add($"status={status}");
-        if (timeZoneId != null) queryParams.Add($"timeZoneId={timeZoneId}");
+
+        queryParams.Add($"timeZoneId={timeZoneId}");
+
         if (useVenueFilter == true) queryParams.Add($"eventVenueId={c1.EventVenueId}");
         if (useSeatingMapFilter == true) queryParams.Add($"seatingMapId={c1.SeatingMapId}");
 
-        // Codificamos las fechas para que el '+' o los caracteres especiales no rompan la URL
         if (startDate != null) queryParams.Add($"startDate={Uri.EscapeDataString(startDate)}");
         if (endDate != null) queryParams.Add($"endDate={Uri.EscapeDataString(endDate)}");
 
@@ -102,7 +102,6 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
 
         pagedResult.Items.Should().NotBeNull();
 
-        // Validación de datos (Asegura que el filtro realmente funcionó)
         if (status.HasValue)
             pagedResult.Items.Should().AllSatisfy(x => x.Status.Should().Be(status.Value));
     }
@@ -166,7 +165,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         await AddArtistToCalendarAsync(calendar.Id, isHeadliner: false,
             start: calendar.StartDate.AddHours(2), end: calendar.StartDate.AddHours(3));
 
-        var response = await Client.GetAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances?Page=1&PageSize=10", cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.GetAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances?Page=1&PageSize=10", TestContext.Current.CancellationToken);
 
         var pagedResult = await response.ReadContentAsync<PagedResult<ArtistPerformanceResponse>>();
 
@@ -181,15 +180,15 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
     public async Task GetArtistPerformances_WhenFilterByArtistId_Returns200OK_WithFilteredResults()
     {
         var calendar = await CreateEventVenueCalendarAsync(startDate: DateTime.UtcNow, endDate: DateTime.UtcNow.AddHours(5));
-
+       
         var artist1 =  await AddArtistToCalendarAsync(calendar.Id, isHeadliner: true, start: calendar.StartDate,
             end: calendar.StartDate.AddHours(1));
 
         await AddArtistToCalendarAsync(calendar.Id, isHeadliner: false, start: calendar.StartDate.AddHours(1),
             end: calendar.StartDate.AddHours(2));
-
-        var response = await Client.GetAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances?ArtistId={artist1.ArtistId}&isHeadliner=true", cancellationToken: TestContext.Current.CancellationToken);
-
+        
+        var response = await Client.GetAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances?ArtistId={artist1.ArtistId}&isHeadliner=true", TestContext.Current.CancellationToken);
+       
         var pagedResult = await response.ReadContentAsync<PagedResult<ArtistPerformanceResponse>>();
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         pagedResult.Items.Should().HaveCount(1);
@@ -270,7 +269,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
     {
         var request = await CreateEventVenueCalendarRequestAsync();
 
-        var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request, TestContext.Current.CancellationToken);
         var created = await response.ReadContentAsync<EventVenueCalendarResponse>();
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -287,7 +286,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         var request = await CreateEventVenueCalendarRequestAsync(eventVenueId: nonExistentVenueId);
 
         // Act
-        var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request, TestContext.Current.CancellationToken);
 
         // Assert
         await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
@@ -299,7 +298,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
 
         var request = await CreateEventVenueCalendarRequestAsync(seatingMapId: Guid.Empty);
 
-        var res2 = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request, cancellationToken: TestContext.Current.CancellationToken);
+        var res2 = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request, TestContext.Current.CancellationToken);
         await res2.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
@@ -312,14 +311,13 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         {
             EventVenueId = existing.EventVenueId,
             SeatingMapId = existing.SeatingMapId,
-            Status = EventVenueCalendarStatus.Draft,
             StartDate = existing.StartDate,
             EndDate = existing.EndDate,
             TimeZoneId = existing.TimeZoneId
         };
 
         // Act
-        var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request, TestContext.Current.CancellationToken);
 
         // Assert
         await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "CALENDAR_SLOT_OCCUPIED");
@@ -336,14 +334,13 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         var request = new CreateEventVenueCalendarRequest {
             EventVenueId = existing.EventVenueId,
             SeatingMapId = existing.SeatingMapId,
-            Status = EventVenueCalendarStatus.Published,
             StartDate = start.AddHours(1),
             EndDate = end.AddHours(1),
             TimeZoneId = existing.TimeZoneId
         };
 
         // Act
-        var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync(BaseUrlEventVenueCalendars, request, TestContext.Current.CancellationToken);
 
         // Assert
         await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
@@ -360,11 +357,11 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
 
         var updateRequest = new UpdateEventVenueCalendarRequest {
             StartDate = DateTime.UtcNow,
-            EndDate = null,
+            EndDate = DateTime.UtcNow.AddHours(2),
             Status = EventVenueCalendarStatus.Cancelled
         };
 
-        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenueCalendars}/{existing.Id}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenueCalendars}/{existing.Id}", updateRequest, TestContext.Current.CancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
@@ -375,11 +372,11 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
     {
         var updateRequest = new UpdateEventVenueCalendarRequest {
             StartDate = DateTime.UtcNow,
-            EndDate = null,
+            EndDate = DateTime.UtcNow.AddHours(2),
             Status = EventVenueCalendarStatus.Published
         };
 
-        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenueCalendars}/{Guid.NewGuid()}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenueCalendars}/{Guid.NewGuid()}", updateRequest, TestContext.Current.CancellationToken);
 
         await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
@@ -405,7 +402,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         };
 
         // Act
-        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenueCalendars}/{second.Id}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenueCalendars}/{second.Id}", updateRequest, TestContext.Current.CancellationToken);
 
         // Assert
         await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "CALENDAR_SLOT_OCCUPIED");
@@ -424,7 +421,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         };
 
         // Act
-        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenueCalendars}/{existing.Id}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenueCalendars}/{existing.Id}", updateRequest, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -447,7 +444,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         var addResponse = await Client.PostAsJsonAsync(
             $"{BaseUrlEventVenueCalendars}/{eventVenueCalendar.Id}/artist-performances",
             addPerformanceRequest,
-            cancellationToken: TestContext.Current.CancellationToken);
+            TestContext.Current.CancellationToken);
         addResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var updateRequest = new UpdateEventVenueCalendarRequest
@@ -457,7 +454,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
             Status = EventVenueCalendarStatus.Published
         };
 
-        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenueCalendars}/{eventVenueCalendar.Id}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PutAsJsonAsync($"{BaseUrlEventVenueCalendars}/{eventVenueCalendar.Id}", updateRequest, TestContext.Current.CancellationToken);
 
         await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "REQUIRED_DATES");
     }
@@ -482,7 +479,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         };
 
         // Act
-        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -516,7 +513,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         var response = await Client.PostAsJsonAsync(
             $"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances",
             request,
-            cancellationToken: TestContext.Current.CancellationToken);
+            TestContext.Current.CancellationToken);
 
         await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
@@ -536,28 +533,9 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
             SetStart = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(15),
             SetEnd = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(30)
         };
-        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request, TestContext.Current.CancellationToken);
 
         // Assert
-        await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
-    }
-
-    [Fact]
-    public async Task AddPerformance_WhenPublishedAndDatesMissing_Returns409Conflict()
-    {
-        var calendar = await CreateEventVenueCalendarAsync(startDate: DateTimeOffset.UtcNow.AddDays(1), status: EventVenueCalendarStatus.Published);
-        var artist = await CreateArtistAsync();
-
-        var request = new CreateArtistPerformanceRequest
-        {
-            ArtistId = artist.Id,
-            IsHeadliner = false,
-            SetStart = null,
-            SetEnd = null
-        };
-
-        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request, cancellationToken: TestContext.Current.CancellationToken);
-
         await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
     }
 
@@ -576,7 +554,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
             SetEnd = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(30)
         };
 
-        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request, TestContext.Current.CancellationToken);
 
         // Assert
         await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
@@ -596,7 +574,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
             SetStart = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(15),
             SetEnd = DateTimeOffset.UtcNow.AddDays(4).AddMinutes(30)
         };
-        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances", request, TestContext.Current.CancellationToken);
         // Assert
         await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "DUPLICATE_HEADLINER");
     }
@@ -616,7 +594,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         };
 
         // Act
-        var response = await Client.PatchAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/swap-headliner", request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PatchAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/swap-headliner", request, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -628,15 +606,15 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         var calendar = await CreateEventVenueCalendarAsync();
         var support1 = await AddArtistToCalendarAsync(calendar.Id, isHeadliner: true);
         var support2 = await AddArtistToCalendarAsync(calendar.Id, isHeadliner: false);
-
+        
         var request = new SwapHeadlinerRequest
         {
             OldArtistId = support2.ArtistId,
             NewArtistId = support1.ArtistId
         };
-
-        var response = await Client.PatchAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/swap-headliner", request, cancellationToken: TestContext.Current.CancellationToken);
-
+        
+        var response = await Client.PatchAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/swap-headliner", request, TestContext.Current.CancellationToken);
+        
         // Assert
         await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "ARTIST_NOT_HEADLINER");
     }
@@ -664,7 +642,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         // 2. Act
         var response = await Client.PatchAsJsonAsync(
             $"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/{performance.ArtistId}/times",
-            request, cancellationToken: TestContext.Current.CancellationToken);
+            request, TestContext.Current.CancellationToken);
 
         // 3. Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -694,7 +672,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
 
         var response = await Client.PatchAsJsonAsync(
             $"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/{artistB.ArtistId}/times",
-            request, cancellationToken: TestContext.Current.CancellationToken);
+            request, TestContext.Current.CancellationToken);
 
         await response.ShouldHaveErrorCode(HttpStatusCode.Conflict, "STAGE_OVERLAP");
     }
@@ -715,7 +693,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
 
         var response = await Client.PatchAsJsonAsync(
             $"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/{performance.ArtistId}/times",
-            request, cancellationToken: TestContext.Current.CancellationToken);
+            request, TestContext.Current.CancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }

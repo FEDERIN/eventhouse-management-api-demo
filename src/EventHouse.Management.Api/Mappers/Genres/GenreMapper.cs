@@ -4,20 +4,19 @@ using EventHouse.Management.Api.Mappers.Common;
 using EventHouse.Management.Application.Common.Pagination;
 using EventHouse.Management.Application.DTOs;
 
-namespace EventHouse.Management.Api.Mappers.Genres
+namespace EventHouse.Management.Api.Mappers.Genres;
+
+internal static class GenreMapper
 {
-    public class GenreMapper
+    public static GenreResponse ToContract(GenreDto dto)
     {
-        public static GenreResponse ToContract(GenreDto dto)
+        return new GenreResponse
         {
-            return new GenreResponse
-            {
-                Id = dto.Id,
-                Name = dto.Name
-            };
-        }
-        public static PagedResult<GenreResponse> ToContract(
-        PagedResultDto<GenreDto> paged, HttpRequest request)
-        => paged.ToContract(ToContract, request);
+            Id = dto.Id,
+            Name = dto.Name
+        };
     }
+    public static PagedResult<GenreResponse> ToContract(
+    PagedResultDto<GenreDto> paged, HttpRequest request)
+    => paged.ToContract(ToContract, request);
 }

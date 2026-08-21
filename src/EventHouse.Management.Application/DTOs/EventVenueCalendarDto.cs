@@ -16,7 +16,7 @@ namespace EventHouse.Management.Application.DTOs
         /// <summary>
         /// Fecha y hora de fin en ISO-8601 con offset.
         /// </summary>
-        public DateTimeOffset? EndDate { get; set; }
+        public DateTimeOffset EndDate { get; set; }
 
         /// <summary>
         /// Zona horaria del evento en formato IANA (ej: "Europe/Malta")

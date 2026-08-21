@@ -8,11 +8,9 @@ namespace EventHouse.Management.Api.Swagger.Filters;
 
 public class IdempotencyHeaderOperationFilter(IConfiguration configuration) : IOperationFilter
 {
-    private readonly IConfiguration _configuration = configuration;
-
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        var section = _configuration.GetSection("Core:Idempotency");
+        var section = configuration.GetSection("Core:Idempotency");
         var options = new IdempotencyOptions();
         section.Bind(options);
 

@@ -1,4 +1,5 @@
-﻿using EventHouse.Management.Application.DTOs;
+﻿using EventHouse.Management.Application.Commands.EventVenueCalendars.Create;
+using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Domain.Entities;
 using TimeZoneConverter;
 
@@ -6,19 +7,26 @@ namespace EventHouse.Management.Application.Mappers.EventVenueCalendars;
 
 internal sealed class EventVenueCalendarMapper
 {
+    public static EventVenueCalendar ToEntity(CreateEventVenueCalendarCommand request)
+    {
+        return new EventVenueCalendar(
+            Guid.NewGuid(),
+            request.EventVenueId,
+            request.SeatingMapId,
+            request.StartDate,
+            request.EndDate,
+            request.TimeZoneId
+        );
+    }
+
     public static EventVenueCalendarDto ToDto(EventVenueCalendar entity)
     {
         var timeZone = TZConvert.GetTimeZoneInfo(entity.TimeZoneId);
         var startLocal = TimeZoneInfo.ConvertTimeFromUtc(entity.StartDate, timeZone);
         var startOffset = new DateTimeOffset(startLocal, timeZone.GetUtcOffset(startLocal));
-
-        DateTimeOffset? endOffset = null;
-        if (entity.EndDate.HasValue)
-        {
-            var endLocal = TimeZoneInfo.ConvertTimeFromUtc(entity.EndDate.Value, timeZone);
-            endOffset = new DateTimeOffset(endLocal, timeZone.GetUtcOffset(endLocal));
-        }
-
+        var endLocal = TimeZoneInfo.ConvertTimeFromUtc(entity.EndDate, timeZone);
+        var endOffset = new DateTimeOffset(endLocal, timeZone.GetUtcOffset(endLocal));
+        
         return new EventVenueCalendarDto
         {
             Id = entity.Id,
@@ -31,6 +39,6 @@ internal sealed class EventVenueCalendarMapper
         };
     }
 
-    public static IEnumerable<EventVenueCalendarDto> ToDto(IEnumerable<EventVenueCalendar> entities) 
+    public static IEnumerable<EventVenueCalendarDto> ToDto(IEnumerable<EventVenueCalendar> entities)
         => entities.Select(ToDto);
 }

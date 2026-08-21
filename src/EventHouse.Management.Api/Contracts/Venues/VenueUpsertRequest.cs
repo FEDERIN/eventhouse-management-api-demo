@@ -34,17 +34,17 @@ public abstract class VenueUpsertRequest
     /// <summary>Latitude coordinate of the venue's location.</summary>
     [Range(-90, 90)]
     [SwaggerSchema(Description = "Latitude coordinate of the venue's location. Must be between -90 and 90.")]
-    public decimal? Latitude { get; set; }
+    public decimal Latitude { get; set; }
 
     /// <summary>Longitude coordinate of the venue's location.</summary>
     [Range(-180, 180)]
     [SwaggerSchema(Description = "Longitude coordinate of the venue's location. Must be between -180 and 180.")]
-    public decimal? Longitude { get; set; }
+    public decimal Longitude { get; set; }
 
     /// <summary>Time zone identifier (IANA), e.g. "America/New_York".</summary>
     [MaxLength(64)]
     [SwaggerSchema(Description = "Time zone identifier (IANA), e.g. 'America/New_York'.")]
-    public string? TimeZoneId { get; set; }
+    public required string TimeZoneId { get; set; }
 
     /// <summary>Maximum capacity of the venue. Null if not specified.</summary>
     [Range(0, int.MaxValue)]

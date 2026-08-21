@@ -99,7 +99,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
     {
         var request = ArtistFactory.CreateRequest(category: ArtistCategory.DJ);
 
-        var response = await Client.PostAsJsonAsync(BaseUrlArtists, request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync(BaseUrlArtists, request, TestContext.Current.CancellationToken);
         var created = await response.ReadContentAsync<ArtistDetail>();
         created.Should().BeEquivalentTo(request, opt => opt.ExcludingMissingMembers());
     }
@@ -111,7 +111,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
         {
             Name = "A",
             Category = ArtistCategory.Band
-        }, cancellationToken: TestContext.Current.CancellationToken);
+        }, TestContext.Current.CancellationToken);
 
         await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }
@@ -173,10 +173,10 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
             IsPrimary = false
         };
 
-        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", body, cancellationToken: TestContext.Current.CancellationToken))
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", body, TestContext.Current.CancellationToken))
             .StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist!.Id}", cancellationToken: TestContext.Current.CancellationToken);
+        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist!.Id}", TestContext.Current.CancellationToken);
         del.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
     }
@@ -199,7 +199,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
             GenreId = genre!.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = true
-        }, cancellationToken: TestContext.Current.CancellationToken);
+        }, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -225,10 +225,10 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
             IsPrimary = false
         };
 
-        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", body, cancellationToken: TestContext.Current.CancellationToken))
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist!.Id}/genres", body, TestContext.Current.CancellationToken))
             .StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist.Id}/genres", body, cancellationToken: TestContext.Current.CancellationToken))
+        (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist.Id}/genres", body, TestContext.Current.CancellationToken))
             .StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
     #endregion
@@ -251,14 +251,14 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
             GenreId = genre.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = true
-        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }, TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
 
         // act: update status to Inactive
         var put = await Client.PutAsJsonAsync(
             $"{BaseUrlArtists}/{artist.Id}/genres/{genre.Id}",
             new UpdateArtistGenreStatusRequest { Status = ArtistGenreStatus.Inactive },
-            cancellationToken: TestContext.Current.CancellationToken);
+            TestContext.Current.CancellationToken);
 
         put.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
@@ -278,17 +278,17 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
             GenreId = genre!.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = true
-        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }, TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         (await Client.PostAsJsonAsync($"{BaseUrlArtists}/{artist.Id}/genres", new AddArtistGenreRequest
         {
             GenreId = genre2!.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = false
-        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }, TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // act: set g2 primary
-        var patch = await Client.PatchAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre2.Id}/primary", content: null, cancellationToken: TestContext.Current.CancellationToken);
+        var patch = await Client.PatchAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre2.Id}/primary", content: null, TestContext.Current.CancellationToken);
         patch.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
     #endregion
@@ -308,10 +308,10 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
             GenreId = genre!.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = false
-        }, cancellationToken: TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }, TestContext.Current.CancellationToken)).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // delete
-        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre.Id}", cancellationToken: TestContext.Current.CancellationToken);
+        var del = await Client.DeleteAsync($"{BaseUrlArtists}/{artist.Id}/genres/{genre.Id}", TestContext.Current.CancellationToken);
         del.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
     #endregion

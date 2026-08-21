@@ -11,7 +11,7 @@ internal sealed class RemoveArtistPerformanceCommandHandler(
 {
     public async Task Handle(
         RemoveArtistPerformanceCommand request,
-        CancellationToken ct)
+        CancellationToken ct = default)
     {
         var eventVenueCalendar = await eventVenueCalendarRepository.GetByIdWithPerformancesAsync(
             request.EventVenueCalendarId, ct)

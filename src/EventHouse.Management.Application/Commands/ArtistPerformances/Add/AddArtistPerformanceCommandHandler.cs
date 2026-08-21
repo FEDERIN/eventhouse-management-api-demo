@@ -17,7 +17,7 @@ internal sealed class AddArtistPerformanceCommandHandler(
 {
     public async Task<ArtistPerformanceDto> Handle(
         AddArtistPerformanceCommand request,
-        CancellationToken ct)
+        CancellationToken ct = default)
     {
         var eventVenueCalendar = await eventVenueCalendarRepository.GetByIdWithPerformancesAsync(request.EventVenueCalendarId, ct)
             ?? throw new NotFoundException(nameof(EventVenueCalendar), request.EventVenueCalendarId);
@@ -50,10 +50,10 @@ internal sealed class AddArtistPerformanceCommandHandler(
             if (isBusy)
                 throw new ConflictException("ARTIST_UNAVAILABLE", "Artist Conflict", "The artist is already booked in another event.");
         }
-
+        
         await eventVenueCalendarRepository.UpdateAsync(eventVenueCalendar, ct);
 
-
+  
         var newPerformance = eventVenueCalendar.Performances.First(p => p.ArtistId == request.ArtistId);
 
         return ArtistPerformanceMapper.ToDto(newPerformance);

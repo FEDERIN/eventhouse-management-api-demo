@@ -10,16 +10,13 @@ internal sealed class UpdateEventCommandHandler(
     IApplicationResilience resilience)
     : IRequestHandler<UpdateEventCommand, UpdateResult>
 {
-    private readonly IEventRepository _eventRepository = eventRepository;
-    private readonly IApplicationResilience _resilience = resilience;
-
     public async Task<UpdateResult> Handle(
         UpdateEventCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        await _resilience.ExecuteSqlAsync(async ct =>
+        await resilience.ExecuteSqlAsync(async ct =>
         {
-            var entity = await _eventRepository.GetTrackedByIdAsync(request.Id, ct)
+            var entity = await eventRepository.GetTrackedByIdAsync(request.Id, ct)
                 ?? throw new NotFoundException("Event", request.Id);
 
             entity.Update(
@@ -27,9 +24,9 @@ internal sealed class UpdateEventCommandHandler(
                 request.Description,
                 EventScopeMapper.ToDomainRequired(request.Scope));
 
-            await _eventRepository.UpdateAsync(entity, ct);
+            await eventRepository.UpdateAsync(entity, ct);
 
-        }, cancellationToken);
+        }, ct);
 
         return UpdateResult.Success;
     }

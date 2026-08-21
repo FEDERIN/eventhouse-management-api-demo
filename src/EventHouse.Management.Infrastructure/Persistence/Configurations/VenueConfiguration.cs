@@ -33,14 +33,26 @@ internal class VenueConfiguration : IEntityTypeConfiguration<Venue>
             .HasMaxLength(2)
             .IsFixedLength();
 
-        builder.Property(v => v.Latitude)
-            .HasColumnType("decimal(9,6)");
+        builder.ComplexProperty(v => v.Coordinates, coordinates =>
+        {
+            coordinates.Property(c => c.Latitude)
+                .HasColumnName("latitude")
+                .HasColumnType("decimal(9,6)")
+                .IsRequired();
 
-        builder.Property(v => v.Longitude)
-            .HasColumnType("decimal(9,6)");
+            coordinates.Property(c => c.Longitude)
+                .HasColumnName("longitude")
+                .HasColumnType("decimal(9,6)")
+                .IsRequired();
+        });
 
-        builder.Property(v => v.TimeZoneId)
-            .HasMaxLength(64);
+        builder.ComplexProperty(v => v.TimeZoneId, tz =>
+        {
+            tz.Property(x => x.Value)
+                .HasColumnName("time_zone_id")
+                .HasMaxLength(64)
+                .IsRequired();
+        });
 
         builder.Property(v => v.Capacity);
 
