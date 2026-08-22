@@ -9,9 +9,7 @@ namespace EventHouse.Management.Application.Queries.Artists.GetAll;
 internal sealed class GetAllArtistsQueryHandler(IArtistRepository artistRepository) 
     : IRequestHandler<GetAllArtistsQuery, PagedResultDto<ArtistDto>>
 {
-    private readonly IArtistRepository _artistRepository = artistRepository;
-
-    public async Task<PagedResultDto<ArtistDto>> Handle(GetAllArtistsQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResultDto<ArtistDto>> Handle(GetAllArtistsQuery request, CancellationToken ct)
     {
         var criteria = new ArtistQueryCriteria
         {
@@ -23,9 +21,9 @@ internal sealed class GetAllArtistsQueryHandler(IArtistRepository artistReposito
             SortDirection = request.SortDirection,
         };
 
-        var result = await _artistRepository.GetPagedAsync(
+        var result = await artistRepository.GetPagedAsync(
             criteria,
-            cancellationToken
+            ct
             );
 
         return result.MapTo(ArtistMapper.ToDto);

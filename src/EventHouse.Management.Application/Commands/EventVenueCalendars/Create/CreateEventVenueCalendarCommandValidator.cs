@@ -20,9 +20,9 @@ internal sealed class CreateEventVenueCalendarCommandValidator
             .NotEmpty().WithMessage("TimeZone identifier is required.")
             .Must(BeValidIana).WithMessage("TimeZone must be a valid IANA identifier (e.g., 'Europe/Madrid').");
 
-        ApplyEventVenueCalendarRules(x => x.StartDate,
-            x => x.EndDate,
-            x => x.Status
+        ApplyEventVenueCalendarDateRules(
+            x => x.StartDate,
+            x => x.EndDate
             );
     }
 

@@ -18,6 +18,15 @@ public class EventVenueCalendarConfiguration : IEntityTypeConfiguration<EventVen
         builder.Property(e => e.SeatingMapId).IsRequired();
         builder.Property(e => e.StartDate).IsRequired();
         builder.Property(e => e.EndDate);
+
+        builder.ComplexProperty(v => v.TimeZoneId, tz =>
+        {
+            tz.Property(x => x.Value)
+                .HasColumnName("time_zone_id")
+                .HasMaxLength(64)
+                .IsRequired();
+        });
+
         builder.Property(e => e.Status).IsRequired();
 
         builder.HasOne(e=> e.EventVenue)

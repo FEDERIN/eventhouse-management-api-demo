@@ -3,6 +3,6 @@ using MediatR;
 
 namespace EventHouse.Management.Application.Commands.Genres.Create;
 
-public record CreateGenreCommand (
+public sealed record CreateGenreCommand (
     string Name
 ) : IRequest<GenreDto>;

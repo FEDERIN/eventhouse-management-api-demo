@@ -2,7 +2,8 @@
 using EventHouse.Management.Application.Queries.Artists.GetAll;
 
 namespace EventHouse.Management.Api.Mappers.Artists;
-public static class GetAllArtistsQueryMapper 
+
+internal static class GetAllArtistsQueryMapper 
 {
     public static GetAllArtistsQuery FromContract(GetArtistsRequest request)
         => new()

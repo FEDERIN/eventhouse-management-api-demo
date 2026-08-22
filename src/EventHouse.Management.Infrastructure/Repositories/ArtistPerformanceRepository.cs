@@ -5,6 +5,7 @@ using EventHouse.Management.Application.Queries.ArtistPerformances.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Domain.Enums;
 using EventHouse.Management.Infrastructure.Persistence;
+using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,11 +14,15 @@ namespace EventHouse.Management.Infrastructure.Repositories;
 internal class ArtistPerformanceRepository(ManagementDbContext context) :
     BaseRepository(context), IArtistPerformanceRepository
 {
+    protected override IReadOnlyDictionary<string, UniqueConstraintMapping> IndexMappings
+        => Empty;
+    private static readonly IReadOnlyDictionary<string, UniqueConstraintMapping> Empty =
+    new Dictionary<string, UniqueConstraintMapping>();
+
+
     #region READ
-    public async Task<ArtistPerformance?> GetByIdAsync(Guid id, CancellationToken ct = default)
-    {
-        return await _context.ArtistPerformances.AsNoTracking().FirstOrDefaultAsync(ap => ap.Id == id, ct);
-    }
+    public Task<ArtistPerformance?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    => GetByIdAsync<ArtistPerformance>(id, ct);
 
     public async Task<PagedResultDto<ArtistPerformance>> GetPagedAsync(
         ArtistPerformanceQueryCriteria criteria,

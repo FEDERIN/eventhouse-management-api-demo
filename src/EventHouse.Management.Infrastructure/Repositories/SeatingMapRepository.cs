@@ -4,60 +4,40 @@ using EventHouse.Management.Application.Common.Sorting;
 using EventHouse.Management.Application.Queries.SeatingMaps.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
+using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventHouse.Management.Infrastructure.Repositories;
 
-public class SeatingMapRepository(ManagementDbContext context) :
+internal class SeatingMapRepository(ManagementDbContext context) :
     BaseRepository(context), ISeatingMapRepository
 {
-    private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
+    protected override Dictionary<string, UniqueConstraintMapping> IndexMappings =>
+    new()
     {
-        { "UX_SeatingMap_Venue_Name_Version", ("SEATING_MAP_ALREADY_EXISTS_IN_VENUE", "The name and version already exists in another seating map for the venue.", false) }
+        ["UX_SeatingMap_Venue_Name_Version"] = new("SEATING_MAP_ALREADY_EXISTS_IN_VENUE", "The name and version already exists in another seating map for the venue.")
     };
 
     #region WRITE
-    public async Task AddAsync(SeatingMap entity, CancellationToken cancellationToken = default)
-    {
-        await _context.SeatingMaps.AddAsync(entity, cancellationToken);
-        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
-    }
+    public Task AddAsync(SeatingMap entity, CancellationToken ct = default)
+        => AddAsync<SeatingMap>(entity, ct);
 
-    public async Task UpdateAsync(SeatingMap entity, CancellationToken cancellationToken = default)
-    {
-        if (_context.Entry(entity).State == EntityState.Detached)
-            throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
+    public async Task UpdateAsync(SeatingMap entity, CancellationToken ct = default)
+        => await UpdateAsync<SeatingMap>(entity, ct);
 
-        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
-    }
-
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var entity = await GetTrackedByIdAsync(id, cancellationToken);
-
-        if (entity is null)
-            return false;
-
-        _context.SeatingMaps.Remove(entity);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return true;
-    }
+    public Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)
+        => DeleteAsync<SeatingMap>(id, ct);
     #endregion
 
     #region READ
-    public async Task<SeatingMap?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.SeatingMaps.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-    }
+    public Task<SeatingMap?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    => GetByIdAsync<SeatingMap>(id, ct);
 
-    public async Task<SeatingMap?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.SeatingMaps.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-    }
+    public Task<SeatingMap?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default)
+        => GetTrackedByIdAsync<SeatingMap>(id, ct);
 
-    public async Task<PagedResultDto<SeatingMap>> GetPagedAsync(SeatingMapQueryCriteria criteria, CancellationToken cancellationToken = default)
+    public async Task<PagedResultDto<SeatingMap>> GetPagedAsync(SeatingMapQueryCriteria criteria, CancellationToken ct = default)
     {
         IQueryable<SeatingMap> query = _context.SeatingMaps.AsNoTracking();
 
@@ -72,15 +52,14 @@ public class SeatingMapRepository(ManagementDbContext context) :
 
         query = ApplySeatingMapSorting(query, criteria.SortBy, criteria.SortDirection);
 
-        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
+        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, ct);
     }
     #endregion
 
     #region VALIDATIONS
-    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await ExistsAsync<SeatingMap>(id, cancellationToken);
-    }
+    public Task<bool> ExistsAsync(Guid id, CancellationToken ct = default)
+        => ExistsAsync<SeatingMap>(id, ct);
+
     #endregion
 
     #region PRIVATE
@@ -93,15 +72,16 @@ public class SeatingMapRepository(ManagementDbContext context) :
         query = sortBy switch
         {
             SeatingMapSortField.Name =>
-                asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name),
+            query.OrderByDirection(x => x.Name, sortDirection),
 
             SeatingMapSortField.Version =>
-                asc ? query.OrderBy(x => x.Version) : query.OrderByDescending(x => x.Version),
+            query.OrderByDirection(x => x.Version, sortDirection),
 
             SeatingMapSortField.IsActive =>
                 asc ? query.OrderBy(x => x.IsActive).ThenBy(x => x.Name) : query.OrderByDescending(x => x.IsActive).ThenBy(x => x.Name),
 
-            _ => asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name)
+            _ => query.OrderByDirection(x => x.Name, sortDirection),
+
         };
         return query;
     }

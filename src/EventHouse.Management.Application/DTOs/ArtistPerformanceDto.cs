@@ -1,7 +1,6 @@
-﻿
-namespace EventHouse.Management.Application.DTOs;
+﻿namespace EventHouse.Management.Application.DTOs;
 
-public class ArtistPerformanceDto
+public sealed class ArtistPerformanceDto
 {
     public Guid Id { get; set; }
     public Guid EventVenueCalendarId { get; set; }

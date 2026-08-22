@@ -7,21 +7,21 @@ namespace EventHouse.Management.Application.Common.Interfaces;
 public interface IArtistRepository
 {
     #region WRITE
-    Task AddAsync(Artist entity, CancellationToken cancellationToken = default);
-    Task UpdateAsync(Artist entity, CancellationToken cancellationToken = default);
-    Task SetPrimaryGenreAsync(Guid artistId, Guid genreOldId, Guid genreId, CancellationToken ct);
-    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task AddAsync(Artist entity, CancellationToken ct = default);
+    Task UpdateAsync(Artist entity, CancellationToken ct = default);
+    Task SetPrimaryGenreAsync(Guid artistId, Guid genreOldId, Guid genreId, CancellationToken ct = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
     #endregion
 
     #region READ
-    Task<Artist?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<Artist?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Artist?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<Artist?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default);
     Task<PagedResultDto<Artist>> GetPagedAsync(
         ArtistQueryCriteria criteria,
-        CancellationToken cancellationToken = default);
+        CancellationToken ct = default);
     #endregion
 
     #region VALIDATIONS
-    Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(Guid id, CancellationToken ct = default);
     #endregion
 }

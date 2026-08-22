@@ -1,6 +1,6 @@
 ﻿namespace EventHouse.Management.Domain.Exceptions.Calendars;
 
-public sealed class PerformanceDatesRequiredException(Guid calendarId, Guid artistId)
+public sealed class PerformanceDatesRequiredException(Guid calendarId, Guid artistId) 
     : Exception($"Performance dates are mandatory for artist {artistId} because calendar {calendarId} is published.")
 {
     public Guid CalendarId { get; } = calendarId;

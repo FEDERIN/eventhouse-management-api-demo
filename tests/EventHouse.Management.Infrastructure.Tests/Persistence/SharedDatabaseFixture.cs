@@ -12,7 +12,13 @@ public class SharedDatabaseFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync() => await _dbContainer.StartAsync();
 
-    public async ValueTask DisposeAsync() => await _dbContainer.StopAsync();
+    public async ValueTask DisposeAsync()
+    {
+        await _dbContainer.StopAsync();
+
+        // Fix for CA1816: Properly handle the garbage collector
+        GC.SuppressFinalize(this);
+    }
 }
 
 

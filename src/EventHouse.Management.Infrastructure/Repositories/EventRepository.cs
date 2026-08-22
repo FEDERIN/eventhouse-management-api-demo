@@ -4,6 +4,7 @@ using EventHouse.Management.Application.Common.Sorting;
 using EventHouse.Management.Application.Queries.Events.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
+using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,56 +14,33 @@ namespace EventHouse.Management.Infrastructure.Repositories;
 internal class EventRepository(ManagementDbContext context) :
     BaseRepository(context), IEventRepository
 {
-    private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
+    protected override Dictionary<string, UniqueConstraintMapping> IndexMappings =>
+    new()
     {
-        { "UX_Event_Name", ("EVENT_NAME_ALREADY_EXISTS", "The name already exists in another event.", false) }
+        ["UX_Event_Name"] = new(
+            "EVENT_NAME_ALREADY_EXISTS",
+            "The name already exists in another event.",
+            false)
     };
 
-    public async Task AddAsync(Event entity, CancellationToken cancellationToken = default)
-    {
-        await _context.Events.AddAsync(entity, cancellationToken);
+    public Task AddAsync(Event entity, CancellationToken ct = default)
+        => AddAsync<Event>(entity, ct);
 
-        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
-    }
+    public Task UpdateAsync(Event entity, CancellationToken ct = default)
+        => UpdateAsync<Event>(entity, ct);
 
-    public async Task UpdateAsync(Event entity, CancellationToken cancellationToken = default)
-    {
-        if (_context.Entry(entity).State == EntityState.Detached)
-            throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
+    public Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)
+        => DeleteAsync<Event>(id, ct);
 
-        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
-    }
+    public Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    => GetByIdAsync<Event>(id, ct);
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var entity = await GetTrackedByIdAsync(id, cancellationToken);
-
-        if (entity is null)
-            return false;
-
-        _context.Events.Remove(entity);
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return true;
-    }
-
-    public async Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Events
-            .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-    }
-
-    public async Task<Event?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Events
-            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-    }
+    public Task<Event?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default)
+        => GetTrackedByIdAsync<Event>(id, ct);
 
     public async Task<PagedResultDto<Event>> GetPagedAsync(
         EventQueryCriteria criteria,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
         IQueryable<Event> query = _context.Events.AsNoTracking();
 
@@ -94,6 +72,6 @@ internal class EventRepository(ManagementDbContext context) :
             _ => asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name)
         };
 
-        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
+        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, ct);
     }
 }

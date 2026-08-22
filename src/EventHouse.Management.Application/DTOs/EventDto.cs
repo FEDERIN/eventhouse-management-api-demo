@@ -1,9 +1,8 @@
-﻿
-using EventHouse.Management.Application.Common.Enums;
+﻿using EventHouse.Management.Application.Common.Enums;
 
 namespace EventHouse.Management.Application.DTOs;
 
-public class EventDto
+public sealed class EventDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = null!;

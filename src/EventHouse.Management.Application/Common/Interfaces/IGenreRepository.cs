@@ -7,17 +7,17 @@ namespace EventHouse.Management.Application.Common.Interfaces
     public interface IGenreRepository
     {
         #region WRITE
-        Task AddAsync(Genre entity, CancellationToken cancellationToken = default);
-        Task UpdateAsync(Genre entity, CancellationToken cancellationToken = default);
-        Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+        Task AddAsync(Genre entity, CancellationToken ct = default);
+        Task UpdateAsync(Genre entity, CancellationToken ct = default);
+        Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
         #endregion
 
         #region WRITE
-        Task<Genre?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-        Task<Genre?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<Genre?> GetByIdAsync(Guid id, CancellationToken ct = default);
+        Task<Genre?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default);
         Task<PagedResultDto<Genre>> GetPagedAsync(
             GenreQueryCriteria criteria,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
         #endregion
     }
 }

@@ -79,9 +79,6 @@ public sealed class UpdateVenueValidatorTests : ValidatorTestBase<UpdateVenueCom
     {
         var command = ValidCommand() with
         {
-            Latitude = null,
-            Longitude = null,
-            TimeZoneId = null,
             Capacity = null
         };
 

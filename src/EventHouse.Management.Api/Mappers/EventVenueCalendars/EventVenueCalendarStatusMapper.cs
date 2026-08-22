@@ -3,7 +3,7 @@ using EventHouse.Management.Application.Common.Enums;
 
 namespace EventHouse.Management.Api.Mappers.EventVenueCalendars;
 
-public static class EventVenueCalendarStatusMapper
+internal static class EventVenueCalendarStatusMapper
 {
     public static EventVenueCalendarStatusDto ToApplicationRequired(EventVenueCalendarStatus contract) =>
     ApiEnumMapper<EventVenueCalendarStatus, EventVenueCalendarStatusDto>.ToApplicationRequired(contract);

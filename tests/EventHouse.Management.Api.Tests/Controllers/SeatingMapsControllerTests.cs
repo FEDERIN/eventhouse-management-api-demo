@@ -135,7 +135,7 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
 
         var request = SeatingMapFactory.CreateRequest(venueId: venue.Id);
 
-        var response = await Client.PostAsJsonAsync(BaseUrlSeatingMaps, request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync(BaseUrlSeatingMaps, request, TestContext.Current.CancellationToken);
         var created = await response.ReadContentAsync<SeatingMapResponse>();
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -146,7 +146,7 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
     public async Task Create_WhenVenueMissing_Returns404()
     {
         var request = SeatingMapFactory.CreateRequest(venueId: Guid.NewGuid());
-        var response = await Client.PostAsJsonAsync(BaseUrlSeatingMaps, request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync(BaseUrlSeatingMaps, request, TestContext.Current.CancellationToken);
         await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
 
@@ -156,7 +156,7 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
         var venue = await CreateVenueAsync();
         _ = await CreateSeatingMapAsync(venueId: venue.Id, name: "Unique Map Name");
         var request = SeatingMapFactory.CreateRequest(venueId: venue.Id, name: "Unique Map Name");
-        var response = await Client.PostAsJsonAsync(BaseUrlSeatingMaps, request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync(BaseUrlSeatingMaps, request, TestContext.Current.CancellationToken);
         await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
     }
     #endregion
@@ -182,7 +182,7 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
         _ = await CreateSeatingMapAsync(venueId: venue.Id, name: "First Map");
         var seatingMap2 = await CreateSeatingMapAsync(venueId: venue.Id, name: "Second Map");
         var updateRequest = SeatingMapFactory.UpdateRequest(name: "First Map");
-        var response = await Client.PutAsJsonAsync($"{BaseUrlSeatingMaps}/{seatingMap2.Id}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PutAsJsonAsync($"{BaseUrlSeatingMaps}/{seatingMap2.Id}", updateRequest, TestContext.Current.CancellationToken);
         await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
     }
 
@@ -190,7 +190,7 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
     public async Task Update_WhenMissing_Returns404()
     {
         var updateRequest = SeatingMapFactory.UpdateRequest();
-        var response = await Client.PutAsJsonAsync($"{BaseUrlSeatingMaps}/{Guid.NewGuid()}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PutAsJsonAsync($"{BaseUrlSeatingMaps}/{Guid.NewGuid()}", updateRequest, TestContext.Current.CancellationToken);
         await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
     #endregion

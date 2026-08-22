@@ -11,7 +11,7 @@ public sealed class EventVenueCalendarResponse
 
     public DateTimeOffset StartDate { get; init; }
 
-    public DateTimeOffset? EndDate { get; init; }
+    public DateTimeOffset EndDate { get; init; }
 
     public string TimeZoneId { get; init; } = default!;
 

@@ -2,7 +2,7 @@
 
 namespace EventHouse.Management.Api.Contracts.Genres;
 
-public class GenreResponse
+public sealed class GenreResponse
 {
     /// <summary>Unique identifier of the genre.</summary>
     public Guid Id { get; set; }

@@ -36,7 +36,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
     [InlineData(null, null, "Miami", null, null, null, false)]
     [InlineData(null, null, null, "FL", null, null, null)]
     [InlineData(null, null, null, null, "US", null, null)]
-    [InlineData("Arena", null, "Miami", "FL", "US", 100,true)]
+    [InlineData("Arena", null, "Miami", "FL", "US", 100, true)]
     public async Task GetAll_WithFiltersAndSorting_ReturnsFilteredResults(
     string? name,
     string? address,
@@ -136,7 +136,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
         var request = VenueFactory.CreateRequest(name: "Miami International Arena");
 
         // Act
-        var response = await Client.PostAsJsonAsync(BaseUrlVenues, request, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await Client.PostAsJsonAsync(BaseUrlVenues, request, TestContext.Current.CancellationToken);
         var created = await response.ReadContentAsync<VenueResponse>();
 
         // Assert
@@ -158,7 +158,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
             TimeZoneId = "UTC",
             Capacity = 100,
             IsActive = true
-        }, cancellationToken: TestContext.Current.CancellationToken);
+        }, TestContext.Current.CancellationToken);
 
         await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }
@@ -207,7 +207,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
         var updateRequest = VenueFactory.UpdateRequest(venue.Name);
 
         // Act
-        var update = await Client.PutAsJsonAsync($"{BaseUrlVenues}/{venue2!.Id}", updateRequest, cancellationToken: TestContext.Current.CancellationToken);
+        var update = await Client.PutAsJsonAsync($"{BaseUrlVenues}/{venue2!.Id}", updateRequest, TestContext.Current.CancellationToken);
 
         // Assert
         await update.ShouldHaveErrorCode(HttpStatusCode.Conflict, "VENUE_NAME_ALREADY_EXISTS");
@@ -218,7 +218,7 @@ public sealed class VenuesControllerTests(CustomWebApplicationFactory factory)
     [Fact]
     public async Task Delete_Returns204()
     {
-        // Arrange
+        // Arrange 
         var venue = await CreateVenueAsync();
 
         // Act & Assert

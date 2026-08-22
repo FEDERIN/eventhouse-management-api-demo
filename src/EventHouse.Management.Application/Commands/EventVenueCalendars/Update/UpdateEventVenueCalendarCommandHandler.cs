@@ -1,39 +1,60 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
-using EventHouse.Management.Application.Mappers.EventVenueCalendars;
 using EventHouse.Management.Application.Exceptions;
+using EventHouse.Management.Application.Mappers.EventVenueCalendars;
 using EventHouse.Management.Domain.Exceptions;
 using MediatR;
-
 
 namespace EventHouse.Management.Application.Commands.EventVenueCalendars.Update;
 
 internal sealed class UpdateEventVenueCalendarCommandHandler(
-    IEventVenueCalendarRepository repository)
+    IEventVenueCalendarRepository repository,
+    IApplicationResilience resilience)
     : IRequestHandler<UpdateEventVenueCalendarCommand>
 {
-    public async Task Handle(UpdateEventVenueCalendarCommand request, CancellationToken cancellationToken)
+    public async Task Handle(
+        UpdateEventVenueCalendarCommand request,
+        CancellationToken ct)
     {
-        var entity = await repository.GetByIdWithPerformancesAsync(request.Id, cancellationToken)
-            ?? throw new NotFoundException("EventVenueCalendar", request.Id);
+        await resilience.ExecuteSqlAsync(
+            async ct =>
+            {
+                var entity = await repository.GetByIdWithPerformancesAsync(
+                    request.Id,
+                    ct)
+                    ?? throw new NotFoundException(
+                        "EventVenueCalendar",
+                        request.Id);
 
-        var startUtc = request.StartDate.UtcDateTime;
-        var endUtc = request.EndDate?.UtcDateTime ?? startUtc.Date.AddDays(1).AddTicks(-1).ToUniversalTime();
+                var startUtc = request.StartDate.UtcDateTime;
+                var endUtc = request.EndDate.UtcDateTime;
 
-        var isOccupied = await repository.IsSlotOccupiedAsync(
-            entity.EventVenueId,
-            startUtc,
-            endUtc,
-            excludeId: request.Id,
-            cancellationToken);
+                var isOccupied = await repository.IsSlotOccupiedAsync(
+                    entity.EventVenueId,
+                    startUtc,
+                    endUtc,
+                    excludeId: request.Id,
+                    ct);
 
-        if (isOccupied)
-            throw new ConflictException("CALENDAR_SLOT_OCCUPIED", "Slot Occupied", "...");
+                if (isOccupied)
+                {
+                    throw new ConflictException(
+                        "CALENDAR_SLOT_OCCUPIED",
+                        "Slot Occupied",
+                        "The selected time slot is already occupied.");
+                }
 
-        entity.UpdateDates(request.StartDate, request.EndDate);
+                entity.UpdateDates(
+                    request.StartDate,
+                    request.EndDate);
 
-        var newStatus = EventVenueCalendarStatusMapper.ToDomainRequired(request.Status);
-        entity.UpdateStatus(newStatus);
+                var newStatus =
+                    EventVenueCalendarStatusMapper.ToDomainRequired(
+                        request.Status);
 
-        await repository.UpdateAsync(entity, cancellationToken);
+                entity.ChangeStatus(newStatus);
+
+                await repository.UpdateAsync(entity, ct);
+            },
+            ct);
     }
 }

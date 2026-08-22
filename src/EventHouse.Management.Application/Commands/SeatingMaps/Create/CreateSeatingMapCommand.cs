@@ -5,7 +5,7 @@ using MediatR;
 
 namespace EventHouse.Management.Application.Commands.SeatingMaps.Create;
 
-public record CreateSeatingMapCommand
+public sealed record CreateSeatingMapCommand
 (
     Guid VenueId,
     string Name,

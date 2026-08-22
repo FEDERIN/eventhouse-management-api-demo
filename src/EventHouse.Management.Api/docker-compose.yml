@@ -36,7 +36,7 @@
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - Auth__DevSecret=YourLongSecureSecretKeyHere123!_ExtraCharactersForSecurity
-
+      
       # OpenTelemetry
       - OpenTelemetry__Tracing__OtlpEndpoint=http://otel-collector:4317
       - OpenTelemetry__Metrics__OtlpEndpoint=http://otel-collector:4317

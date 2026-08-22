@@ -2,4 +2,4 @@
 
 namespace EventHouse.Management.Application.Commands.Genres.Delete;
 
-public record DeleteGenreCommand(Guid Id) : IRequest;
+public sealed record DeleteGenreCommand(Guid Id) : IRequest;

@@ -34,7 +34,7 @@
 		<_Parameter1>EventHouse.Management.Api.Tests</_Parameter1>
 	</AssemblyAttribute>
   </ItemGroup>
-
+  
     <ItemGroup>
       <ProjectReference Include="..\EventHouse.Management.Application\EventHouse.Management.Application.csproj" />
       <ProjectReference Include="..\EventHouse.Management.Infrastructure\EventHouse.Management.Infrastructure.csproj" />

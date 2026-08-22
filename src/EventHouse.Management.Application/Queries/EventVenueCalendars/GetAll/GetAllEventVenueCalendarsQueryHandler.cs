@@ -8,7 +8,7 @@ namespace EventHouse.Management.Application.Queries.EventVenueCalendars.GetAll;
 
 internal sealed class GetAllEventVenueCalendarsQueryHandler(IEventVenueCalendarRepository repository) : IRequestHandler<GetAllEventVenueCalendarsQuery, PagedResultDto<EventVenueCalendarDto>>
 {
-    public async Task<PagedResultDto<EventVenueCalendarDto>> Handle(GetAllEventVenueCalendarsQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResultDto<EventVenueCalendarDto>> Handle(GetAllEventVenueCalendarsQuery request, CancellationToken ct)
     {
         var criteria = new EventVenueCalendarQueryCriteria
         {
@@ -24,7 +24,7 @@ internal sealed class GetAllEventVenueCalendarsQueryHandler(IEventVenueCalendarR
             SortDirection = request.SortDirection,
         };
 
-        var result = await repository.GetPagedAsync(criteria, cancellationToken);
+        var result = await repository.GetPagedAsync(criteria, ct);
 
         return result.MapTo(EventVenueCalendarMapper.ToDto);
     }

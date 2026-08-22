@@ -1,10 +1,8 @@
-﻿using EventHouse.Management.Application.Common;
-using MediatR;
+﻿using MediatR;
 
-namespace EventHouse.Management.Application.Commands.Genres.Update
-{
-    public record UpdateGenreCommand(
-        Guid Id,
-        string Name
-        ) : IRequest<UpdateResult>;
-}
+namespace EventHouse.Management.Application.Commands.Genres.Update;
+
+public sealed record UpdateGenreCommand(
+    Guid Id,
+    string Name
+    ) : IRequest;

@@ -31,16 +31,14 @@ public static class TestEntityFactory
     Guid seatingMapId,
     DateTimeOffset? startLocal = null,
     DateTimeOffset? endLocal = null,
-    string timeZoneId = "UTC",
-    EventVenueCalendarStatus status = EventVenueCalendarStatus.Published)
+    string timeZoneId = "UTC")
     {
         return new EventVenueCalendar(
             id,
             eventVenueId,
             seatingMapId,
             startLocal ?? DateTimeOffset.UtcNow,
-            endLocal,
-            timeZoneId,
-            status);
+            endLocal ?? DateTimeOffset.UtcNow.AddHours(10),
+            timeZoneId);
     }
 }

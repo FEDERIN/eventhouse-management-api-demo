@@ -6,7 +6,7 @@ using EventHouse.Management.Application.DTOs;
 
 namespace EventHouse.Management.Api.Mappers.ArtistPerformances;
 
-public class ArtistPerformanceMapper
+internal static class ArtistPerformanceMapper
 {
    public static ArtistPerformanceResponse ToContract(ArtistPerformanceDto dto)
     {

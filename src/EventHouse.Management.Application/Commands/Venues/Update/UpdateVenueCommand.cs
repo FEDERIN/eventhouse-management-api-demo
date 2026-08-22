@@ -2,16 +2,16 @@
 
 namespace EventHouse.Management.Application.Commands.Venues.Update;
 
-public record UpdateVenueCommand(
+public sealed record UpdateVenueCommand(
     Guid Id,
     string Name,
     string Address,
     string City,
     string Region,
     string CountryCode,
-    decimal? Latitude,
-    decimal? Longitude,
-    string? TimeZoneId,
+    decimal Latitude,
+    decimal Longitude,
+    string TimeZoneId,
     int? Capacity,
     bool IsActive
     ) : IRequest;

@@ -5,10 +5,6 @@ using EventHouse.Management.Api.Mappers.Venues;
 using EventHouse.Management.Api.Swagger;
 using EventHouse.Management.Api.Swagger.Examples.Contracts.Venues;
 using EventHouse.Management.Api.Swagger.Examples.Requests.Venues;
-using EventHouse.Management.Application.Commands.Venues.Create;
-using EventHouse.Management.Application.Commands.Venues.Delete;
-using EventHouse.Management.Application.Commands.Venues.Update;
-using EventHouse.Management.Application.Queries.Venues.GetById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -18,10 +14,8 @@ namespace EventHouse.Management.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/venues")]
-public sealed class VenuesController(IMediator mediator) : BaseApiController
+public sealed class VenuesController(ISender sender) : BaseApiController
 {
-    private readonly IMediator _mediator = mediator;
-
     #region READ
     [HttpGet("{venueId:guid}")]
     [SwaggerOperation(
@@ -29,11 +23,13 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
     Summary = "Retrieve a specific venue by their unique identifier."
     )]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(VenueResponseExample))]
-    [ProducesOkAttribute<VenueResponse>]
+    [ProducesOk<VenueResponse>]
     [ProducesNotFoundProblem]
-    public async Task<ActionResult<VenueResponse>> GetById(Guid venueId, CancellationToken cancellationToken)
+    public async Task<ActionResult<VenueResponse>> GetById(Guid venueId, CancellationToken ct)
     {
-        var resultDto = await _mediator.Send(new GetVenueByIdQuery(venueId), cancellationToken);
+        var resultDto = await sender.Send(
+            GetVenueByIdQueryMapper.FromContract(venueId),
+            ct);
 
         return Ok(VenueMapper.ToContract(resultDto));
     }
@@ -45,16 +41,16 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
     )]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(VenuePagedResultExample))]
     [SwaggerRequestExample(typeof(GetVenuesRequest), typeof(GetVenuesRequestExample))]
-    [ProducesOkAttribute<PagedResult<VenueResponse>>]
-    [ProducesValidationProblemAttribute]
-    [ProducesTooManyRequestsProblemAttribute]
+    [ProducesOk<PagedResult<VenueResponse>>]
+    [ProducesValidationProblem]
+    [ProducesTooManyRequestsProblem]
     public async Task<ActionResult<PagedResult<VenueResponse>>> GetAll(
     [FromQuery] GetVenuesRequest query,
-    CancellationToken cancellationToken)
+    CancellationToken ct)
     {
-        var resultDto = await _mediator.Send(
+        var resultDto = await sender.Send(
             GetAllVenuesQueryMapper.FromContract(query),
-            cancellationToken);
+            ct);
 
         return Ok(VenueMapper.ToContract(resultDto, Request));
     }
@@ -69,25 +65,14 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
     [SwaggerRequestExample(typeof(CreateVenueRequest), typeof(CreateVenueRequestExample))]
     [SwaggerResponseExample(StatusCodes.Status201Created, typeof(VenueResponseExample))]
     [ProducesCreated<VenueResponse>]
-    [ProducesValidationProblemAttribute]
+    [ProducesValidationProblem]
     [ProducesConflictProblem]
-    public async Task<ActionResult<VenueResponse>> Create([FromBody] CreateVenueRequest body, CancellationToken cancellationToken)
+    public async Task<ActionResult<VenueResponse>> Create([FromBody] CreateVenueRequest body, CancellationToken ct)
     {
-
-        var command = new CreateVenueCommand(
-            body.Name,
-            body.Address,
-            body.City,
-            body.Region,
-            body.CountryCode,
-            body.Latitude,
-            body.Longitude,
-            body.TimeZoneId,
-            body.Capacity,
-            body.IsActive);
-
-        var createdDto = await _mediator.Send(command, cancellationToken);
-
+        var createdDto = await sender.Send(
+            CreateVenueCommandMapper.FromContract(body),
+            ct);
+        
         var created = VenueMapper.ToContract(createdDto);
 
         return CreatedAtAction(nameof(GetById), new { venueId = created.Id }, created);
@@ -98,24 +83,15 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
         Summary = "Update an existing venue's details."
         )]
     [SwaggerRequestExample(typeof(UpdateVenueRequest), typeof(UpdateVenueRequestExample))]
-    [ProducesNoContentAttribute]
-    [ProducesValidationProblemAttribute]
+    [ProducesNoContent]
+    [ProducesValidationProblem]
     [ProducesNotFoundProblem]
     [ProducesConflictProblem]
-    public async Task<IActionResult> Update(Guid venueId, [FromBody] UpdateVenueRequest body, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(Guid venueId, [FromBody] UpdateVenueRequest body, CancellationToken ct)
     {
-        await _mediator.Send(new UpdateVenueCommand(
-            venueId,
-            body.Name,
-            body.Address,
-            body.City,
-            body.Region,
-            body.CountryCode,
-            body.Latitude,
-            body.Longitude,
-            body.TimeZoneId,
-            body.Capacity,
-            body.IsActive), cancellationToken);
+        await sender.Send(
+            UpdateVenueCommandMapper.FromContract(venueId, body),
+            ct);
 
         return NoContent();
     }
@@ -126,12 +102,14 @@ public sealed class VenuesController(IMediator mediator) : BaseApiController
     [SwaggerOperation(OperationId = "DeleteVenue",
         Summary = "Delete a venue from the system."
         )]
-    [ProducesNoContentAttribute]
+    [ProducesNoContent]
     [ProducesNotFoundProblem]
     [ProducesConflictProblem]
-    public async Task<IActionResult> Delete(Guid venueId, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(Guid venueId, CancellationToken ct)
     {
-        await _mediator.Send(new DeleteVenueCommand(venueId), cancellationToken);
+        await sender.Send(
+            DeleteVenueCommandMapper.FromContract(venueId),
+            ct);
 
         return NoContent();
     }

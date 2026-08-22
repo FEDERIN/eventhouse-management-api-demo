@@ -2,11 +2,10 @@
 using EventHouse.Management.Application.DTOs;
 using MediatR;
 
-namespace EventHouse.Management.Application.Commands.EventVenues.Create
-{
-    public record CreateEventVenueCommand(
-        Guid EventId,
-        Guid VenueId,
-        EventVenueStatusDto Status
-    ) : IRequest<EventVenueDto>;
-}
+namespace EventHouse.Management.Application.Commands.EventVenues.Create;
+
+public sealed record CreateEventVenueCommand(
+    Guid EventId,
+    Guid VenueId,
+    EventVenueStatusDto Status
+) : IRequest<EventVenueDto>;

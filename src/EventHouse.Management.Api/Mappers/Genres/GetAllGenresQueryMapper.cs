@@ -3,7 +3,7 @@ using EventHouse.Management.Application.Queries.Genres.GetAll;
 
 namespace EventHouse.Management.Api.Mappers.Genres;
 
-public static class GetAllGenresQueryMapper
+internal static class GetAllGenresQueryMapper
 {
     public static GetAllGenresQuery FromContract(GetGenresRequest request)
         => new()

@@ -5,6 +5,7 @@ using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Queries.Genres.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
+using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,34 +14,30 @@ namespace EventHouse.Management.Infrastructure.Repositories
     internal class GenreRepository(ManagementDbContext context) : 
         BaseRepository(context), IGenreRepository
     {
-        private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
+        protected override Dictionary<string, UniqueConstraintMapping> IndexMappings =>
+        new()
         {
-            { "UX_Genres_Name", ("GENRE_NAME_ALREADY_EXISTS", "The name already exists in another genre.", false) }
+            ["UX_Genres_Name"] = new(
+                "GENRE_NAME_ALREADY_EXISTS",
+                "The name already exists in another genre.",
+                false)
         };
 
         #region WRITE
-        public async Task AddAsync(Genre entity, CancellationToken cancellationToken = default)
-        {
-            await _context.Genres.AddAsync(entity, cancellationToken);
-            await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
-        }
+        public Task AddAsync(Genre entity, CancellationToken ct = default)
+            => AddAsync<Genre>(entity, ct);
 
-        public async Task UpdateAsync(Genre entity, CancellationToken cancellationToken = default)
-        {
-            if (_context.Entry(entity).State == EntityState.Detached)
-                throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
+        public Task UpdateAsync(Genre entity, CancellationToken ct = default) 
+            => UpdateAsync<Genre>(entity, ct);
 
-            await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
-        }
-
-        public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)
         {
-            var entity = await GetTrackedByIdAsync(id, cancellationToken);
+            var entity = await GetTrackedByIdAsync(id, ct);
 
             if (entity is null)
                 return false;
 
-            var artistGenre = await _context.ArtistGenres.FirstOrDefaultAsync(x => x.GenreId == id, cancellationToken: cancellationToken);
+            var artistGenre = await _context.ArtistGenres.FirstOrDefaultAsync(x => x.GenreId == id, ct);
 
             if (artistGenre != null)
                 throw new ConflictException(
@@ -50,24 +47,21 @@ namespace EventHouse.Management.Infrastructure.Repositories
                     );
 
             _context.Genres.Remove(entity);
-            await _context.SaveChangesAsync(cancellationToken);
+            await _context.SaveChangesAsync(ct);
 
             return true;
         }
         #endregion
 
         #region READ
-        public async Task<Genre?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-        {
-            return await _context.Genres.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-        }
+        public Task<Genre?> GetByIdAsync(
+            Guid id, CancellationToken ct = default)
+            => GetByIdAsync<Genre>(id, ct);
 
-        public async Task<Genre?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
-        {
-            return await _context.Genres.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-        }
+        public Task<Genre?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default)
+            => GetTrackedByIdAsync<Genre>(id, ct);
 
-        public async Task<PagedResultDto<Genre>> GetPagedAsync(GenreQueryCriteria criteria, CancellationToken cancellationToken = default)
+        public async Task<PagedResultDto<Genre>> GetPagedAsync(GenreQueryCriteria criteria, CancellationToken ct = default)
         {
             IQueryable<Genre> query = _context.Genres.AsNoTracking();
 
@@ -84,7 +78,7 @@ namespace EventHouse.Management.Infrastructure.Repositories
                 _ => asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name)
             };
 
-            return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
+            return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, ct);
         }
         #endregion
     }

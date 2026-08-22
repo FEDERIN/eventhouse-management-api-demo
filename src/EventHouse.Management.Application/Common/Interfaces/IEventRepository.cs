@@ -6,12 +6,12 @@ namespace EventHouse.Management.Application.Common.Interfaces;
 
 public interface IEventRepository
 {
-    Task AddAsync(Event entity, CancellationToken cancellationToken = default);
-    Task UpdateAsync(Event entity, CancellationToken cancellationToken = default);
-    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<Event?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task AddAsync(Event entity, CancellationToken ct = default);
+    Task UpdateAsync(Event entity, CancellationToken ct = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
+    Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<Event?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default);
     Task<PagedResultDto<Event>> GetPagedAsync(
         EventQueryCriteria criteria,
-        CancellationToken cancellationToken = default);
+        CancellationToken ct = default);
 }

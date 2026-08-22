@@ -1,7 +1,5 @@
-﻿using Core.Cache.Abstractions;
-using Core.Cache.DependencyInjection;
+﻿using Core.Cache.DependencyInjection;
 using Core.Cache.Options;
-using EventHouse.Management.Infrastructure.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,22 +9,20 @@ internal static class CacheExtensions
 {
     public static IServiceCollection AddCacheInfrastructure(this IServiceCollection services, IConfiguration config)
     {
-        var distributedCache = config.GetSection("Core:Cache");
+        var cacheSection =
+            config.GetSection("Core:Cache");
 
-        if (!distributedCache.Exists())
-            return services;
+        var cacheOptions = new CacheOptions();
 
-        services.AddCoreCache(options =>
-        {
-            distributedCache.Bind(options);
+        cacheSection.Bind(cacheOptions);
 
-            if (options.DefaultProvider == CacheProviderType.Redis)
-            {
-                options.Redis.Configuration = 
-                config.CreateRedisConfiguration("MainRedis");
-            }
-        });
+        services.AddCoreCache(
+            _ => _.CopyFrom(cacheOptions));
 
+        //if (!cacheOptions.Enabled)
+        //{
+        //    return services;
+        //}
 
         return services;
     }

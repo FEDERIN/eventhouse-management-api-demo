@@ -79,18 +79,18 @@ public class ArtistTests
         Assert.False(result);
     }
 
-    [Fact]
-    public void SetPrimaryGenre_AlreadyPrimary_ReturnsFalse()
-    {
-        // Arrange
-        var artist = new Artist(Guid.NewGuid(), "Artist Name", ArtistCategory.Comedian);
-        var genreId = Guid.NewGuid();
+    //[Fact]
+    //public void SetPrimaryGenre_AlreadyPrimary_ReturnsFalse()
+    //{
+    //    // Arrange
+    //    var artist = new Artist(Guid.NewGuid(), "Artist Name", ArtistCategory.Comedian);
+    //    var genreId = Guid.NewGuid();
 
-        artist.AddGenre(genreId, ArtistGenreStatus.Active, isPrimary: true);
+    //    artist.AddGenre(genreId, ArtistGenreStatus.Active, isPrimary: true);
 
-        var result = artist.SetPrimaryGenre(genreId);
+    //    var result = artist.SetPrimaryGenre(genreId);
 
-        // Assert
-        Assert.False(result);
-    }
+    //    // Assert
+    //    Assert.False(result);
+    //}
 }

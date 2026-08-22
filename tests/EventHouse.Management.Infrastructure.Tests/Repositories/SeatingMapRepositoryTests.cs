@@ -8,14 +8,12 @@ namespace EventHouse.Management.Infrastructure.Tests.Repositories;
 public class SeatingMapRepositoryTests(SharedDatabaseFixture fixture) : BasePersistenceTest(fixture)
 {
     private SeatingMapRepository _repository = null!;
-    private VenueRepository _venueRepository = null!;
 
     public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 
         _repository = new SeatingMapRepository(Context);
-        _venueRepository = new VenueRepository(Context);
     }
 
 
@@ -23,8 +21,8 @@ public class SeatingMapRepositoryTests(SharedDatabaseFixture fixture) : BasePers
     public async Task UpdateAsync_ShouldThrowInvalidOperationException_WhenEntityIsDetached()
     {
         // Arrange
-        var seatingMap = new SeatingMap(Guid.NewGuid(), Guid.NewGuid(), "Central", 1, true);
-
+        var seatingMap = new SeatingMap(Guid.NewGuid(), Guid.NewGuid(), "Central", 1, true); 
+        
         // Act
         var act = async () => await _repository.UpdateAsync(seatingMap, TestContext.Current.CancellationToken);
 

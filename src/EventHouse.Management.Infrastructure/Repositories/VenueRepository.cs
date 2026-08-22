@@ -4,6 +4,7 @@ using EventHouse.Management.Application.Common.Sorting;
 using EventHouse.Management.Application.Queries.Venues.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
+using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,56 +12,33 @@ namespace EventHouse.Management.Infrastructure.Repositories;
 internal class VenueRepository(ManagementDbContext context) :
     BaseRepository(context), IVenueRepository
 {
-    private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> IndexMappings = new()
+    protected override Dictionary<string, UniqueConstraintMapping> IndexMappings =>
+    new()
     {
-        { "UX_Venues_Name", ("VENUE_NAME_ALREADY_EXISTS", "The name already exists in another venue.", false) }
+        ["UX_Venues_Name"] = new("VENUE_NAME_ALREADY_EXISTS", "The name already exists in another venue.")
     };
 
-    public async Task AddAsync(Venue entity, CancellationToken cancellationToken = default)
-    {
-        await _context.Venues.AddAsync(entity, cancellationToken);
-        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
-    }
+    public Task AddAsync(Venue entity, CancellationToken ct = default)
+    => AddAsync<Venue>(entity, ct);
 
-    public async Task UpdateAsync(Venue entity, CancellationToken cancellationToken = default)
-    {
-    if (_context.Entry(entity).State == EntityState.Detached)
-        throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
+    public Task UpdateAsync(Venue entity, CancellationToken ct = default)
+    => UpdateAsync<Venue>(entity, ct);
 
-        await SaveChangesWithUniqueCheckAsync(IndexMappings, cancellationToken);
-    }
+    public Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)
+        => DeleteAsync<Venue>(id, ct);
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var entity = await GetTrackedByIdAsync(id, cancellationToken);
+    public Task<bool> ExistsAsync(Guid id, CancellationToken ct = default)
+        => ExistsAsync<Venue>(id, ct);
+    
+    public Task<Venue?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        => GetByIdAsync<Venue>(id, ct);
 
-        if (entity is null)
-            return false;
-
-        _context.Venues.Remove(entity);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return true;
-    }
-
-    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await ExistsAsync<Venue>(id, cancellationToken);
-    }
-
-    public async Task<Venue?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Venues.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-    }
-
-    public async Task<Venue?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Venues.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-    }
+    public Task<Venue?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default)
+    => GetTrackedByIdAsync<Venue>(id, ct);
 
     public async Task<PagedResultDto<Venue>> GetPagedAsync(
         VenueQueryCriteria criteria,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
         IQueryable<Venue> query = _context.Venues.AsNoTracking();
 
@@ -87,43 +65,39 @@ internal class VenueRepository(ManagementDbContext context) :
 
         query = ApplyVenueSorting(query, criteria.SortBy, criteria.SortDirection);
 
-        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
+        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, ct);
     }
 
     private static IQueryable<Venue> ApplyVenueSorting(
         IQueryable<Venue> query,
-        VenueSortField? venueSortField,
+        VenueSortField? sortBy,
         SortDirection sortDirection)
     {
-
-        bool asc = sortDirection == SortDirection.Asc;
-
-        query = venueSortField switch
+        return sortBy switch
         {
             VenueSortField.Name =>
-                asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name),
+                query.OrderByDirection(x => x.Name, sortDirection),
 
             VenueSortField.Address =>
-                asc ? query.OrderBy(x => x.Address) : query.OrderByDescending(x => x.Address),
+                query.OrderByDirection(x => x.Address, sortDirection),
 
             VenueSortField.City =>
-                asc ? query.OrderBy(x => x.City) : query.OrderByDescending(x => x.City),
+                query.OrderByDirection(x => x.City, sortDirection),
 
             VenueSortField.Region =>
-                asc ? query.OrderBy(x => x.Region) : query.OrderByDescending(x => x.Region),
+                query.OrderByDirection(x => x.Region, sortDirection),
 
             VenueSortField.CountryCode =>
-                asc ? query.OrderBy(x => x.CountryCode) : query.OrderByDescending(x => x.CountryCode),
+                query.OrderByDirection(x => x.CountryCode, sortDirection),
 
             VenueSortField.Capacity =>
-                asc ? query.OrderBy(x => x.Capacity) : query.OrderByDescending(x => x.Capacity),
+                query.OrderByDirection(x => x.Capacity, sortDirection),
 
             VenueSortField.IsActive =>
-                asc ? query.OrderBy(x => x.IsActive) : query.OrderByDescending(x => x.IsActive),
+                query.OrderByDirection(x => x.IsActive, sortDirection),
 
-            _ => asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name)
+            _ =>
+                query.OrderByDirection(x => x.Name, sortDirection)
         };
-
-        return query;
     }
 }

@@ -10,9 +10,13 @@ internal sealed class UpdateEventVenueCalendarCommandValidator
         RuleFor(x => x.Id)
             .NotEmpty().WithMessage("The calendar event identifier must not be empty.");
 
-        ApplyEventVenueCalendarRules(x => x.StartDate,
-            x => x.EndDate,
-            x => x.Status
+        RuleFor(x => x.Status)
+            .IsInEnum()
+            .WithMessage("The provided status is not valid.");
+
+        ApplyEventVenueCalendarDateRules(
+            x => x.StartDate,
+            x => x.EndDate
             );
     }
 }
