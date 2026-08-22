@@ -1,4 +1,5 @@
-﻿using EventHouse.Management.Application.DTOs;
+﻿using EventHouse.Management.Application.Commands.Genres.Create;
+using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Domain.Entities;
 
 
@@ -6,6 +7,14 @@ namespace EventHouse.Management.Application.Mappers.Genres;
 
 internal sealed class GenreMapper
 {
+    public static Genre ToEntity(CreateGenreCommand request)
+    {
+        return new Genre(
+            Guid.NewGuid(),
+            request.Name
+        );
+    }
+
     public static GenreDto ToDto(Genre entity)
     {
         return new GenreDto

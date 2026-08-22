@@ -1,18 +1,35 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
-using EventHouse.Management.Domain.Exceptions;
+using EventHouse.Management.Application.Exceptions;
 using MediatR;
 
 namespace EventHouse.Management.Application.Commands.SeatingMaps.Update;
 
-internal class UpdateSeatingMapCommandHandler(ISeatingMapRepository seatingMapRepository)
+internal sealed class UpdateSeatingMapCommandHandler(
+    ISeatingMapRepository repository,
+    IApplicationResilience resilience)
     : IRequestHandler<UpdateSeatingMapCommand>
 {
-    public async Task Handle(UpdateSeatingMapCommand request, CancellationToken cancellationToken)
+    public async Task Handle(
+        UpdateSeatingMapCommand request,
+        CancellationToken ct)
     {
-        var entity = await seatingMapRepository.GetTrackedByIdAsync(request.Id, cancellationToken)
-            ?? throw new NotFoundException("SeatingMap", request.Id);
+        await resilience.ExecuteSqlAsync(
+            async ct =>
+            {
+                var entity = await repository.GetTrackedByIdAsync(
+                    request.Id,
+                    ct)
+                    ?? throw new NotFoundException(
+                        "SeatingMap",
+                        request.Id);
 
-        entity.Update(request.Name, request.Version, request.IsActive);
-        await seatingMapRepository.UpdateAsync(entity, cancellationToken);
+                entity.Update(
+                    request.Name,
+                    request.Version,
+                    request.IsActive);
+
+                await repository.UpdateAsync(entity, ct);
+            },
+            ct);
     }
 }

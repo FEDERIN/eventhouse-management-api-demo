@@ -1,22 +1,32 @@
-﻿using EventHouse.Management.Application.Common;
-using EventHouse.Management.Application.Common.Interfaces;
-using EventHouse.Management.Domain.Exceptions;
+﻿using EventHouse.Management.Application.Common.Interfaces;
+using EventHouse.Management.Application.Exceptions;
 using MediatR;
 
 namespace EventHouse.Management.Application.Commands.Genres.Update;
 
-internal sealed class UpdateGenreCommandHandler(IGenreRepository genreRepository) : IRequestHandler<UpdateGenreCommand, UpdateResult>
+internal sealed class UpdateGenreCommandHandler(
+    IGenreRepository repository,
+    IApplicationResilience resilience)
+    : IRequestHandler<UpdateGenreCommand>
 {
-    private readonly IGenreRepository _genreRepository = genreRepository;
-
-    public async Task<UpdateResult> Handle(UpdateGenreCommand request, CancellationToken cancellationToken)
+    public async Task Handle(
+        UpdateGenreCommand request,
+        CancellationToken ct)
     {
-        var entity = await _genreRepository.GetTrackedByIdAsync(request.Id, cancellationToken)
-            ?? throw new NotFoundException("Genre", request.Id);
+        await resilience.ExecuteSqlAsync(
+            async ct =>
+            {
+                var entity = await repository.GetTrackedByIdAsync(
+                    request.Id,
+                    ct)
+                    ?? throw new NotFoundException(
+                        "Genre",
+                        request.Id);
 
-        entity.Update(request.Name);
+                entity.Update(request.Name);
 
-        await _genreRepository.UpdateAsync(entity, cancellationToken);
-        return UpdateResult.Success;
+                await repository.UpdateAsync(entity, ct);
+            },
+            ct);
     }
 }

@@ -9,56 +9,56 @@ namespace EventHouse.Management.Infrastructure.Repositories;
 internal class CachedGenreRepository(
         IGenreRepository innerRepository,
         ICoreCache cacheService
-
+    
     ) : IGenreRepository
 {
     private const string CachePrefix = "genres:";
 
     #region WRITE
-    public async Task AddAsync(Genre entity, CancellationToken cancellationToken = default)
+    public async Task AddAsync(Genre entity, CancellationToken ct = default)
     {
-        await innerRepository.AddAsync(entity, cancellationToken);
-        await cacheService.InvalidateByTagAsync("genres", cancellationToken);
+        await innerRepository.AddAsync(entity, ct);
+        await cacheService.InvalidateByTagAsync("genres", ct);
     }
 
-    public async Task UpdateAsync(Genre entity, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(Genre entity, CancellationToken ct = default)
     {
-        await innerRepository.UpdateAsync(entity, cancellationToken);
-        await cacheService.RemoveAsync($"{CachePrefix}{entity.Id}", cancellationToken);
-        await cacheService.InvalidateByTagAsync("genres", cancellationToken);
+        await innerRepository.UpdateAsync(entity, ct);
+        await cacheService.RemoveAsync($"{CachePrefix}{entity.Id}", ct);
+        await cacheService.InvalidateByTagAsync("genres", ct);
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)
     {
-        var deleted = await innerRepository.DeleteAsync(id, cancellationToken);
+        var deleted = await innerRepository.DeleteAsync(id, ct);
         if (deleted)
         {
-            await cacheService.RemoveAsync($"{CachePrefix}{id}", cancellationToken);
-            await cacheService.InvalidateByTagAsync("genres", cancellationToken);
+            await cacheService.RemoveAsync($"{CachePrefix}{id}", ct);
+            await cacheService.InvalidateByTagAsync("genres", ct);
         }
         return deleted;
     }
     #endregion
 
     #region WRITE
-    public async Task<Genre?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Genre?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return await cacheService.GetOrAddAsync(
             key: $"{CachePrefix}{id}",
             factory: ct => innerRepository.GetByIdAsync(id, ct),
             expiration: TimeSpan.FromMinutes(30),
             tags: ["genres"],
-            ct: cancellationToken);
+            ct: ct);
     }
 
-    public async Task<Genre?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Genre?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default)
     {
-        return await innerRepository.GetTrackedByIdAsync(id, cancellationToken);
+        return await innerRepository.GetTrackedByIdAsync(id, ct);
     }
 
-    public async Task<PagedResultDto<Genre>> GetPagedAsync(GenreQueryCriteria criteria, CancellationToken cancellationToken = default)
+    public async Task<PagedResultDto<Genre>> GetPagedAsync(GenreQueryCriteria criteria, CancellationToken ct = default)
     {
-        return await innerRepository.GetPagedAsync(criteria, cancellationToken);
+        return await innerRepository.GetPagedAsync(criteria, ct);
     }
     #endregion
 }

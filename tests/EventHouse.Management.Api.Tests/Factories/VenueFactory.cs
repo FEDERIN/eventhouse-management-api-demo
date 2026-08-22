@@ -16,7 +16,7 @@ public static class VenueFactory
 
         return new CreateVenueRequest
         {
-            Name = name ?? $"{Faker.Address.StreetName()} Arena",
+            Name = $"{Faker.Name.FirstName()} Arena" + Faker.Random.Number(0, 2000),
             Address = Faker.Address.StreetAddress(),
             City = cityName,
             Region = Faker.Address.StateAbbr(),

@@ -11,23 +11,23 @@ namespace EventHouse.Management.Application.Common.Interfaces;
 public interface IEventVenueRepository
 {
     #region WRITE
-    Task AddAsync(EventVenue entity, CancellationToken cancellationToken = default);
+    Task AddAsync(EventVenue entity, CancellationToken ct = default);
 
-    Task UpdateAsync(EventVenue entity, CancellationToken cancellationToken = default);
+    Task UpdateAsync(EventVenue entity, CancellationToken ct = default);
     #endregion
 
     #region READ
-    Task<EventVenue?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<EventVenue?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
-    Task<EventVenue?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<EventVenue?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default);
 
     Task<PagedResultDto<EventVenue>> GetPagedAsync(
         EventVenueQueryCriteria criteria,
-        CancellationToken cancellationToken
+        CancellationToken ct
     );
     #endregion
 
     #region VALIDATIONS
-    Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(Guid id, CancellationToken ct = default);
     #endregion
 }

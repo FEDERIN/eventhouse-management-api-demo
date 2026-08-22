@@ -1,6 +1,5 @@
 ﻿using MediatR;
 
-namespace EventHouse.Management.Application.Commands.Artists.Delete
-{
-    public record DeleteArtistCommand(Guid Id) : IRequest;
-}
+namespace EventHouse.Management.Application.Commands.Artists.Delete;
+
+public sealed record DeleteArtistCommand(Guid Id) : IRequest;

@@ -24,11 +24,11 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
         }
 
         // Act
-        var res = await Client.GetAsync($"{BaseUrlGenres}?page=1&pageSize=2", cancellationToken: TestContext.Current.CancellationToken);
+        var res = await Client.GetAsync($"{BaseUrlGenres}?page=1&pageSize=2", TestContext.Current.CancellationToken);
 
         // Assert
         res.StatusCode.Should().Be(HttpStatusCode.OK);
-        var page = await res.Content.ReadFromJsonAsync<PagedResult<GenreResponse>>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
+        var page = await res.Content.ReadFromJsonAsync<PagedResult<GenreResponse>>(JsonTestOptions.Default, TestContext.Current.CancellationToken);
 
         page.Should().NotBeNull();
         page!.Items.Count.Should().Be(2);
@@ -110,10 +110,10 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
     {
         var request = new CreateGenreRequest { Name = "Jazz" };
 
-        var postResponse = await Client.PostAsJsonAsync(BaseUrlGenres, request, cancellationToken: TestContext.Current.CancellationToken);
+        var postResponse = await Client.PostAsJsonAsync(BaseUrlGenres, request, TestContext.Current.CancellationToken);
 
         postResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        var created = await postResponse.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default, cancellationToken: TestContext.Current.CancellationToken);
+        var created = await postResponse.Content.ReadFromJsonAsync<GenreResponse>(JsonTestOptions.Default, TestContext.Current.CancellationToken);
 
         created.Should().NotBeNull();
         postResponse.Headers.Location!.ToString().Should().EndWith(created!.Id.ToString());
@@ -125,7 +125,7 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
         var res = await Client.PostAsJsonAsync(BaseUrlGenres, new CreateGenreRequest
         {
             Name = "R"
-        }, cancellationToken: TestContext.Current.CancellationToken);
+        }, TestContext.Current.CancellationToken);
 
         await res.ShouldBeProblemJson(HttpStatusCode.BadRequest);
     }
@@ -158,7 +158,7 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
         var genre2 = await CreateGenreAsync(forCategory: ArtistCategory.Host);
 
         // Act
-        var update = await Client.PutAsJsonAsync($"{BaseUrlGenres}/{genre2!.Id}", new UpdateGenreRequest { Name = genre.Name }, cancellationToken: TestContext.Current.CancellationToken);
+        var update = await Client.PutAsJsonAsync($"{BaseUrlGenres}/{genre2!.Id}", new UpdateGenreRequest { Name = genre.Name }, TestContext.Current.CancellationToken);
 
         // Assert
         await update.ShouldHaveErrorCode(HttpStatusCode.Conflict, "GENRE_NAME_ALREADY_EXISTS");
@@ -177,10 +177,10 @@ public sealed class GenresControllerTests(CustomWebApplicationFactory factory)
             GenreId = genre!.Id,
             Status = ArtistGenreStatus.Active,
             IsPrimary = true
-        }, cancellationToken: TestContext.Current.CancellationToken);
+        }, TestContext.Current.CancellationToken);
 
         // delete
-        var res = await Client.DeleteAsync($"{BaseUrlGenres}/{genre.Id}", cancellationToken: TestContext.Current.CancellationToken);
+        var res = await Client.DeleteAsync($"{BaseUrlGenres}/{genre.Id}", TestContext.Current.CancellationToken);
 
         // Assert
         await res.ShouldHaveErrorCode(HttpStatusCode.Conflict, "GENRE_HAS_ASSOCIATIONS");

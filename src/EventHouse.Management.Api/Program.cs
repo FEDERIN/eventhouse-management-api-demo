@@ -20,8 +20,11 @@ builder.Services.AddApiServices(builder.Configuration);
 builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
 builder.Services.AddTransient<CorrelationIdMiddleware>();
 
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
+app.UseExceptionHandler();
 app.UseObservabilityEndpoints();
 app.UseCustomSwagger();
 app.UseInfrastructurePipeline(app.Environment);

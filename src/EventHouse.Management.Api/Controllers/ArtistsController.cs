@@ -5,14 +5,6 @@ using EventHouse.Management.Api.Mappers.Artists;
 using EventHouse.Management.Api.Swagger;
 using EventHouse.Management.Api.Swagger.Examples.Contracts.Artists;
 using EventHouse.Management.Api.Swagger.Examples.Requests.Artists;
-using EventHouse.Management.Application.Commands.Artists.AddGenre;
-using EventHouse.Management.Application.Commands.Artists.Create;
-using EventHouse.Management.Application.Commands.Artists.Delete;
-using EventHouse.Management.Application.Commands.Artists.RemoveGenre;
-using EventHouse.Management.Application.Commands.Artists.SetGenreStatus;
-using EventHouse.Management.Application.Commands.Artists.SetPrimaryGenre;
-using EventHouse.Management.Application.Commands.Artists.Update;
-using EventHouse.Management.Application.Queries.Artists.GetById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -22,9 +14,25 @@ namespace EventHouse.Management.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/artists")]
-public sealed class ArtistsController(IMediator mediator) : BaseApiController
+public sealed class ArtistsController(ISender sender) : BaseApiController
 {
-    private readonly IMediator _mediator = mediator;
+    #region READ
+    [HttpGet("{artistId:guid}")]
+    [SwaggerOperation(
+    OperationId = "GetArtistById",
+    Summary = "Retrieve a specific artist by their unique identifier."
+    )]
+    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(ArtistDetailResponseExample))]
+    [ProducesOk<ArtistDetail>]
+    [ProducesNotFoundProblem]
+    public async Task<ActionResult<ArtistDetail>> GetById(Guid artistId, CancellationToken ct)
+    {
+        var resultDto = await sender.Send(
+            GetArtistByIdQueryMapper.FromContract(artistId), 
+            ct);
+
+        return Ok(ArtistMapper.ToContract(resultDto));
+    }
 
     [HttpGet]
     [SwaggerOperation(
@@ -33,34 +41,22 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
         )]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(ArtistPagedResultExample))]
     [SwaggerRequestExample(typeof(GetArtistsRequest), typeof(GetArtistsRequestExample))]
-    [ProducesOkAttribute<PagedResult<ArtistSummary>>]
-    [ProducesValidationProblemAttribute]
-    [ProducesTooManyRequestsProblemAttribute]
+    [ProducesOk<PagedResult<ArtistSummary>>]
+    [ProducesValidationProblem]
+    [ProducesTooManyRequestsProblem]
     public async Task<ActionResult<PagedResult<ArtistSummary>>> GetAll(
         [FromQuery] GetArtistsRequest request,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        var result = await _mediator.Send(GetAllArtistsQueryMapper.FromContract
-            (request), cancellationToken);
+        var result = await sender.Send(
+            GetAllArtistsQueryMapper.FromContract(request), 
+            ct);
 
         return Ok(ArtistMapper.ToContract(result, Request));
     }
+    #endregion
 
-    [HttpGet("{artistId:guid}")]
-    [SwaggerOperation(
-        OperationId = "GetArtistById",
-        Summary = "Retrieve a specific artist by their unique identifier."
-        )]
-    [SwaggerResponseExample(StatusCodes.Status200OK, typeof(ArtistDetailResponseExample))]
-    [ProducesOkAttribute<ArtistDetail>]
-    [ProducesNotFoundProblem]
-    public async Task<ActionResult<ArtistDetail>> GetById(Guid artistId, CancellationToken cancellationToken)
-    {
-        var resultDto = await _mediator.Send(new GetArtistByIdQuery(artistId), cancellationToken);
-
-        return Ok(ArtistMapper.ToContract(resultDto));
-    }
-
+    #region WRITE
     [HttpPost]
     [SwaggerOperation(
         OperationId = "CreateArtist",
@@ -69,14 +65,13 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
     [SwaggerRequestExample(typeof(CreateArtistRequest), typeof(CreateArtistRequestExample))]
     [SwaggerResponseExample(StatusCodes.Status201Created, typeof(ArtistSumaryResponseExample))]
     [ProducesCreated<ArtistSummary>]
-    [ProducesValidationProblemAttribute]
+    [ProducesValidationProblem]
     [ProducesConflictProblem]
-    public async Task<IActionResult> Create([FromBody] CreateArtistRequest body, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] CreateArtistRequest body, CancellationToken ct)
     {
-        var createdDto = await _mediator.Send(
-            new CreateArtistCommand(body.Name,
-            ArtistCategoryMapper.ToApplicationRequired(body.Category)),
-            cancellationToken);
+        var createdDto = await sender.Send(
+            CreateArtistCommandMapper.FromContract(body), 
+            ct);
 
         var createdArtist = ArtistMapper.ToContractSumary(createdDto);
 
@@ -89,52 +84,53 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
         Summary = "Update an existing artist's details."
         )]
     [SwaggerRequestExample(typeof(UpdateArtistRequest), typeof(UpdateArtistRequestExample))]
-    [ProducesNoContentAttribute]
-    [ProducesValidationProblemAttribute]
+    [ProducesNoContent]
+    [ProducesValidationProblem]
     [ProducesNotFoundProblem]
     [ProducesConflictProblem]
-    public async Task<IActionResult> Update(Guid artistId, [FromBody] UpdateArtistRequest body, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(Guid artistId, [FromBody] UpdateArtistRequest body, CancellationToken ct)
     {
-        await _mediator.Send(
-            new UpdateArtistCommand(
-                artistId,
-                body.Name,
-                ArtistCategoryMapper.ToApplicationRequired(body.Category)
-            ),
-            cancellationToken);
+        await sender.Send(
+            UpdateArtistCommandMapper.FromContract(artistId, body),
+            ct);
 
         return NoContent();
     }
+    #endregion
+
+    #region DELETE
 
     [HttpDelete("{artistId:guid}")]
     [SwaggerOperation(
         OperationId = "DeleteArtist",
         Summary = "Delete an artist from the system."
         )]
-    [ProducesNoContentAttribute]
+    [ProducesNoContent]
     [ProducesNotFoundProblem]
     [ProducesConflictProblem]
-    public async Task<IActionResult> Delete(Guid artistId, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(Guid artistId, CancellationToken ct)
     {
-        await _mediator.Send(new DeleteArtistCommand(artistId), cancellationToken);
+        await sender.Send(
+            DeleteArtistCommandMapper.FromContract(artistId),
+            ct);
 
         return NoContent();
     }
+    #endregion
 
     [HttpPost("{artistId:guid}/genres")]
     [SwaggerOperation(
         OperationId = "AddGenreToArtist", 
         Summary = "Adds a genre to an artist (idempotent).")]
     [SwaggerRequestExample(typeof(AddArtistGenreRequest), typeof(AddArtistGenreRequestExample))]
-    [ProducesNoContentAttribute]
+    [ProducesNoContent]
     [ProducesNotFoundProblem]
     [ProducesConflictProblem]
-    public async Task<IActionResult> AddGenre(Guid artistId, [FromBody] AddArtistGenreRequest body, CancellationToken cancellationToken)
+    public async Task<IActionResult> AddGenre(Guid artistId, [FromBody] AddArtistGenreRequest body, CancellationToken ct)
     {
-        await _mediator.Send(
-            new AddArtistGenreCommand(artistId, body.GenreId,
-            ArtistGenreStatusMapper.ToApplicationRequired(body.Status), body.IsPrimary),
-            cancellationToken);
+        await sender.Send(
+            AddArtistGenreCommandMapper.FromContract(artistId, body),
+            ct);
 
         return NoContent();
     }
@@ -143,11 +139,13 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
     [SwaggerOperation(
         OperationId = "RemoveGenreFromArtist",
         Summary = "Removes a genre from an artist.")]
-    [ProducesNoContentAttribute]
+    [ProducesNoContent]
     [ProducesNotFoundProblem]
-    public async Task<IActionResult> RemoveGenre(Guid artistId, Guid genreId, CancellationToken cancellationToken)
+    public async Task<IActionResult> RemoveGenre(Guid artistId, Guid genreId, CancellationToken ct)
     {
-        await _mediator.Send(new RemoveArtistGenreCommand(artistId, genreId), cancellationToken);
+        await sender.Send(
+            RemoveArtistGenreCommandMapper.FromContract(artistId, genreId),
+            ct);
 
         return NoContent();
     }
@@ -156,12 +154,14 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
     [SwaggerOperation(
         OperationId = "SetArtistPrimaryGenre",
         Summary = "Sets a specific genre as primary for an artist.")]
-    [ProducesNoContentAttribute]
+    [ProducesNoContent]
     [ProducesNotFoundProblem]
     [ProducesConflictProblem]
-    public async Task<IActionResult> SetPrimaryGenre(Guid artistId, Guid genreId, CancellationToken cancellationToken)
+    public async Task<IActionResult> SetPrimaryGenre(Guid artistId, Guid genreId, CancellationToken ct)
     {
-        await _mediator.Send(new SetPrimaryArtistGenreCommand(artistId, genreId), cancellationToken);
+        await sender.Send(
+            SetPrimaryArtistGenreCommandMapper.FromContract(artistId, genreId),
+            ct);
 
         return NoContent();
     }
@@ -171,22 +171,19 @@ public sealed class ArtistsController(IMediator mediator) : BaseApiController
         OperationId = "UpdateArtistGenreStatus",
         Summary = "Updates an artist-genre association status.")]
     [SwaggerRequestExample(typeof(UpdateArtistGenreStatusRequest), typeof(UpdateArtistGenreStatusRequestExample))]
-    [ProducesNoContentAttribute]
-    [ProducesValidationProblemAttribute]
+    [ProducesNoContent]
+    [ProducesValidationProblem]
     [ProducesNotFoundProblem]
     [ProducesConflictProblem]
     public async Task<IActionResult> UpdateGenreStatus(
         Guid artistId,
         Guid genreId,
         [FromBody] UpdateArtistGenreStatusRequest body,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        await _mediator.Send(
-            new SetArtistGenreStatusCommand(
-                artistId,
-                genreId,
-                ArtistGenreStatusMapper.ToApplicationRequired(body.Status)),
-            cancellationToken);
+        await sender.Send(
+            SetArtistGenreStatusCommandMapper.FromContract(artistId, genreId, body),
+            ct);
 
         return NoContent();
     }

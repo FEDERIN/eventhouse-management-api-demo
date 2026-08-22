@@ -1,4 +1,4 @@
-﻿namespace EventHouse.Management.Domain.Exceptions;
+﻿namespace EventHouse.Management.Application.Exceptions;
 
 public sealed class NotFoundException(string entity, object id) : Exception($"{entity} with id '{id}' was not found.")
 {

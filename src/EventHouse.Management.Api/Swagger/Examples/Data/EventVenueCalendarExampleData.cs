@@ -17,8 +17,7 @@ internal static class EventVenueCalendarExampleData
         SeatingMapId = SeatingMapId,
         TimeZoneId = TimeZoneId,
         StartDate = new DateTimeOffset(2026, 12, 6, 20, 0, 0, TimeSpan.FromHours(1)),
-        EndDate = new DateTimeOffset(2026, 12, 6, 23, 0, 0, TimeSpan.FromHours(1)),
-        Status = EventVenueCalendarStatus.Draft
+        EndDate = new DateTimeOffset(2026, 12, 6, 23, 0, 0, TimeSpan.FromHours(1))
     };
 
     internal static UpdateEventVenueCalendarRequest Update() => new()

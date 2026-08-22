@@ -2,4 +2,4 @@
 
 namespace EventHouse.Management.Application.Commands.Events.Delete;
 
-public record DeleteEventCommand(Guid Id) : IRequest;
+public sealed record DeleteEventCommand(Guid Id) : IRequest;

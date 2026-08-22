@@ -9,9 +9,7 @@ namespace EventHouse.Management.Application.Queries.Genres.GetAll;
 internal sealed class GetAllGenresQueryHandler(IGenreRepository genreRepository)
             : IRequestHandler<GetAllGenresQuery, PagedResultDto<GenreDto>>
 {
-    private readonly IGenreRepository _genreRepository = genreRepository;
-
-    public async Task<PagedResultDto<GenreDto>> Handle(GetAllGenresQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResultDto<GenreDto>> Handle(GetAllGenresQuery request, CancellationToken ct)
     {
         var criteria = new GenreQueryCriteria
         {
@@ -22,9 +20,9 @@ internal sealed class GetAllGenresQueryHandler(IGenreRepository genreRepository)
             SortDirection = request.SortDirection                
         };
 
-        var result = await _genreRepository.GetPagedAsync(
+        var result = await genreRepository.GetPagedAsync(
             criteria,
-            cancellationToken
+            ct
         );
 
         return result.MapTo(GenreMapper.ToDto);

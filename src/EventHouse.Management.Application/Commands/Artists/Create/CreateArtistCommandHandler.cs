@@ -1,30 +1,28 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Application.Mappers.Artists;
-using EventHouse.Management.Domain.Entities;
 using MediatR;
 
 namespace EventHouse.Management.Application.Commands.Artists.Create;
 
-internal sealed class CreateArtistCommandHandler(IArtistRepository artistRepository)
+internal sealed class CreateArtistCommandHandler(
+    IArtistRepository repository,
+    IApplicationResilience resilience)
     : IRequestHandler<CreateArtistCommand, ArtistDto>
 {
-    private readonly IArtistRepository _artistRepository = artistRepository;
-
-    public async Task<ArtistDto> Handle(CreateArtistCommand request, CancellationToken cancellationToken)
+    public Task<ArtistDto> Handle(
+        CreateArtistCommand request,
+        CancellationToken ct)
     {
-        var entity = new Artist(
-            id: Guid.NewGuid(),
-            name: request.Name.Trim(),
-            category: ArtistCategoryMapper.ToDomainRequired(request.Category));
+        return resilience.ExecuteSqlAsync(
+            async ct =>
+            {
+                var entity = ArtistMapper.ToEntity(request);
 
-        await _artistRepository.AddAsync(entity, cancellationToken);
+                await repository.AddAsync(entity, ct);
 
-        return new ArtistDto
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            Category = ArtistCategoryMapper.ToApplication(entity.Category)
-        };
+                return ArtistMapper.ToDto(entity);
+            },
+            ct);
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace EventHouse.Management.Application.Common.Pagination;
 
-public class PagedResultDto<T>
+public sealed class PagedResultDto<T>
 {
     public required IReadOnlyList<T> Items { get; init; } = [];
     public int TotalCount { get; init; }

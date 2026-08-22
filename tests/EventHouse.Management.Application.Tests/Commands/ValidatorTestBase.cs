@@ -10,7 +10,7 @@ public abstract class ValidatorTestBase<TCommand>(IValidator<TCommand> validator
 
     protected void ShouldHaveValidationError<TProperty>(TCommand command, Expression<Func<TCommand, TProperty>> propertyExpression, string expectedMessage)
     {
-
+        
         Validator.TestValidate(command)
             .ShouldHaveValidationErrorFor(propertyExpression)
             .WithErrorMessage(expectedMessage);

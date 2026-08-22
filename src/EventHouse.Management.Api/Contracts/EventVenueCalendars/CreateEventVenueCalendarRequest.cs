@@ -19,4 +19,9 @@ public sealed record CreateEventVenueCalendarRequest : EventVenueCalendarUpsertR
     [SwaggerSchema(Description = "The IANA time zone identifier for the event (e.g., 'Europe/Malta'). Defaults to 'UTC' if not specified.")]
     [Required, MinLength(1)]
     public string TimeZoneId { get; init; } = "America/New_York";
+
+    ///<summary>End date and time in ISO-8601 format with offset.</summary>
+    ///<example>2025-12-07T00:00:00+01:00</example>
+    [SwaggerSchema(Description = "End date and time in ISO-8601 format with offset (e.g. 2025-12-07T00:00:00+01:00).")]
+    public DateTimeOffset? EndDate { get; set; }
 }

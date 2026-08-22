@@ -9,9 +9,7 @@ namespace EventHouse.Management.Application.Queries.Venues.GetAll;
 internal sealed class GetAllVenuesQueryHandler(IVenueRepository venueRepository)
             : IRequestHandler<GetAllVenuesQuery, PagedResultDto<VenueDto>>
 {
-    private readonly IVenueRepository _venueRepository = venueRepository;
-
-    public async Task<PagedResultDto<VenueDto>> Handle(GetAllVenuesQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResultDto<VenueDto>> Handle(GetAllVenuesQuery request, CancellationToken ct)
     {
         var criteria = new VenueQueryCriteria
         {
@@ -28,9 +26,9 @@ internal sealed class GetAllVenuesQueryHandler(IVenueRepository venueRepository)
             SortDirection = request.SortDirection
         };
 
-        var result = await _venueRepository.GetPagedAsync(
+        var result = await venueRepository.GetPagedAsync(
             criteria,
-            cancellationToken
+            ct
         );
 
         return result.MapTo(VenueMapper.ToDto);

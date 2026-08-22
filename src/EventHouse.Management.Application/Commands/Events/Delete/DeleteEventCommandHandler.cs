@@ -1,5 +1,5 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
-using EventHouse.Management.Domain.Exceptions;
+using EventHouse.Management.Application.Exceptions;
 using MediatR;
 
 namespace EventHouse.Management.Application.Commands.Events.Delete;
@@ -7,13 +7,11 @@ namespace EventHouse.Management.Application.Commands.Events.Delete;
 internal sealed class DeleteEventCommandHandler(IEventRepository repository)
             : IRequestHandler<DeleteEventCommand>
 {
-    private readonly IEventRepository _repository = repository;
-
     public async Task Handle(
         DeleteEventCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        var result = await _repository.DeleteAsync(request.Id, cancellationToken);
+        var result = await repository.DeleteAsync(request.Id, ct);
         
         if(result is false)
             throw new NotFoundException("Event", request.Id);

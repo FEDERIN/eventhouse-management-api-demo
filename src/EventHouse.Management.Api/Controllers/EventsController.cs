@@ -5,10 +5,6 @@ using EventHouse.Management.Api.Mappers.Events;
 using EventHouse.Management.Api.Swagger;
 using EventHouse.Management.Api.Swagger.Examples.Contracts.Events;
 using EventHouse.Management.Api.Swagger.Examples.Requests.Events;
-using EventHouse.Management.Application.Commands.Events.Create;
-using EventHouse.Management.Application.Commands.Events.Delete;
-using EventHouse.Management.Application.Commands.Events.Update;
-using EventHouse.Management.Application.Queries.Events.GetById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -18,10 +14,8 @@ namespace EventHouse.Management.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/events")]
-public sealed class EventsController(IMediator mediator) : BaseApiController
+public sealed class EventsController(ISender sender) : BaseApiController
 {
-    private readonly IMediator _mediator = mediator;
-
     [HttpGet]
     [SwaggerOperation(
         OperationId = "ListEvents",
@@ -29,16 +23,16 @@ public sealed class EventsController(IMediator mediator) : BaseApiController
         )]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(EventPagedResultExample))]
     [SwaggerRequestExample(typeof(GetEventsRequest), typeof(GetEventsRequestExample))]
-    [ProducesOkAttribute<PagedResult<EventResponse>>]
-    [ProducesValidationProblemAttribute]
-    [ProducesTooManyRequestsProblemAttribute]
+    [ProducesOk<PagedResult<EventResponse>>]
+    [ProducesValidationProblem]
+    [ProducesTooManyRequestsProblem]
     public async Task<ActionResult<PagedResult<EventResponse>>> GetAll(
         [FromQuery] GetEventsRequest request,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        var result = await _mediator.Send(
+        var result = await sender.Send(
             GetAllEventsQueryMapper.FromContract(request),
-            cancellationToken
+            ct
         );
 
         return Ok(EventMapper.ToContract(result, Request));
@@ -50,11 +44,13 @@ public sealed class EventsController(IMediator mediator) : BaseApiController
         Summary = "Retrieve a specific event by its unique identifier."
         )]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(EventResponseExample))]
-    [ProducesOkAttribute<EventResponse>]
+    [ProducesOk<EventResponse>]
     [ProducesNotFoundProblem]
-    public async Task<ActionResult<EventResponse>> GetById(Guid eventId, CancellationToken cancellationToken)
+    public async Task<ActionResult<EventResponse>> GetById(Guid eventId, CancellationToken ct)
     {
-        var resultDto = await _mediator.Send(new GetEventByIdQuery(eventId), cancellationToken);
+        var resultDto = await sender.Send(
+            GetEventByIdQueryMapper.FromContract(eventId),
+            ct);
 
         return Ok(EventMapper.ToContract(resultDto));
     }
@@ -67,13 +63,13 @@ public sealed class EventsController(IMediator mediator) : BaseApiController
     [SwaggerRequestExample(typeof(CreateEventRequest), typeof(CreateEventRequestExample))]
     [SwaggerResponseExample(StatusCodes.Status201Created, typeof(EventResponseExample))]
     [ProducesCreated<EventResponse>]
-    [ProducesValidationProblemAttribute]
+    [ProducesValidationProblem]
     [ProducesConflictProblem]
-    public async Task<ActionResult<EventResponse>> Create([FromBody] CreateEventRequest body, CancellationToken cancellationToken)
+    public async Task<ActionResult<EventResponse>> Create([FromBody] CreateEventRequest body, CancellationToken ct)
     {
-        var createdEventDto = await _mediator.Send(
-            new CreateEventCommand(body.Name, body.Description, EventScopeMapper.ToApplicationRequired(body.Scope)),
-            cancellationToken);
+        var createdEventDto = await sender.Send(
+            CreateEventCommandMapper.FromContract(body),
+            ct);
 
         var createdEventContract = EventMapper.ToContract(createdEventDto);
 
@@ -86,15 +82,15 @@ public sealed class EventsController(IMediator mediator) : BaseApiController
         Summary = "Update an existing event in the system."
         )]
     [SwaggerRequestExample(typeof(UpdateEventRequest), typeof(UpdateEventRequestExample))]
-    [ProducesNoContentAttribute]
-    [ProducesValidationProblemAttribute]
+    [ProducesNoContent]
+    [ProducesValidationProblem]
     [ProducesNotFoundProblem]
     [ProducesConflictProblem]
-    public async Task<IActionResult> Update(Guid eventId, [FromBody] UpdateEventRequest body, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(Guid eventId, [FromBody] UpdateEventRequest body, CancellationToken ct)
     {
-        await _mediator.Send(
-            new UpdateEventCommand(eventId, body.Name, body.Description, EventScopeMapper.ToApplicationRequired(body.Scope)),
-            cancellationToken);
+        await sender.Send(
+            UpdateEventCommandMapper.FromContract(eventId, body),
+            ct);
 
         return NoContent();
     }
@@ -104,13 +100,15 @@ public sealed class EventsController(IMediator mediator) : BaseApiController
         OperationId = "DeleteEvent",
         Summary = "Delete an existing event from the system."
         )]
-    [ProducesNoContentAttribute]
+    [ProducesNoContent]
     [ProducesNotFoundProblem]
     [ProducesConflictProblem]
-    public async Task<IActionResult> Delete(Guid eventId, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(Guid eventId, CancellationToken ct)
     {
-        await _mediator.Send(new DeleteEventCommand(eventId), cancellationToken);
+        await sender.Send(
+            DeleteEventCommandMapper.FromContract(eventId),
+            ct);
 
         return NoContent();
-    }
+    }   
 }

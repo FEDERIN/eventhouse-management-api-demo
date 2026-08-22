@@ -1,6 +1,7 @@
-﻿using Core.Idempotency.Abstractions;
-using Core.Idempotency.DependencyInjection;
+﻿using Core.Idempotency.DependencyInjection;
 using Core.Idempotency.Options;
+using Core.Idempotency.PostgreSql.DependencyInjection;
+using Core.Idempotency.Redis.DependencyInjection;
 using EventHouse.Management.Infrastructure.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,14 +34,47 @@ internal static class IdempotencyExtension
             options.CacheableStatusCodes,
             options.AddCacheableStatusCodes);
 
-        if (options.Provider == IdempotencyProviderType.Redis)
+        services.AddCoreIdempotency(
+            _ => _.CopyFrom(options));
+
+        if(options.Enabled == false)
         {
-            options.Redis.Configuration =
-                configuration.CreateRedisConfiguration("MainRedis");
+            return services;
         }
 
-        services.AddCoreIdempotency(_ => _.CopyFrom(options));
+        ConfigureProvider(
+            services,
+            configuration,
+            section);
 
         return services;
+    }
+
+    private static void ConfigureProvider(
+        IServiceCollection services,
+        IConfiguration configuration,
+        IConfigurationSection section)
+    {
+        var provider =
+            section.GetValue<string>("Provider");
+
+        switch (provider)
+        {
+            case "Redis":
+                services.AddCoreIdempotencyRedis(options =>
+                {
+                    options.Configuration =
+                    configuration.CreateRedisConfiguration("MainRedis");
+                });
+                break;
+
+            case "PostgreSql":
+                services.AddCoreIdempotencyPostgreSql(options =>
+                {
+                    options.ConnectionString =
+                    configuration.CreatePostgreSqlConnectionString("MainPostgreSql");
+                });
+                break;
+        }
     }
 }

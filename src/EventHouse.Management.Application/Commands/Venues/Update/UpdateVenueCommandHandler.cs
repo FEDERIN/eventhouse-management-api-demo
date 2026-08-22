@@ -1,21 +1,42 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
-using EventHouse.Management.Domain.Exceptions;
+using EventHouse.Management.Application.Exceptions;
 using MediatR;
 
 namespace EventHouse.Management.Application.Commands.Venues.Update;
 
-internal sealed class UpdateVenueCommandHandler(IVenueRepository VenueRepository) : IRequestHandler<UpdateVenueCommand>
+internal sealed class UpdateVenueCommandHandler(
+    IVenueRepository repository,
+    IApplicationResilience resilience)
+    : IRequestHandler<UpdateVenueCommand>
 {
-    private readonly IVenueRepository _VenueRepository = VenueRepository;
-
-    public async Task Handle(UpdateVenueCommand request, CancellationToken cancellationToken)
+    public async Task Handle(
+        UpdateVenueCommand request,
+        CancellationToken ct)
     {
-        var entity = await _VenueRepository.GetTrackedByIdAsync(request.Id, cancellationToken)
-        ?? throw new NotFoundException("Venue", request.Id);
+        await resilience.ExecuteSqlAsync(
+            async ct =>
+            {
+                var entity = await repository.GetTrackedByIdAsync(
+                    request.Id,
+                    ct)
+                    ?? throw new NotFoundException(
+                        "Venue",
+                        request.Id);
 
-        entity.Update(request.Name, request.Address, request.City, request.Region, request.CountryCode,
-        request.Latitude, request.Longitude, request.TimeZoneId, request.Capacity, request.IsActive);
+                entity.Update(
+                    request.Name,
+                    request.Address,
+                    request.City,
+                    request.Region,
+                    request.CountryCode,
+                    request.Latitude,
+                    request.Longitude,
+                    request.TimeZoneId,
+                    request.Capacity,
+                    request.IsActive);
 
-        await _VenueRepository.UpdateAsync(entity, cancellationToken);
+                await repository.UpdateAsync(entity, ct);
+            },
+            ct);
     }
 }

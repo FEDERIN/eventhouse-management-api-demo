@@ -2,63 +2,69 @@
 using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Mappers.EventVenueCalendars;
-using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Domain.Exceptions;
 using MediatR;
+
 namespace EventHouse.Management.Application.Commands.EventVenueCalendars.Create;
 
 internal sealed class CreateEventVenueCalendarCommandHandler(
     IEventVenueRepository eventVenueRepository,
     IEventVenueCalendarRepository calendarEventRepository,
-    ISeatingMapRepository seatingMapRepository)
+    ISeatingMapRepository seatingMapRepository,
+    IApplicationResilience resilience)
     : IRequestHandler<CreateEventVenueCalendarCommand, EventVenueCalendarDto>
 {
-    public async Task<EventVenueCalendarDto> Handle(
+    public Task<EventVenueCalendarDto> Handle(
         CreateEventVenueCalendarCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        var eventVenueExists = await eventVenueRepository
-            .ExistsAsync(request.EventVenueId, cancellationToken);
-        
-        if (!eventVenueExists)
-            throw new NotFoundException("EventVenue", request.EventVenueId);
+        return resilience.ExecuteSqlAsync(
+            async ct =>
+            {
+                var eventVenueExists =
+                    await eventVenueRepository.ExistsAsync(
+                        request.EventVenueId,
+                        ct);
 
-        var startUtc = request.StartDate.UtcDateTime;
-        var endUtc = request.EndDate?.UtcDateTime
-                     ?? startUtc.Date.AddDays(1).AddTicks(-1).ToUniversalTime();
+                if (!eventVenueExists)
+                    throw new NotFoundException(
+                        "EventVenue",
+                        request.EventVenueId);
 
-        var isOccupied = await calendarEventRepository.IsSlotOccupiedAsync(
-            request.EventVenueId,
-            startUtc,
-            endUtc,
-            null,
-            cancellationToken);
+                var startUtc = request.StartDate.UtcDateTime;
+                var endUtc = request.EndDate.UtcDateTime;
 
-        if (isOccupied)
-            throw new ConflictException(
-                    "CALENDAR_SLOT_OCCUPIED",
-                    "Slot Occupied",
-                    "The selected time slot is already occupied for this venue.");
+                var isOccupied =
+                    await calendarEventRepository.IsSlotOccupiedAsync(
+                        request.EventVenueId,
+                        startUtc,
+                        endUtc,
+                        null,
+                        ct);
 
+                if (isOccupied)
+                    throw new ConflictException(
+                        "CALENDAR_SLOT_OCCUPIED",
+                        "Slot Occupied",
+                        "The selected time slot is already occupied for this venue.");
 
-        var seatingMapExists = await seatingMapRepository
-            .ExistsAsync(request.SeatingMapId, cancellationToken);
+                var seatingMapExists =
+                    await seatingMapRepository.ExistsAsync(
+                        request.SeatingMapId,
+                        ct);
 
-        if(!seatingMapExists)
-            throw new NotFoundException("SeatingMap", request.SeatingMapId);
+                if (!seatingMapExists)
+                    throw new NotFoundException(
+                        "SeatingMap",
+                        request.SeatingMapId);
 
-        var entity = new EventVenueCalendar(
-            Guid.NewGuid(),
-            request.EventVenueId,
-            request.SeatingMapId,
-            request.StartDate,
-            request.EndDate,
-            request.TimeZoneId,
-            EventVenueCalendarStatusMapper.ToDomainRequired(request.Status)
-        );
+                var entity =
+                    EventVenueCalendarMapper.ToEntity(request);
 
-        await calendarEventRepository.AddAsync(entity, cancellationToken);
+                await calendarEventRepository.AddAsync(entity, ct);
 
-        return EventVenueCalendarMapper.ToDto(entity);
+                return EventVenueCalendarMapper.ToDto(entity);
+            },
+            ct);
     }
 }

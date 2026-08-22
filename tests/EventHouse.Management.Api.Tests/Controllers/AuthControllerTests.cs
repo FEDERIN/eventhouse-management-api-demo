@@ -121,7 +121,7 @@ public sealed class AuthControllerTests
         Assert.NotEmpty(response.AccessToken);
 
         var handler = new JwtSecurityTokenHandler();
-        // CRÍTICO: Evita que 'sub' se convierta en 'http://schemas...'
+        // CRÍTICO: Evita que 'sub' se convierta en 'http://schemas...' 
         // y que los tests de Claims fallen.
         handler.InboundClaimTypeMap.Clear();
         handler.OutboundClaimTypeMap.Clear();

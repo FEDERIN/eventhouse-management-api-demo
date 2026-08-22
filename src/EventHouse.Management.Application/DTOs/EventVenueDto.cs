@@ -6,7 +6,7 @@ namespace EventHouse.Management.Application.DTOs;
 /// Data Transfer Object for EventVenue, designed for high-performance 
 /// read operations and frontend consumption.
 /// </summary>
-public record EventVenueDto
+public sealed record EventVenueDto
 {
     public Guid Id { get; init; }
     public Guid EventId { get; init; }

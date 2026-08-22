@@ -4,9 +4,9 @@ public interface IApplicationResilience
 {
     Task ExecuteSqlAsync(
         Func<CancellationToken, Task> operation,
-        CancellationToken cancellationToken = default);
+        CancellationToken ct = default);
 
     Task<TResult> ExecuteSqlAsync<TResult>(
         Func<CancellationToken, Task<TResult>> operation,
-        CancellationToken cancellationToken = default);
+        CancellationToken ct = default);
 }

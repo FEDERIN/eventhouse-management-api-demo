@@ -21,13 +21,13 @@ public sealed class VenueResponse
     public string? CountryCode { get; set; }
 
     // <summary>Latitude coordinate of the venue's location.</summary>
-    public decimal? Latitude { get; set; }
+    public decimal Latitude { get; set; }
 
     // <summary>Longitude coordinate of the venue's location.</summary>
-    public decimal? Longitude { get; set; }
+    public decimal Longitude { get; set; }
 
     // <summary>Time zone identifier for the venue's location (e.g., "America/New_York").</summary>
-    public string? TimeZoneId { get; set; }
+    public required string TimeZoneId { get; set; }
 
     // <summary>Maximum capacity of the venue. Null if not specified.</summary>
     public int? Capacity { get; set; }

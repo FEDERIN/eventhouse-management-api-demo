@@ -1,10 +1,21 @@
-﻿using EventHouse.Management.Application.DTOs;
+﻿using EventHouse.Management.Application.Commands.EventVenues.Create;
+using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Domain.Entities;
 
 namespace EventHouse.Management.Application.Mappers.EventVenues;
 
 internal static class EventVenueMapper
 {
+    public static EventVenue ToEntity(CreateEventVenueCommand request)
+    {
+        return new EventVenue(
+            id: Guid.NewGuid(),
+            eventId: request.EventId,
+            venueId: request.VenueId,
+            status: EventVenueStatusMapper.ToDomainRequired(request.Status)
+        );
+    }
+
     public static EventVenueDto ToDto(
         EventVenue entity,
         string? prefetchedEventName = null,

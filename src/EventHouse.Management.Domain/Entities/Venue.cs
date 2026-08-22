@@ -1,4 +1,5 @@
-﻿using EventHouse.ShareKernel.Entities;
+﻿using EventHouse.Management.Domain.ValueObjects;
+using EventHouse.ShareKernel.Entities;
 
 namespace EventHouse.Management.Domain.Entities;
 
@@ -9,44 +10,88 @@ public class Venue : Entity
     public string City { get; private set; } = string.Empty;
     public string Region { get; private set; } = string.Empty;
     public string CountryCode { get; private set; } = string.Empty;
-    public decimal? Latitude { get; private set; }
-    public decimal? Longitude { get; private set; }
-    public string? TimeZoneId { get; private set; }
+    public Coordinates Coordinates { get; private set; } = Coordinates.Create(0m, 0m);
+    public TimeZoneId TimeZoneId { get; private set; } = TimeZoneId.Create(null);
     public int? Capacity { get; private set; }
     public bool IsActive { get; private set; } = true;
 
     private Venue() { }
 
-    public Venue(Guid id, string name, string address, string city, string region, string countryCode,
-        decimal? latitude, decimal? longitude, string? timeZoneId, int? capacity, bool isActive)
+    public Venue(
+        Guid id,
+        string name,
+        string address,
+        string city,
+        string region,
+        string countryCode,
+        decimal latitude,
+        decimal longitude,
+        string timeZoneId,
+        int? capacity,
+        bool isActive)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Id cannot be empty.", nameof(id));
 
         Id = id;
 
-        Update(name, address, city, region, countryCode,
-            latitude, longitude, timeZoneId, capacity, isActive);   
+        Update(
+            name,
+            address,
+            city,
+            region,
+            countryCode,
+            latitude,
+            longitude,
+            timeZoneId,
+            capacity,
+            isActive);
     }
 
-    public void Update(string name, string address, string city, string region, string countryCode,
-        decimal? latitude, decimal? longitude, string? timeZoneId, int? capacity, bool isActive)
+    public void Update(
+        string name,
+        string address,
+        string city,
+        string region,
+        string countryCode,
+        decimal latitude,
+        decimal longitude,
+        string? timeZoneId,
+        int? capacity,
+        bool isActive)
     {
         SetName(name);
         SetAddress(address, city, region, countryCode);
         SetCoordinates(latitude, longitude);
         SetTimeZone(timeZoneId);
         SetCapacity(capacity);
+
         IsActive = isActive;
+    }
+
+    private void SetCoordinates(decimal latitude, decimal longitude)
+    {
+        Coordinates = Coordinates.Create(
+            latitude,
+            longitude);
+    }
+
+    private void SetTimeZone(string? timeZoneId)
+    {
+        TimeZoneId = TimeZoneId.Create(timeZoneId);
     }
 
     private void SetName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Venue name is required.", nameof(name));
+            throw new ArgumentException(
+                "Venue name is required.",
+                nameof(name));
 
         if (name.Length > 200)
-            throw new ArgumentException("Venue name is too long.", nameof(name));
+            throw new ArgumentException(
+                "Venue name is too long.",
+                nameof(name));
 
         Name = name.Trim();
     }
@@ -58,25 +103,39 @@ public class Venue : Entity
         string? countryCode)
     {
         if (string.IsNullOrWhiteSpace(address))
-            throw new ArgumentException("Venue address is required.", nameof(address));
+            throw new ArgumentException(
+                "Venue address is required.",
+                nameof(address));
 
         if (string.IsNullOrWhiteSpace(city))
-            throw new ArgumentException("Venue city is required.", nameof(city));
+            throw new ArgumentException(
+                "Venue city is required.",
+                nameof(city));
 
         if (string.IsNullOrWhiteSpace(region))
-            throw new ArgumentException("Venue region is required.", nameof(region));
+            throw new ArgumentException(
+                "Venue region is required.",
+                nameof(region));
 
         if (string.IsNullOrWhiteSpace(countryCode))
-            throw new ArgumentException("Venue countryCode is required.", nameof(countryCode));
+            throw new ArgumentException(
+                "Venue country code is required.",
+                nameof(countryCode));
 
         if (address.Length > 200)
-            throw new ArgumentException("Venue address is too long.", nameof(address));
+            throw new ArgumentException(
+                "Venue address is too long.",
+                nameof(address));
 
         if (city.Length > 100)
-            throw new ArgumentException("Venue city is too long.", nameof(city));
+            throw new ArgumentException(
+                "Venue city is too long.",
+                nameof(city));
 
         if (region.Length > 100)
-            throw new ArgumentException("Venue region is too long.", nameof(region));
+            throw new ArgumentException(
+                "Venue region is too long.",
+                nameof(region));
 
         Address = address.Trim();
         City = city.Trim();
@@ -84,64 +143,21 @@ public class Venue : Entity
 
         var cc = countryCode.Trim().ToUpperInvariant();
 
-        if (cc.Length != 2) 
-            throw new ArgumentException("CountryCode must be ISO-3166 alpha-2.", nameof(countryCode));
-        CountryCode = cc;
-    }
-
-    private void SetCoordinates(decimal? latitude, decimal? longitude)
-    {
-        if (latitude is null && longitude is null)
-        {
-            Latitude = null;
-            Longitude = null;
-            return;
-        }
-
-        if (latitude is null || longitude is null)
+        if (cc.Length != 2)
             throw new ArgumentException(
-                "Latitude and Longitude must both be provided or both be null.");
+                "CountryCode must be ISO-3166 alpha-2.",
+                nameof(countryCode));
 
-        if (latitude is < -90 or > 90)
-            throw new ArgumentOutOfRangeException(nameof(latitude), "Latitude must be between -90 and 90.");
-
-        if (longitude is < -180 or > 180)
-            throw new ArgumentOutOfRangeException(nameof(longitude), "Longitude must be between -180 and 180.");
-
-        Latitude = latitude;
-        Longitude = longitude;
-    }
-
-    private void SetTimeZone(string? timeZoneId)
-    {
-        var normalized = Normalize(timeZoneId);
-
-        if (normalized is null)
-        {
-            TimeZoneId = null;
-            return;
-        }
-
-        try
-        {
-            _ = TimeZoneInfo.FindSystemTimeZoneById(normalized);
-        }
-        catch
-        {
-            throw new ArgumentException("Invalid TimeZoneId.", nameof(timeZoneId));
-        }
-
-        TimeZoneId = normalized;
+        CountryCode = cc;
     }
 
     private void SetCapacity(int? capacity)
     {
         if (capacity is < 0)
-            throw new ArgumentException("Capacity cannot be negative.", nameof(capacity));
+            throw new ArgumentException(
+                "Capacity cannot be negative.",
+                nameof(capacity));
 
         Capacity = capacity;
     }
-
-    private static string? Normalize(string? value)
-        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

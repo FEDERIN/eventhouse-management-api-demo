@@ -5,6 +5,7 @@ using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Application.Queries.Artists.GetAll;
 using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
+using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.Management.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,29 +14,27 @@ namespace EventHouse.Management.Infrastructure.Repositories;
 internal class ArtistRepository(ManagementDbContext context) :
     BaseRepository(context), IArtistRepository
 {
-    private static readonly Dictionary<string, (string? Code, string? Detail, bool ShouldIgnore)> ArtistMappings = new()
+    protected override Dictionary<string, UniqueConstraintMapping> IndexMappings =>
+    new()
     {
-        { "UX_Artists_Name", ("ARTIST_NAME_ALREADY_EXISTS", "Artist name already exists.", false) },
-        { "UX_ArtistGenres_Artist_Genre", (null, null, true) }
+        ["UX_Artists_Name"] = new(
+            "ARTIST_NAME_ALREADY_EXISTS",
+            "Artist name already exists.",
+            false),
+        ["UX_ArtistGenres_Artist_Genre"] = new(
+            null,
+            null,
+            true)
     };
 
     #region WRITE
+    public Task AddAsync(Artist entity, CancellationToken ct = default)
+    => AddAsync<Artist>(entity, ct);
 
-    public async Task AddAsync(Artist entity, CancellationToken cancellationToken = default)
-    {
-        await _context.Artists.AddAsync(entity, cancellationToken);
-        await SaveChangesWithUniqueCheckAsync(ArtistMappings, cancellationToken);
-    }
+    public Task UpdateAsync(Artist entity, CancellationToken ct = default)
+        => UpdateAsync<Artist>(entity, ct);
 
-    public async Task UpdateAsync(Artist entity, CancellationToken cancellationToken = default)
-    {
-        if (_context.Entry(entity).State == EntityState.Detached)
-            throw new InvalidOperationException("UpdateAsync requires a tracked entity. Use GetTrackedByIdAsync.");
-
-        await SaveChangesWithUniqueCheckAsync(ArtistMappings, cancellationToken);
-    }
-
-    public async Task SetPrimaryGenreAsync(Guid artistId, Guid genreOldId, Guid genreId, CancellationToken ct)
+    public async Task SetPrimaryGenreAsync(Guid artistId, Guid genreOldId, Guid genreId, CancellationToken ct = default)
     {
         using var transaction = await _context.Database.BeginTransactionAsync(ct);
 
@@ -66,9 +65,9 @@ internal class ArtistRepository(ManagementDbContext context) :
         }
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)
     {
-        var entity = await GetTrackedByIdAsync(id, cancellationToken);
+        var entity = await GetTrackedByIdAsync(id, ct);
 
         if (entity is null)
             return false;
@@ -82,7 +81,7 @@ internal class ArtistRepository(ManagementDbContext context) :
 
         _context.Artists.Remove(entity);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(ct);
 
         return true;
     }
@@ -90,21 +89,21 @@ internal class ArtistRepository(ManagementDbContext context) :
     #endregion
 
     #region READ
-    public async Task<Artist?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Artist?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return await _context.Artists
             .Include(i => i.Genres)
-            .AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+            .AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
     }
 
-    public Task<Artist?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public Task<Artist?> GetTrackedByIdAsync(Guid id, CancellationToken ct = default)
     {
         return _context.Artists
             .Include(i => i.Genres)
-            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
     }
 
-    public async Task<PagedResultDto<Artist>> GetPagedAsync(ArtistQueryCriteria criteria, CancellationToken cancellationToken = default)
+    public async Task<PagedResultDto<Artist>> GetPagedAsync(ArtistQueryCriteria criteria, CancellationToken ct = default)
     {
         IQueryable<Artist> query = 
             _context.Artists
@@ -130,14 +129,14 @@ internal class ArtistRepository(ManagementDbContext context) :
             _ => asc ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name)
         };
 
-        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, cancellationToken);
+        return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, ct);
     }
     #endregion
 
     #region VALIDATIONS
-    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Artists.AnyAsync(a => a.Id == id, cancellationToken);
-    }
+    public Task<bool> ExistsAsync(Guid id, CancellationToken ct = default)
+        => ExistsAsync<Artist>(id, ct);
+
+    
     #endregion
 }

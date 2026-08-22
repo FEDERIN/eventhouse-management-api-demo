@@ -3,7 +3,7 @@ using EventHouse.Management.Application.Queries.EventVenueCalendars.GetAll;
 
 namespace EventHouse.Management.Api.Mappers.EventVenueCalendars;
 
-public static class EventVenueCalendarSortMapper
+internal static class EventVenueCalendarSortMapper
 {
     public static EventVenueCalendarSortField? ToApplication(EventVenueCalendarSortBy? sortBy) =>
     ApiEnumMapper<EventVenueCalendarSortBy, EventVenueCalendarSortField>.ToApplicationOptional(sortBy);

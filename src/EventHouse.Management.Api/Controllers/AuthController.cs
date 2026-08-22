@@ -18,8 +18,6 @@ namespace EventHouse.Management.Api.Controllers;
 [AllowAnonymous]
 public sealed class AuthController(IConfiguration configuration) : ControllerBase
 {
-    private readonly IConfiguration _configuration = configuration;
-
     /// <remarks>
     /// Demo endpoint. Use username = "demo" and password = "demo".
     /// </remarks>
@@ -30,7 +28,7 @@ public sealed class AuthController(IConfiguration configuration) : ControllerBas
         )]
     [SwaggerRequestExample(typeof(TokenRequest), typeof(TokenRequestExample))]
     [SwaggerResponseExample(StatusCodes.Status200OK, typeof(TokenResponseExample))]
-    [ProducesOkAttribute<TokenResponse>]
+    [ProducesOk<TokenResponse>]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(EventHouseProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(EventHouseProblemDetails), StatusCodes.Status500InternalServerError)]
@@ -75,9 +73,9 @@ public sealed class AuthController(IConfiguration configuration) : ControllerBas
             };
         }
 
-        var secret = _configuration["Auth:DevSecret"];
-        var issuer = _configuration["Auth:Issuer"];
-        var audience = _configuration["Auth:Audience"];
+        var secret = configuration["Auth:DevSecret"];
+        var issuer = configuration["Auth:Issuer"];
+        var audience = configuration["Auth:Audience"];
 
         if (string.IsNullOrWhiteSpace(secret) ||
             string.IsNullOrWhiteSpace(issuer) ||

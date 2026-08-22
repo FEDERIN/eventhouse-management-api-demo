@@ -1,4 +1,5 @@
-﻿using EventHouse.Management.Application.DTOs;
+﻿using EventHouse.Management.Application.Commands.SeatingMaps.Create;
+using EventHouse.Management.Application.DTOs;
 using EventHouse.Management.Domain.Entities;
 
 
@@ -6,6 +7,17 @@ namespace EventHouse.Management.Application.Mappers.SeatingMaps;
 
 internal sealed class SeatingMapMapper
 {
+    public static SeatingMap ToEntity(CreateSeatingMapCommand request)
+    {
+        return new SeatingMap(
+             Guid.NewGuid(),
+            request.VenueId,
+            request.Name,
+            request.Version == 0 ? 1 : request.Version,
+            request.IsActive
+        );
+    }
+
     public static SeatingMapDto ToDto(SeatingMap entity)
     {
         return new SeatingMapDto

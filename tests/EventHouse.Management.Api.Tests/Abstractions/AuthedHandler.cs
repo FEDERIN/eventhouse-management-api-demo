@@ -6,7 +6,7 @@ public class AuthedHandler(CustomWebApplicationFactory factory) : DelegatingHand
 {
     public static readonly HttpRequestOptionsKey<bool> SkipAuth = new("SkipAuth");
 
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
     {
         if (!request.Options.TryGetValue(SkipAuth, out var skip) || !skip)
         {
@@ -15,6 +15,6 @@ public class AuthedHandler(CustomWebApplicationFactory factory) : DelegatingHand
             request.Headers.Authorization = System.Net.Http.Headers.AuthenticationHeaderValue.Parse(token);
         }
 
-        return await base.SendAsync(request, cancellationToken);
+        return await base.SendAsync(request, ct);
     }
 }
