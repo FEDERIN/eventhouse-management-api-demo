@@ -1,5 +1,5 @@
 ﻿using EventHouse.Management.Api.Contracts.Common;
-using EventHouse.Management.Api.Contracts.SeatingMaps;
+using EventHouse.Management.Api.Contracts.Seating.Maps;
 using System.Diagnostics.CodeAnalysis;
 
 namespace EventHouse.Management.Api.Swagger.Examples.Data;
@@ -16,8 +16,7 @@ internal static class SeatingMapExampleData
     internal static CreateSeatingMapRequest Create() => new()
     {
         VenueId = VenueId,
-        Name = Name,
-        IsActive = IsActive,
+        Name = Name
     };
 
     internal static SeatingMapResponse Result() => new()
@@ -33,9 +32,11 @@ internal static class SeatingMapExampleData
     internal static UpdateSeatingMapRequest Update() => new()
     {
         Name = Name,
-        Version = Version,
-        IsActive = IsActive,
+        Version = Version
     };
+
+    internal static UpdateSeatingMapStatusRequest UpdateStatus()
+    => new(IsActive: false);
 
     internal static GetSeatingMapsRequest Get() => new()
     {

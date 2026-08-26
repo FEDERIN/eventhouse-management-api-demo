@@ -12,4 +12,16 @@ internal static class ApiRoutes
     public const string EventVenues = $"{Base}/event-venues";
     public const string EventVenueCalendars = $"{Base}/event-venue-calendars";
     public const string ArtistPerformances = $"{Base}/artist-performances";
+
+    public static string SeatingSections(Guid seatingMapId) =>
+        $"{SeatingMaps}/{seatingMapId}/sections";
+
+    public static string SeatingRows(Guid seatingMapId, Guid sectionId) =>
+        $"{SeatingSections(seatingMapId)}/{sectionId}/rows";
+
+    public static string SeatingSeats(
+        Guid seatingMapId,
+        Guid sectionId,
+        Guid rowId) =>
+        $"{SeatingRows(seatingMapId, sectionId)}/{rowId}/seats";
 }

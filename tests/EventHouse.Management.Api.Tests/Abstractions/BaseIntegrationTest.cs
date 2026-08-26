@@ -5,7 +5,11 @@ using EventHouse.Management.Api.Contracts.Events;
 using EventHouse.Management.Api.Contracts.EventVenueCalendars;
 using EventHouse.Management.Api.Contracts.EventVenues;
 using EventHouse.Management.Api.Contracts.Genres;
-using EventHouse.Management.Api.Contracts.SeatingMaps;
+using EventHouse.Management.Api.Contracts.Seating.Maps;
+using EventHouse.Management.Api.Contracts.Seating.Rows;
+using EventHouse.Management.Api.Contracts.Seating.Seats;
+using EventHouse.Management.Api.Contracts.Seating.Sections;
+using EventHouse.Management.Api.Contracts.Seating.Structure;
 using EventHouse.Management.Api.Contracts.Venues;
 using EventHouse.Management.Api.Tests.Common;
 using EventHouse.Management.Api.Tests.Factories;
@@ -29,6 +33,7 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
     protected const string BaseUrlEventVenues = ApiRoutes.EventVenues;
     protected const string BaseUrlEventVenueCalendars = ApiRoutes.EventVenueCalendars;
     protected const string BaseUrlArtistPerformances = ApiRoutes.ArtistPerformances;
+
     #endregion
 
     #region Factory Helpers
@@ -62,9 +67,9 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
         return await response.ReadContentAsync<VenueResponse>();
     }
 
-    protected async Task<SeatingMapResponse> CreateSeatingMapAsync(Guid? venueId = null, string? name = null, bool isActive = true)
+    protected async Task<SeatingMapResponse> CreateSeatingMapAsync(Guid? venueId = null, string? name = null)
     {
-        var request = SeatingMapFactory.CreateRequest(venueId, name, isActive);
+        var request = SeatingMapFactory.CreateRequest(venueId, name);
         var response = await Client.PostAsJsonAsync(BaseUrlSeatingMaps, request);
         return await response.ReadContentAsync<SeatingMapResponse>();
     }
@@ -135,6 +140,86 @@ public abstract class BaseIntegrationTest(CustomWebApplicationFactory factory) :
         var response = await Client.PostAsJsonAsync($"{BaseUrlEventVenueCalendars}/{calendarId}/artist-performances", request);
         response.EnsureSuccessStatusCode();
         return await response.ReadContentAsync<ArtistPerformanceResponse>();
+    }
+
+    protected async Task<Guid> AddSeatingSectionAsync(
+    Guid seatingMapId,
+    string name,
+    bool isNumbered,
+    int capacity)
+    {
+        var response = await Client.PostAsJsonAsync(
+            ApiRoutes.SeatingSections(seatingMapId),
+            new AddSeatingSectionRequest(name, isNumbered, capacity),
+            TestContext.Current.CancellationToken);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var structure = await GetSeatingStructureAsync(seatingMapId);
+
+        return structure.Sections
+            .Single(x => x.Name == name)
+            .Id;
+    }
+
+    protected async Task<Guid> AddSeatingRowAsync(
+    Guid seatingMapId,
+    Guid sectionId,
+    int number,
+    string label)
+    {
+        var response = await Client.PostAsJsonAsync(
+            ApiRoutes.SeatingRows(seatingMapId, sectionId),
+            new AddSeatingRowRequest(number, label),
+            TestContext.Current.CancellationToken);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var structure = await GetSeatingStructureAsync(seatingMapId);
+
+        return structure.Sections
+            .Single(x => x.Id == sectionId)
+            .Rows
+            .Single(x => x.Number == number)
+            .Id;
+    }
+
+    protected async Task<Guid> AddSeatingSeatAsync(
+        Guid seatingMapId,
+        Guid sectionId,
+        Guid rowId,
+        int number,
+        string label)
+    {
+        var response = await Client.PostAsJsonAsync(
+            ApiRoutes.SeatingSeats(seatingMapId, sectionId, rowId),
+            new AddSeatingSeatRequest(number, label),
+            TestContext.Current.CancellationToken);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var structure = await GetSeatingStructureAsync(seatingMapId);
+
+        return structure.Sections
+            .Single(x => x.Id == sectionId)
+            .Rows
+            .Single(x => x.Id == rowId)
+            .Seats
+            .Single(x => x.Number == number)
+            .Id;
+    }
+
+
+    protected async Task<SeatingMapStructureResponse> GetSeatingStructureAsync(
+    Guid seatingMapId)
+    {
+        var response = await Client.GetAsync(
+            $"{BaseUrlSeatingMaps}/{seatingMapId}/structure",
+            TestContext.Current.CancellationToken);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        return await response.ReadContentAsync<SeatingMapStructureResponse>();
     }
     #endregion
 
