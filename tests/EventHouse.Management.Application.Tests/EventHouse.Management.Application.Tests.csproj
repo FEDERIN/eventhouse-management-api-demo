@@ -50,4 +50,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Commands\Seating\Rows\Update\" />
+  </ItemGroup>
+
 </Project>

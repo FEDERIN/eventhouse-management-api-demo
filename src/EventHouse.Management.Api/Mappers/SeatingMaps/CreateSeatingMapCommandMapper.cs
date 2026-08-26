@@ -1,5 +1,5 @@
 ﻿using EventHouse.Management.Api.Contracts.SeatingMaps;
-using EventHouse.Management.Application.Commands.SeatingMaps.Create;
+using EventHouse.Management.Application.Commands.Seating.Maps.Create;
 
 namespace EventHouse.Management.Api.Mappers.SeatingMaps;
 

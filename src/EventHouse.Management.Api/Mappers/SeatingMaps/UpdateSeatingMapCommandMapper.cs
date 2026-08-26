@@ -1,5 +1,5 @@
 ﻿using EventHouse.Management.Api.Contracts.SeatingMaps;
-using EventHouse.Management.Application.Commands.SeatingMaps.Update;
+using EventHouse.Management.Application.Commands.Seating.Maps.Update;
 
 namespace EventHouse.Management.Api.Mappers.SeatingMaps;
 
@@ -9,7 +9,6 @@ internal static class UpdateSeatingMapCommandMapper
         => new(
             seatingMapId,
             request.Name,
-            request.Version,
-            request.IsActive
+            request.Version
         );
 }

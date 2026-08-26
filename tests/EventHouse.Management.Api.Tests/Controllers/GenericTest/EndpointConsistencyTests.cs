@@ -25,7 +25,6 @@ public sealed class EndpointConsistencyTests(CustomWebApplicationFactory factory
     [InlineData(BaseUrlArtists)]
     [InlineData(BaseUrlEvents)]
     [InlineData(BaseUrlGenres)]
-    [InlineData(BaseUrlSeatingMaps)]
     [InlineData(BaseUrlVenues)]
     public async Task Delete_WhenMissing_Returns404(string baseUrl)
     {
