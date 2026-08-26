@@ -278,6 +278,49 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         created.Should().BeEquivalentTo(request, opt => opt.ExcludingMissingMembers());
     }
 
+    [Fact]
+    public async Task Create_WhenEndDateIsNull_CalculatesEndDateAtEndOfLocalDay()
+    {
+        // Arrange
+        var startDate = new DateTimeOffset(
+            2026,
+            6,
+            6,
+            10,
+            0,
+            0,
+            TimeSpan.Zero);
+
+        var request = await CreateEventVenueCalendarRequestAsync(
+            startDate: startDate);
+
+        request.EndDate = null;
+
+        // Act
+        var response = await Client.PostAsJsonAsync(
+            BaseUrlEventVenueCalendars,
+            request,
+            TestContext.Current.CancellationToken);
+
+        var created =
+            await response.ReadContentAsync<EventVenueCalendarResponse>();
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        created.StartDate.Should().Be(startDate);
+
+        created.EndDate.Should().Be(
+            new DateTimeOffset(
+                2026,
+                6,
+                7,
+                3,
+                59,
+                59,
+                999,
+                TimeSpan.Zero));
+    }
 
     [Fact]
     public async Task Create_WhenEventVenueNotFoundInHandler_Returns404NotFound()
@@ -621,33 +664,87 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
 
     #endregion
 
-    #region UPDATE PERFORMANCE TIMES (PATCH)
-
+    #region UPDATE
     [Fact]
-    public async Task UpdatePerformanceTimes_WhenValid_Returns204NoContent()
+    public async Task Update_WhenPublished_Cancelled_Returns204NoContent()
     {
-        var calendar = await CreateEventVenueCalendarAsync(startDate: DateTimeOffset.UtcNow.AddDays(1), endDate: DateTimeOffset.UtcNow.AddDays(10));
-        var performance = await AddArtistToCalendarAsync(calendar.Id,
-            start: calendar.StartDate,
-            end: calendar.StartDate.AddHours(1));
+        // Arrange
+        var calendar = await CreateEventVenueCalendarAsync();
 
-        var newStart = calendar.StartDate.AddMinutes(30);
-        var newEnd = calendar.StartDate.AddMinutes(90);
-        var request = new UpdatePerformanceDatesRequest
+        // Draft -> Published
+        var publishRequest = new UpdateEventVenueCalendarRequest
         {
-            SetStart = newStart,
-            SetEnd = newEnd
+            StartDate = calendar.StartDate,
+            EndDate = calendar.EndDate,
+            Status = EventVenueCalendarStatus.Published
         };
 
-        // 2. Act
-        var response = await Client.PatchAsJsonAsync(
-            $"{BaseUrlEventVenueCalendars}/{calendar.Id}/artist-performances/{performance.ArtistId}/times",
-            request, TestContext.Current.CancellationToken);
+        var publishResponse = await Client.PutAsJsonAsync(
+            $"{BaseUrlEventVenueCalendars}/{calendar.Id}",
+            publishRequest,
+            TestContext.Current.CancellationToken);
 
-        // 3. Assert
+        publishResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Act
+        // Published -> Cancelled
+        var cancelRequest = new UpdateEventVenueCalendarRequest
+        {
+            StartDate = calendar.StartDate,
+            EndDate = calendar.EndDate,
+            Status = EventVenueCalendarStatus.Cancelled
+        };
+
+        var response = await Client.PutAsJsonAsync(
+            $"{BaseUrlEventVenueCalendars}/{calendar.Id}",
+            cancelRequest,
+            TestContext.Current.CancellationToken);
+
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
+    [Fact]
+    public async Task Update_WhenStatusTransitionIsInvalid_Returns409Conflict()
+    {
+        // Arrange
+        var calendar = await CreateEventVenueCalendarAsync();
+
+        var publishRequest = new UpdateEventVenueCalendarRequest
+        {
+            StartDate = calendar.StartDate,
+            EndDate = calendar.EndDate,
+            Status = EventVenueCalendarStatus.Published
+        };
+
+        var publishResponse = await Client.PutAsJsonAsync(
+            $"{BaseUrlEventVenueCalendars}/{calendar.Id}",
+            publishRequest,
+            TestContext.Current.CancellationToken);
+
+        publishResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Act
+        var invalidRequest = new UpdateEventVenueCalendarRequest
+        {
+            StartDate = calendar.StartDate,
+            EndDate = calendar.EndDate,
+            Status = EventVenueCalendarStatus.Draft
+        };
+
+        var response = await Client.PutAsJsonAsync(
+            $"{BaseUrlEventVenueCalendars}/{calendar.Id}",
+            invalidRequest,
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        await response.ShouldHaveErrorCode(
+            HttpStatusCode.Conflict,
+            "INVALID_CALENDAR_STATUS_TRANSITION");
+    }
+    #endregion
+
+    #region UPDATE PERFORMANCE TIMES (PATCH)
     [Fact]
     public async Task UpdatePerformanceTimes_WhenOverlap_Returns409Conflict()
     {
