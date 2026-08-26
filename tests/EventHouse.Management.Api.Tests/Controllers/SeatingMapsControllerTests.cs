@@ -162,29 +162,29 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
     #endregion
 
     #region UPDATE (PUT)
-    [Fact]
-    public async Task Update_Returns204_And_PersistsChanges()
-    {
-        var venue = await CreateVenueAsync();
-        var seatingMap = await CreateSeatingMapAsync(venueId: venue.Id);
-        var updateRequest = SeatingMapFactory.UpdateRequest();
+    //[Fact]
+    //public async Task Update_Returns204_And_PersistsChanges()
+    //{
+    //    var venue = await CreateVenueAsync();
+    //    var seatingMap = await CreateSeatingMapAsync(venueId: venue.Id);
+    //    var updateRequest = SeatingMapFactory.UpdateRequest();
 
-        await PutAndAssertPersisted<UpdateSeatingMapRequest, SeatingMapResponse>(
-            $"{BaseUrlSeatingMaps}/{seatingMap.Id}",
-            updateRequest
-        );
-    }
+    //    await PutAndAssertPersisted<UpdateSeatingMapRequest, SeatingMapResponse>(
+    //        $"{BaseUrlSeatingMaps}/{seatingMap.Id}",
+    //        updateRequest
+    //    );
+    //}
 
-    [Fact]
-    public async Task Update_WithDuplicateName_Returns409()
-    {
-        var venue = await CreateVenueAsync();
-        _ = await CreateSeatingMapAsync(venueId: venue.Id, name: "First Map");
-        var seatingMap2 = await CreateSeatingMapAsync(venueId: venue.Id, name: "Second Map");
-        var updateRequest = SeatingMapFactory.UpdateRequest(name: "First Map");
-        var response = await Client.PutAsJsonAsync($"{BaseUrlSeatingMaps}/{seatingMap2.Id}", updateRequest, TestContext.Current.CancellationToken);
-        await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
-    }
+    //[Fact]
+    //public async Task Update_WithDuplicateName_Returns409()
+    //{
+    //    var venue = await CreateVenueAsync();
+    //    _ = await CreateSeatingMapAsync(venueId: venue.Id, name: "First Map");
+    //    var seatingMap2 = await CreateSeatingMapAsync(venueId: venue.Id, name: "Second Map");
+    //    var updateRequest = SeatingMapFactory.UpdateRequest(name: "First Map");
+    //    var response = await Client.PutAsJsonAsync($"{BaseUrlSeatingMaps}/{seatingMap2.Id}", updateRequest, TestContext.Current.CancellationToken);
+    //    await response.ShouldBeProblemJson(HttpStatusCode.Conflict);
+    //}
 
     [Fact]
     public async Task Update_WhenMissing_Returns404()

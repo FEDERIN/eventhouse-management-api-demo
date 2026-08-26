@@ -21,7 +21,7 @@ public class SeatingMapRepositoryTests(SharedDatabaseFixture fixture) : BasePers
     public async Task UpdateAsync_ShouldThrowInvalidOperationException_WhenEntityIsDetached()
     {
         // Arrange
-        var seatingMap = new SeatingMap(Guid.NewGuid(), Guid.NewGuid(), "Central", 1, true); 
+        var seatingMap = new SeatingMap(Guid.NewGuid(), Guid.NewGuid(), "Central", 1); 
         
         // Act
         var act = async () => await _repository.UpdateAsync(seatingMap, TestContext.Current.CancellationToken);

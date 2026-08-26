@@ -14,6 +14,9 @@ public class ManagementDbContext(DbContextOptions<ManagementDbContext> options) 
     public DbSet<EventVenue> EventVenues { get; set; }
     public DbSet<EventVenueCalendar> EventVenueCalendars { get; set; }
     public DbSet<ArtistPerformance> ArtistPerformances { get; set; }
+    public DbSet<SeatingSection> SeatingSections { get; set; }
+    public DbSet<SeatingRow> SeatingRows {  get; set; }
+    public DbSet<Seat> Seats { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

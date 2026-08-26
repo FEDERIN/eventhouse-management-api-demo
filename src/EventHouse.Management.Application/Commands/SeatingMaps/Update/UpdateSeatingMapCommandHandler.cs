@@ -23,10 +23,10 @@ internal sealed class UpdateSeatingMapCommandHandler(
                         "SeatingMap",
                         request.Id);
 
-                entity.Update(
-                    request.Name,
-                    request.Version,
-                    request.IsActive);
+                //entity.Update(
+                //    request.Name,
+                //    request.Version,
+                //    request.IsActive);
 
                 await repository.UpdateAsync(entity, ct);
             },

@@ -10,24 +10,26 @@ public class SeatingMapConfiguration : IEntityTypeConfiguration<SeatingMap>
     {
         builder.ToTable("SeatingMaps", t =>
         {
-            t.HasCheckConstraint("CK_SeatingMap_VenueId_NotEmpty", "venue_id <> '00000000-0000-0000-0000-000000000000'");
+            t.HasCheckConstraint(
+                "CK_SeatingMap_VenueId_NotEmpty",
+                "venue_id <> '00000000-0000-0000-0000-000000000000'");
         });
 
         builder.HasKey(e => e.Id);
 
         builder.HasOne<Venue>()
-               .WithMany()
-               .HasForeignKey(e => e.VenueId)
-               .OnDelete(DeleteBehavior.Restrict);
+            .WithMany()
+            .HasForeignKey(e => e.VenueId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(e => e.Name)
             .IsRequired()
             .HasMaxLength(200);
 
         builder.Property(e => e.Version)
-               .IsRequired()
-               .IsConcurrencyToken()
-               .HasDefaultValue(1);
+            .IsRequired()
+            .IsConcurrencyToken()
+            .HasDefaultValue(1);
 
         builder.Property(e => e.IsActive)
             .IsRequired();
@@ -35,12 +37,17 @@ public class SeatingMapConfiguration : IEntityTypeConfiguration<SeatingMap>
         builder.HasIndex(e => e.VenueId);
 
         builder.HasMany<EventVenueCalendar>()
-           .WithOne()
-           .HasForeignKey(c => c.SeatingMapId)
-           .OnDelete(DeleteBehavior.Restrict);
+            .WithOne()
+            .HasForeignKey(e => e.SeatingMapId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(e => new { e.VenueId, e.Name, e.Version })
-               .IsUnique()
-               .HasDatabaseName("UX_SeatingMap_Venue_Name_Version");
+        builder.HasIndex(e => new
+        {
+            e.VenueId,
+            e.Name,
+            e.Version
+        })
+        .IsUnique()
+        .HasDatabaseName("UX_SeatingMap_Venue_Name_Version");
     }
 }

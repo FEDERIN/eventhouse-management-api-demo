@@ -101,4 +101,48 @@ public sealed class ArtistPerformanceTests
     }
 
     #endregion
+
+    #region UpdateTimes Exceptions
+
+    [Fact]
+    public void UpdateTimes_ShouldThrowArgumentException_WhenStartIsProvidedButEndIsMissing()
+    {
+        var performance = new ArtistPerformance(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            false,
+            null,
+            null);
+
+        var start = DateTimeOffset.UtcNow;
+
+        var ex = Assert.Throws<ArgumentException>(() =>
+            performance.UpdateTimes(start, null));
+
+        Assert.Equal(
+            "Start and End must both be provided.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void UpdateTimes_ShouldThrowArgumentException_WhenEndIsProvidedButStartIsMissing()
+    {
+        var performance = new ArtistPerformance(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            false,
+            null,
+            null);
+
+        var end = DateTimeOffset.UtcNow.AddHours(1);
+
+        var ex = Assert.Throws<ArgumentException>(() =>
+            performance.UpdateTimes(null, end));
+
+        Assert.Equal(
+            "Start and End must both be provided.",
+            ex.Message);
+    }
+
+    #endregion
 }

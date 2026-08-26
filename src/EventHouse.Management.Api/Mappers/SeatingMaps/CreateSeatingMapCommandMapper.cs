@@ -9,7 +9,6 @@ internal static class CreateSeatingMapCommandMapper
         => new(
                 request.VenueId,
                 request.Name,
-                request.Version,
-                request.IsActive
+                request.Version
         );
 }
