@@ -1,4 +1,4 @@
-﻿using EventHouse.Management.Application.DTOs;
+﻿using EventHouse.Management.Application.DTOs.Seating;
 using MediatR;
 
 namespace EventHouse.Management.Application.Queries.SeatingMaps.GetById;

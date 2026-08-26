@@ -2,7 +2,7 @@
 using EventHouse.Management.Api.Contracts.SeatingMaps;
 using EventHouse.Management.Api.Mappers.Common;
 using EventHouse.Management.Application.Common.Pagination;
-using EventHouse.Management.Application.DTOs;
+using EventHouse.Management.Application.DTOs.Seating;
 
 namespace EventHouse.Management.Api.Mappers.SeatingMaps;
 

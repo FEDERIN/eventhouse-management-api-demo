@@ -3,6 +3,9 @@ using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Exceptions;
 using EventHouse.Management.Domain.Exceptions;
 using EventHouse.Management.Domain.Exceptions.Calendars;
+using EventHouse.Management.Domain.Exceptions.Seating.Maps;
+using EventHouse.Management.Domain.Exceptions.Seating.Rows;
+using EventHouse.Management.Domain.Exceptions.Seating.Sections;
 using EventHouse.Management.Domain.Exceptions.Venues;
 using Npgsql;
 
@@ -48,8 +51,107 @@ internal sealed class ExceptionMapper : IExceptionMapper
                     string.Empty
                 ),
 
+            InvalidCalendarStatusTransitionException icste =>
+                (
+                    409,
+                    "INVALID_CALENDAR_STATUS_TRANSITION",
+                    "Invalid calendar status transition",
+                    icste.Message,
+                    string.Empty
+                ),
+
+            RowNumberAlreadyExistsException rnae =>
+                (
+                    409,
+                    "ROW_NUMBER_ALREADY_EXISTS",
+                    "Row number already exists",
+                    rnae.Message,
+                    string.Empty
+                ),
+
+            NonNumberedSectionException nnse =>
+                (
+                    409,
+                    "NON_NUMBERED_SECTION",
+                    "Section does not support rows or seats",
+                    nnse.Message,
+                    string.Empty
+                ),
+
+            InactiveSeatingSectionException ise =>
+                (
+                    409,
+                    "INACTIVE_SEATING_SECTION",
+                    "Seating section is inactive",
+                    ise.Message,
+                    string.Empty
+                ),
+
+            SeatingSectionCapacityExceededException sce =>
+                (
+                    409,
+                    "SEATING_SECTION_CAPACITY_EXCEEDED",
+                    "Seating section capacity exceeded",
+                    sce.Message,
+                    string.Empty
+                ),
+
+            SeatingSectionCapacityBelowSeatCountException cbsce =>
+                (
+                    409,
+                    "SEATING_SECTION_CAPACITY_BELOW_SEAT_COUNT",
+                    "Seating section capacity is below the current seat count",
+                    cbsce.Message,
+                    string.Empty
+                ),
+
             ConflictException ce =>
                 (409, ce.Code, ce.Title, ce.Message, string.Empty),
+
+            InactiveSeatingRowException isre =>
+                (
+                    409,
+                    "INACTIVE_SEATING_ROW",
+                    "Seating row is inactive",
+                    isre.Message,
+                    string.Empty
+                ),
+
+            InactiveSeatingRowCannotContainSeatsException ircse =>
+                (
+                    409,
+                    "INACTIVE_SEATING_ROW_CANNOT_CONTAIN_SEATS",
+                    "Inactive seating row cannot contain seats",
+                    ircse.Message,
+                    string.Empty
+                ),
+
+            DuplicateSeatingSeatNumberException dssne =>
+                (
+                    409,
+                    "SEAT_NUMBER_ALREADY_EXISTS",
+                    "Seat number already exists",
+                    dssne.Message,
+                    string.Empty
+                ),
+
+            DuplicateSeatingSectionNameException dsne =>
+                (
+                    409,
+                    "SEATING_SECTION_NAME_ALREADY_EXISTS",
+                    "Seating section name already exists",
+                    dsne.Message,
+                    string.Empty
+                ),
+
+            InactiveSeatingMapException isme =>
+                (
+                    409,
+                    "INACTIVE_SEATING_MAP",
+                    "Seating map is inactive",
+                    isme.Message,
+                    string.Empty
+                ),
 
             // Idempotency
             IdempotencyFingerprintMismatchException ifm =>

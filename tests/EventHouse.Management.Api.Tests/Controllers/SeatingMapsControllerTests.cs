@@ -194,19 +194,4 @@ public sealed class SeatingMapsControllerTests(CustomWebApplicationFactory facto
         await response.ShouldBeProblemJson(HttpStatusCode.NotFound);
     }
     #endregion
-
-    #region DELETE
-    [Fact]
-    public async Task Delete_Returns204_And_Then_GetReturns404()
-    {
-        // Arrange
-        var venue = await CreateVenueAsync();
-        var seatingMap = await CreateSeatingMapAsync(venueId: venue.Id);
-        var url = $"{BaseUrlSeatingMaps}/{seatingMap.Id}";
-
-        // Act & Assert
-        await AssertDeleteReturns204(url);
-        await AssertGetReturns404(url);
-    }
-    #endregion
 }

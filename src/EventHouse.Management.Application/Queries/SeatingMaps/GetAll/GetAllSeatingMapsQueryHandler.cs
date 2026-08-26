@@ -1,6 +1,6 @@
 ﻿using EventHouse.Management.Application.Common.Interfaces;
 using EventHouse.Management.Application.Common.Pagination;
-using EventHouse.Management.Application.DTOs;
+using EventHouse.Management.Application.DTOs.Seating;
 using EventHouse.Management.Application.Mappers.SeatingMaps;
 using MediatR;
 

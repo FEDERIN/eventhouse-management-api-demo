@@ -1,4 +1,5 @@
 ﻿using EventHouse.Management.Application.Exceptions;
+using EventHouse.Management.Domain.Entities;
 using EventHouse.Management.Infrastructure.Persistence;
 using EventHouse.Management.Infrastructure.Persistence.Exceptions;
 using EventHouse.ShareKernel.Entities;

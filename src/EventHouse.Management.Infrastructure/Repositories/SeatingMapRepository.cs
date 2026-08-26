@@ -25,9 +25,6 @@ internal class SeatingMapRepository(ManagementDbContext context) :
 
     public async Task UpdateAsync(SeatingMap entity, CancellationToken ct = default)
         => await UpdateAsync<SeatingMap>(entity, ct);
-
-    public Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)
-        => DeleteAsync<SeatingMap>(id, ct);
     #endregion
 
     #region READ
@@ -54,6 +51,30 @@ internal class SeatingMapRepository(ManagementDbContext context) :
 
         return await query.ToPagedResultAsync(criteria.Page, criteria.PageSize, ct);
     }
+
+    public async Task<SeatingMap?> GetTrackedWithStructureByIdAsync(
+        Guid id,
+        CancellationToken ct = default)
+    {
+        return await _context.SeatingMaps
+            .Include(x => x.Sections)
+            .ThenInclude(x => x.Rows)
+            .ThenInclude(x => x.Seats)
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
+    }
+
+    public async Task<SeatingMap?> GetWithStructureByIdAsync(
+    Guid id,
+    CancellationToken ct = default)
+    {
+        return await _context.SeatingMaps
+            .AsNoTracking()
+            .Include(x => x.Sections)
+            .ThenInclude(x => x.Rows)
+            .ThenInclude(x => x.Seats)
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
+    }
+
     #endregion
 
     #region VALIDATIONS
@@ -63,27 +84,37 @@ internal class SeatingMapRepository(ManagementDbContext context) :
     #endregion
 
     #region PRIVATE
-    private static IQueryable<SeatingMap> ApplySeatingMapSorting(IQueryable<SeatingMap> query,
-            SeatingMapSortField? sortBy,
-            SortDirection sortDirection)
+    private static IQueryable<SeatingMap> ApplySeatingMapSorting(
+        IQueryable<SeatingMap> query,
+        SeatingMapSortField? sortBy,
+        SortDirection sortDirection)
     {
-        bool asc = sortDirection == SortDirection.Asc;
-
-        query = sortBy switch
+        return sortBy switch
         {
             SeatingMapSortField.Name =>
-            query.OrderByDirection(x => x.Name, sortDirection),
+                query.OrderByDirection(
+                    x => x.Name,
+                    sortDirection),
 
             SeatingMapSortField.Version =>
-            query.OrderByDirection(x => x.Version, sortDirection),
+                query.OrderByDirection(
+                    x => x.Version,
+                    sortDirection),
 
             SeatingMapSortField.IsActive =>
-                asc ? query.OrderBy(x => x.IsActive).ThenBy(x => x.Name) : query.OrderByDescending(x => x.IsActive).ThenBy(x => x.Name),
+                query
+                    .OrderByDirection(
+                        x => x.IsActive,
+                        sortDirection)
+                    .ThenByDirection(
+                        x => x.Name,
+                        sortDirection),
 
-            _ => query.OrderByDirection(x => x.Name, sortDirection),
-
+            _ =>
+                query.OrderByDirection(
+                    x => x.Name,
+                    sortDirection)
         };
-        return query;
     }
     #endregion
 }

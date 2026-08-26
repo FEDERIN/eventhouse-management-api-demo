@@ -96,22 +96,4 @@ public sealed class SeatingMapsController(ISender sender) : BaseApiController
         return NoContent();
     }
     #endregion
-
-    #region DELETE
-    [HttpDelete("{seatingMapId:guid}")]
-    [SwaggerOperation(OperationId = "DeleteSeatingMap",
-    Summary = "Delete a seating map from the system."
-    )]
-    [ProducesNoContent]
-    [ProducesNotFoundProblem]
-    [ProducesConflictProblem]
-    public async Task<IActionResult> Delete(Guid seatingMapId, CancellationToken ct)
-    {
-        await sender.Send(
-            DeleteSeatingMapCommandMapper.FromContract(seatingMapId),
-            ct);
-
-        return NoContent();
-    }
-    #endregion
 }

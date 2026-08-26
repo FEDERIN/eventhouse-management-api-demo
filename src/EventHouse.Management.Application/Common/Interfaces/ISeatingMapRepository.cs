@@ -9,7 +9,6 @@ public interface ISeatingMapRepository
     #region WRITE
     Task AddAsync(SeatingMap entity, CancellationToken ct = default);
     Task UpdateAsync(SeatingMap entity, CancellationToken ct = default);
-    Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
     #endregion
 
     #region READ
@@ -18,6 +17,13 @@ public interface ISeatingMapRepository
     Task<PagedResultDto<SeatingMap>> GetPagedAsync(
         SeatingMapQueryCriteria criteria,
         CancellationToken ct = default);
+
+    Task<SeatingMap?> GetTrackedWithStructureByIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<SeatingMap?> GetWithStructureByIdAsync(
+    Guid id,
+    CancellationToken ct = default);
+
     #endregion
 
     #region VALIDATIONS

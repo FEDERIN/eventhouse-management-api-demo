@@ -128,26 +128,32 @@ internal class EventVenueCalendarRepository(ManagementDbContext context)
         EventVenueCalendarSortField? sortBy,
         SortDirection sortDirection)
     {
-        bool asc = sortDirection == SortDirection.Asc;
-
         return sortBy switch
         {
             EventVenueCalendarSortField.StartDate =>
-            query.OrderByDirection(x => x.StartDate, sortDirection),
+                query.OrderByDirection(
+                    x => x.StartDate,
+                    sortDirection),
 
             EventVenueCalendarSortField.EndDate =>
-                asc ? query.OrderBy(x => x.EndDate).ThenBy(x => x.StartDate)
-                    : query.OrderByDescending(x => x.EndDate).ThenByDescending(x => x.StartDate),
+                query
+                    .OrderByDirection(x => x.EndDate, sortDirection)
+                    .ThenByDirection(x => x.StartDate, sortDirection),
 
             EventVenueCalendarSortField.TimeZoneId =>
-                asc ? query.OrderBy(x => x.TimeZoneId.Value).ThenBy(x => x.StartDate)
-                    : query.OrderByDescending(x => x.TimeZoneId.Value).ThenByDescending(x => x.StartDate),
+                query
+                    .OrderByDirection(x => x.TimeZoneId.Value, sortDirection)
+                    .ThenByDirection(x => x.StartDate, sortDirection),
 
             EventVenueCalendarSortField.Status =>
-                asc ? query.OrderBy(x => x.Status).ThenBy(x => x.StartDate)
-                    : query.OrderByDescending(x => x.Status).ThenByDescending(x => x.StartDate),
+                query
+                    .OrderByDirection(x => x.Status, sortDirection)
+                    .ThenByDirection(x => x.StartDate, sortDirection),
 
-            _ => query.OrderByDirection(x => x.StartDate, sortDirection)
+            _ =>
+                query.OrderByDirection(
+                    x => x.StartDate,
+                    sortDirection)
         };
     }
     #endregion
