@@ -77,9 +77,12 @@ public class EventVenueCalendar : Entity
     public void ChangeStatus(EventVenueCalendarStatus newStatus)
     {
         if (!CanTransitionTo(newStatus))
+        {
             throw new InvalidCalendarStatusTransitionException(
                 Status,
                 newStatus);
+        }
+
 
         if (newStatus == EventVenueCalendarStatus.Published)
             EnsureCanPublish();

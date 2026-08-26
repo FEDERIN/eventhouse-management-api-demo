@@ -7,8 +7,6 @@ public sealed record TimeRange
     public DateTime Start { get; }
     public DateTime End { get; }
 
-    public TimeSpan Duration => End - Start;
-
     private TimeRange(DateTime start, DateTime end)
     {
         Start = start;
@@ -32,15 +30,6 @@ public sealed record TimeRange
 
         return other.Start >= Start &&
                other.End <= End;
-    }
-
-    /// <summary>
-    /// Returns true when the specified instant belongs to this range.
-    /// </summary>
-    public bool Contains(DateTime instant)
-    {
-        return instant >= Start &&
-               instant <= End;
     }
 
     /// <summary>

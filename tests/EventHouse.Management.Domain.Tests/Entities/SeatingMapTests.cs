@@ -8,7 +8,7 @@ public sealed class SeatingMapTests
     public void Should_throw_when_id_is_empty()
     {
         var ex = Assert.Throws<ArgumentException>(() =>
-        new SeatingMap(Guid.Empty, Guid.NewGuid(),"Test", 1,  true));
+        new SeatingMap(Guid.Empty, Guid.NewGuid(),"Test", 1));
 
         Assert.Equal("id", ex.ParamName);
     }
@@ -17,7 +17,7 @@ public sealed class SeatingMapTests
     public void Should_throw_when_venueId_is_empty()
     {
         var ex = Assert.Throws<ArgumentException>(() =>
-        new SeatingMap(Guid.NewGuid(), Guid.Empty, "Test", 1, true));
+        new SeatingMap(Guid.NewGuid(), Guid.Empty, "Test", 1));
         Assert.Equal("venueId", ex.ParamName);
     }
 }

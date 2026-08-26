@@ -9,6 +9,5 @@ public sealed record CreateSeatingMapCommand
 (
     Guid VenueId,
     string Name,
-    int Version,
-    bool IsActive
+    int Version
 ) : IRequest<SeatingMapDto>;

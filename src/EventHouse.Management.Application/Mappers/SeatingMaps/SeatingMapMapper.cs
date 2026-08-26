@@ -13,8 +13,7 @@ internal sealed class SeatingMapMapper
              Guid.NewGuid(),
             request.VenueId,
             request.Name,
-            request.Version == 0 ? 1 : request.Version,
-            request.IsActive
+            request.Version == 0 ? 1 : request.Version
         );
     }
 

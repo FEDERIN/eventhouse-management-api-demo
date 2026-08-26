@@ -46,7 +46,6 @@ public sealed class CreateSeatingMapValidatorTests : ValidatorTestBase<CreateSea
         new(
             VenueId: Guid.NewGuid(),
             Name: "Main Hall",
-            Version: 1,
-            IsActive: true
+            Version: 1
         );
 }
