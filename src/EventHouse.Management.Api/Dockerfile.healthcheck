@@ -1,0 +1,10 @@
+ARG BASE_IMAGE=otel/opentelemetry-collector-contrib:0.160.0@sha256:799dc6cf12c96192af37b5bdba804da8c10b3bc563b43cb90c3f3c58d9572ad6
+
+# The Collector and Jaeger v2 images are distroless. Copying BusyBox provides a
+# static HTTP client exclusively for Docker health checks without adding a shell
+# or package manager to their runtime images.
+FROM busybox:1.37.0-musl@sha256:fc6dddc4c44b1bfe37f41cae8e67d1693828e8f42a91862816d7953e2c9d3f23 AS healthcheck
+
+FROM ${BASE_IMAGE}
+
+COPY --from=healthcheck /bin/busybox /usr/local/bin/busybox

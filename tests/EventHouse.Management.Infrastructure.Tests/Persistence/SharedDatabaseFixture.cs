@@ -16,7 +16,6 @@ public class SharedDatabaseFixture : IAsyncLifetime
     {
         await _dbContainer.StopAsync();
 
-        // Fix for CA1816: Properly handle the garbage collector
         GC.SuppressFinalize(this);
     }
 }

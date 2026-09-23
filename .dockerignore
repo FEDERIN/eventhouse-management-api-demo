@@ -1,0 +1,9 @@
+.git
+.vs
+**/bin
+**/obj
+coverage
+coverage-report
+TestResults
+tests
+**/.env

@@ -6,29 +6,29 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoreSystem.Cache.Redis" Version="2.0.1" />
-    <PackageReference Include="CoreSystem.Idempotency.PostgreSql" Version="2.0.0" />
-    <PackageReference Include="CoreSystem.Idempotency.Redis" Version="2.0.0" />
-    <PackageReference Include="CoreSystem.Resilience" Version="2.0.0" />
-    <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
-    <PackageReference Include="FGutierrez.Core.Observability" Version="1.1.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.28" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
+    <PackageReference Include="CoreSystem.Cache.Redis" />
+    <PackageReference Include="CoreSystem.Idempotency.PostgreSql" />
+    <PackageReference Include="CoreSystem.Idempotency.Redis" />
+    <PackageReference Include="CoreSystem.Observability" />
+    <PackageReference Include="CoreSystem.Resilience" />
+    <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     
-    <PackageReference Include="Scrutor" Version="6.1.0" />
+    <PackageReference Include="Scrutor" />
   </ItemGroup>
 
   <ItemGroup>

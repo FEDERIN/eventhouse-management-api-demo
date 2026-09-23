@@ -41,7 +41,11 @@ public abstract class BasePersistenceTest : IAsyncLifetime
         await _respawner.ResetAsync(connection);
     }
 
-    public virtual async ValueTask DisposeAsync() => await Context.DisposeAsync();
+    public virtual async ValueTask DisposeAsync()
+    {
+        await Context.DisposeAsync();
+        GC.SuppressFinalize(this);
+    }
 
     protected async Task SeedAsync<T>(params T[] entities) where T : class
     {

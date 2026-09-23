@@ -1,19 +1,19 @@
-﻿using EventHouse.Management.Api.Common.Errors;
-using EventHouse.Management.Api.Swagger.Filters;
+﻿using EventHouse.Management.Api.Swagger.Filters;
+using Core.RateLimiting.DependencyInjection;
+using Core.RateLimiting.Options;
 using EventHouse.Management.Application.DependencyInjection;
 using EventHouse.Management.Infrastructure.DependencyInjection;
 using EventHouse.Management.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
-using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.RateLimiting;
 
 namespace EventHouse.Management.Api.Extensions;
 
@@ -30,12 +30,17 @@ public static class ServiceCollectionExtensions
         .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
         // 2. Security and Control (Auth, RateLimiter)
+        services.AddTransportSecurity(configuration);
         services.AddCustomAuthentication(configuration);
         services.AddAuthorization();
-        services.AddCustomRateLimiting(configuration);
+        var rateLimitingSection = configuration.GetSection("Core:RateLimiting");
+        var rateLimitingOptions = new RateLimitingOptions();
+
+        rateLimitingSection.Bind(rateLimitingOptions);
+
+        services.AddCoreRateLimiting(options => options.CopyFrom(rateLimitingOptions));
 
         // 3. Infrastructure and Persistence (DB, Cache)
-        services.AddCustomDbContext(configuration);
         services.AddCustomHealthChecks();
         services.AddInfrastructure(configuration);
 
@@ -46,6 +51,38 @@ public static class ServiceCollectionExtensions
         services.AddCustomSwagger();
 
         return services;
+    }
+
+    private static void AddTransportSecurity(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddHsts(options =>
+        {
+            options.MaxAge = TimeSpan.FromDays(180);
+            options.IncludeSubDomains = false;
+            options.Preload = false;
+        });
+
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor |
+                ForwardedHeaders.XForwardedProto;
+
+            foreach (var value in configuration
+                .GetSection("ReverseProxy:KnownProxies")
+                .Get<string[]>() ?? [])
+            {
+                if (!IPAddress.TryParse(value, out var address))
+                {
+                    throw new InvalidOperationException(
+                        $"ReverseProxy:KnownProxies contains an invalid IP address: '{value}'.");
+                }
+
+                options.KnownProxies.Add(address);
+            }
+        });
     }
 
     private static void AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
@@ -82,68 +119,6 @@ public static class ServiceCollectionExtensions
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
                 };
             });
-    }
-
-    private static void AddCustomRateLimiting(this IServiceCollection services, IConfiguration configuration)
-    {
-        var rlSection = configuration.GetSection("RateLimiting");
-        var permitLimit = rlSection.GetValue<int>("PermitLimit", 60);
-        var windowSeconds = rlSection.GetValue<int>("WindowSeconds", 60);
-        var queueLimit = rlSection.GetValue<int>("QueueLimit", 0);
-
-        services.AddRateLimiter(options =>
-        {
-            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
-            options.OnRejected = async (context, token) =>
-            {
-                context.HttpContext.Response.ContentType = "application/problem+json";
-
-                context.HttpContext.Response.Headers.RetryAfter = windowSeconds.ToString();
-
-                var problem = new EventHouseProblemDetails
-                {
-                    Type = "urn:eventhouse:error:RATE_LIMIT_EXCEEDED",
-                    Title = "Too Many Requests",
-                    Status = StatusCodes.Status429TooManyRequests,
-                    Detail = "Rate limit exceeded. Please retry later.",
-                    Instance = context.HttpContext.Request.Path,
-                    ErrorCode = "RATE_LIMIT_EXCEEDED",
-                    TraceId = System.Diagnostics.Activity.Current?.Id ?? context.HttpContext.TraceIdentifier
-                };
-
-                await context.HttpContext.Response.WriteAsJsonAsync(problem, cancellationToken: token);
-            };
-
-            // Global Policy by IP
-            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
-            {
-                var key =
-                    httpContext.User?.Identity?.IsAuthenticated == true
-                        ? $"user:{httpContext.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? "auth"}"
-                        : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
-
-                return RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: key,
-                    factory: _ => new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = permitLimit,
-                        Window = TimeSpan.FromSeconds(windowSeconds),
-                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                        QueueLimit = queueLimit
-                    });
-            });
-        });
-    }
-
-    private static void AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddDbContext<ManagementDbContext>(options =>
-        {
-            options.UseNpgsql(
-                configuration.GetConnectionString("ManagementConnection"))
-                .UseSnakeCaseNamingConvention();
-        });
     }
 
     private static void AddCustomHealthChecks(this IServiceCollection services)

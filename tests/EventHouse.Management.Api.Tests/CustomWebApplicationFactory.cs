@@ -11,6 +11,9 @@ namespace EventHouse.Management.Api.Tests;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
+    protected virtual bool IsRateLimitingEnabled => false;
+    protected virtual int RateLimitPermitLimit => 100;
+
     // Fix for CS0618: Pass the image directly to the builder
     private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:16-alpine")
         .WithDatabase("eventhouse_management_tests")
@@ -27,15 +30,18 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Development");
+        builder.UseEnvironment("Testing");
 
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Core:Idempotency:Enabled"] = "true",
-                ["Core:Idempotency:Provider"] = "PostgreSQL",
-                ["Core:Idempotency:PostgreSql:ConnectionString"] = _dbContainer.GetConnectionString()
+                ["Core:Idempotency:Provider"] = "PostgreSql",
+                ["PostgreSqlConnections:MainPostgreSql:ConnectionString"] =
+                    _dbContainer.GetConnectionString(),
+
+                ["Core:RateLimiting:Enabled"] = "false"
             });
         });
 
@@ -73,6 +79,22 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ManagementDbContext>();
         await db.Database.MigrateAsync();
+
+        // The idempotency PostgreSQL provider persists outside ManagementDbContext,
+        // so its table is not covered by the application's EF Core migrations.
+        await db.Database.ExecuteSqlRawAsync(
+            """
+            CREATE TABLE IF NOT EXISTS idempotency_keys (
+                key text PRIMARY KEY,
+                request_fingerprint text NULL,
+                hash_algorithm text NULL,
+                status_code integer NOT NULL,
+                content_type text NULL,
+                headers bytea NULL,
+                body bytea NULL,
+                expires_at timestamp with time zone NOT NULL
+            );
+            """);
     }
 
     public new async ValueTask DisposeAsync()
@@ -80,7 +102,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
         await _dbContainer.StopAsync();
         await base.DisposeAsync();
 
-        // Fix for CA1816: Properly handle the garbage collector
         GC.SuppressFinalize(this);
     }
 }
