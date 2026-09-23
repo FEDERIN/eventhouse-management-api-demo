@@ -10,10 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
@@ -27,13 +23,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\EventHouse.ShareKernel\EventHouse.ShareKernel.csproj" />
     <ProjectReference Include="..\..\src\EventHouse.Management.Domain\EventHouse.Management.Domain.csproj" />
-    <ProjectReference Include="..\EventHouse.Management.TestUtils\EventHouse.Management.Tests.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Exceptions\Calendars\" />
-    <Folder Include="TestResults\" />
+    <ProjectReference Include="..\..\src\EventHouse.Management.Application\EventHouse.Management.Application.csproj" />
+    <ProjectReference Include="..\..\src\EventHouse.Management.Infrastructure\EventHouse.Management.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\EventHouse.Management.Api\EventHouse.Management.Api.csproj" />
   </ItemGroup>
 
 </Project>

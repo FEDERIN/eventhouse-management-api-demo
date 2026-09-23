@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/.NET-8.0-512bd4.svg" />
   <img src="https://img.shields.io/badge/PostgreSQL-16-blue.svg" />
   <img src="https://img.shields.io/badge/Docker-Container-2496ed.svg" />
-  <img src="https://github.com/FEDERIN/eventhouse-management-api-demo/actions/workflows/ci.yml/badge.svg" />
+  <img src="https://github.com/FEDERIN/eventhouse-management-api/actions/workflows/ci.yml/badge.svg" />
 </p>
 
 <p align="center">

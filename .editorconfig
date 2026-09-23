@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# IDE0022: Usar cuerpo del bloque para el método
+dotnet_diagnostic.IDE0022.severity = silent

@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net8.0": {
+      "FluentAssertions": {
+        "type": "Direct",
+        "requested": "[8.10.0, )",
+        "resolved": "8.10.0",
+        "contentHash": "yGvv+xp0gHFgGwhQcGoDdKIrhLhPi3zYYWWLLHPMctr+G6PWD7QH8L4wqoa5WRZquPbfSV/cP1MraI7ppAHrWw=="
+      },
+      "eventhouse.management.domain": {
+        "type": "Project",
+        "dependencies": {
+          "EventHouse.ShareKernel": "[1.0.0, )"
+        }
+      },
+      "eventhouse.sharekernel": {
+        "type": "Project"
+      }
+    }
+  }
+}

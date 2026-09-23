@@ -58,23 +58,29 @@ internal static class IdempotencyExtension
         var provider =
             section.GetValue<string>("Provider");
 
-        switch (provider)
+        if (string.Equals(provider, "Redis", StringComparison.OrdinalIgnoreCase))
         {
-            case "Redis":
-                services.AddCoreIdempotencyRedis(options =>
-                {
-                    options.Configuration =
-                    configuration.CreateRedisConfiguration("MainRedis");
-                });
-                break;
+            services.AddCoreIdempotencyRedis(options =>
+            {
+                options.Configuration =
+                configuration.CreateRedisConfiguration("MainRedis");
+            });
 
-            case "PostgreSql":
-                services.AddCoreIdempotencyPostgreSql(options =>
-                {
-                    options.ConnectionString =
-                    configuration.CreatePostgreSqlConnectionString("MainPostgreSql");
-                });
-                break;
+            return;
         }
+
+        if (string.Equals(provider, "PostgreSql", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddCoreIdempotencyPostgreSql(options =>
+            {
+                options.ConnectionString =
+                configuration.CreatePostgreSqlConnectionString("MainPostgreSql");
+            });
+
+            return;
+        }
+
+        throw new InvalidOperationException(
+            $"Unsupported idempotency provider: {provider ?? "<null>"}");
     }
 }

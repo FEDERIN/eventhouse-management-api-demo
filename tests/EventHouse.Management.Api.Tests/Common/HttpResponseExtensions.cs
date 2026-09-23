@@ -1,7 +1,8 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
-using EventHouse.Management.Api.Common.Errors; // Donde vive EventHouseProblemDetails
+using System.Text.Json;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EventHouse.Management.Api.Tests.Common;
 
@@ -18,10 +19,12 @@ public static class HttpResponseExtensions
     {
         await response.ShouldBeProblemJson(expectedStatus);
 
-        var problem = await response.Content.ReadFromJsonAsync<EventHouseProblemDetails>(JsonTestOptions.Default);
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(JsonTestOptions.Default);
 
         problem.Should().NotBeNull();
-        problem!.ErrorCode.Should().Be(expectedErrorCode);
+        problem!.Extensions.Should().ContainKey("errorCode");
+        var errorCode = problem.Extensions["errorCode"].Should().BeOfType<JsonElement>().Which;
+        errorCode.GetString().Should().Be(expectedErrorCode);
     }
 
      public static async Task<T> ReadContentAsync<T>(this HttpResponseMessage response)

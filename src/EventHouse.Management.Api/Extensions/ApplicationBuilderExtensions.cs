@@ -1,5 +1,6 @@
 ﻿using Core.Cache.DependencyInjection;
 using Core.Idempotency.DependencyInjection;
+using Core.RateLimiting.DependencyInjection;
 using EventHouse.Management.Api.Middlewares;
 using EventHouse.Management.Api.Swagger;
 using Microsoft.OpenApi;
@@ -43,23 +44,32 @@ public static class ApplicationBuilderExtensions
 
     public static IApplicationBuilder UseInfrastructurePipeline(this IApplicationBuilder app, IWebHostEnvironment env)
     {
-        // 1. Global error handling
-        app.UseMiddleware<ExceptionHandlingMiddleware>();
+        // Must precede HTTPS redirection so a trusted proxy can communicate
+        // the original client scheme through X-Forwarded-Proto.
+        app.UseForwardedHeaders();
+        app.UseMiddleware<SecurityHeadersMiddleware>();
 
-        // 2. Basic security and redirections
-        if (env.IsDevelopment())
+        // HTTPS is enforced in every runtime environment except tests. HSTS is
+        // intentionally limited to non-development environments because it is
+        // persisted by browsers and can make local HTTP development unusable.
+        if (!env.IsEnvironment("Testing"))
         {
             app.UseHttpsRedirection();
+
+            if (!env.IsDevelopment())
+            {
+                app.UseHsts();
+            }
         }
 
-        // 3. Correlation middleware and data infrastructure
+        // 2. Correlation middleware and data infrastructure
         app.UseMiddleware<CorrelationIdMiddleware>();
         app.UseCoreIdempotency();
         app.UseCoreCache();
 
-        // 4. Access security
+        // 3. Access security
         app.UseAuthentication();
-        app.UseRateLimiter();
+        app.UseCoreRateLimiting();
         app.UseAuthorization();
 
         return app;
