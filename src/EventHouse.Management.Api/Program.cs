@@ -30,7 +30,6 @@ builder.AddInfrastructureObservability(environment, serviceName, serviceNamespac
 
 builder.Services.AddApiServices(builder.Configuration);
 builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
-builder.Services.AddTransient<CorrelationIdMiddleware>();
 builder.Services.AddTransient<SecurityHeadersMiddleware>();
 
 builder.Services.AddCoreProblemDetails(options =>

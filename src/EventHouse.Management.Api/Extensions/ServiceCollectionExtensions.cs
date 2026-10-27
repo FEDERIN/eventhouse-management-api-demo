@@ -1,4 +1,5 @@
 ﻿using EventHouse.Management.Api.Swagger.Filters;
+using Core.Correlation;
 using Core.RateLimiting.DependencyInjection;
 using Core.RateLimiting.Options;
 using EventHouse.Management.Application.DependencyInjection;
@@ -29,7 +30,10 @@ public static class ServiceCollectionExtensions
         })
         .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-        // 2. Security and Control (Auth, RateLimiter)
+        // 2. Cross-cutting HTTP concerns (Correlation)
+        services.AddCoreCorrelation(configuration);
+
+        // 3. Security and Control (Auth, RateLimiter)
         services.AddTransportSecurity(configuration);
         services.AddCustomAuthentication(configuration);
         services.AddAuthorization();
@@ -40,14 +44,14 @@ public static class ServiceCollectionExtensions
 
         services.AddCoreRateLimiting(options => options.CopyFrom(rateLimitingOptions));
 
-        // 3. Infrastructure and Persistence (DB, Cache)
+        // 4. Infrastructure and Persistence (DB, Cache)
         services.AddCustomHealthChecks();
         services.AddInfrastructure(configuration);
 
-        // 4. Application Layer
+        // 5. Application Layer
         services.AddApplication();
 
-        // 5. Documentation and Tools (Swagger)
+        // 6. Documentation and Tools (Swagger)
         services.AddCustomSwagger();
 
         return services;
