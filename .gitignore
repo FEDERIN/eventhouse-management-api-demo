@@ -34,3 +34,5 @@ coverage-report/
 src/EventHouse.Management.Api/.env
 init-db.sh
 .env
+# User-specific project files
+*.csproj.user
