@@ -22,6 +22,17 @@ public sealed class CrossCuttingIntegrationTests(CustomWebApplicationFactory fac
     }
 
     [Fact]
+    public async Task Request_WithoutCorrelationId_GeneratesAndEchoesOne()
+    {
+        using var response = await Factory.CreateClient().GetAsync("/ready", TestContext.Current.CancellationToken);
+
+        var correlationId = response.Headers.GetValues("X-Correlation-Id").Single();
+
+        correlationId.Should().NotBeNullOrWhiteSpace();
+        Guid.TryParse(correlationId, out _).Should().BeTrue();
+    }
+
+    [Fact]
     public async Task Ready_ReturnsOk_WhenDependenciesAreAvailable()
     {
         using var response = await Factory.CreateClient().GetAsync("/ready", TestContext.Current.CancellationToken);

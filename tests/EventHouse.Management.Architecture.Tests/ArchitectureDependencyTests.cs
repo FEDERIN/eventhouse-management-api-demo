@@ -78,9 +78,14 @@ public sealed class ArchitectureDependencyTests
         }
     }
 
-    private static HashSet<string> GetReferences(string assemblyName) =>
-        Assembly.Load(assemblyName)
+    private static HashSet<string> GetReferences(string assemblyName)
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, assemblyName + ".dll");
+        if (!File.Exists(path))
+            throw new FileNotFoundException($"Assembly '{assemblyName}' not found at '{path}'. Ensure the project is referenced by this test project.");
+        return Assembly.LoadFrom(path)
             .GetReferencedAssemblies()
             .Select(reference => reference.Name!)
             .ToHashSet(StringComparer.Ordinal);
+    }
 }

@@ -129,8 +129,11 @@ graph TD
 
 ### 🐳 Run with Docker
 
+Copy `src/EventHouse.Management.Api/.env.example` to `src/EventHouse.Management.Api/.env` and fill in the values first, then:
+
 ```bash
-docker-compose up -d --build
+cd src/EventHouse.Management.Api
+docker compose up -d --build
 ```
 
 ---
@@ -139,7 +142,8 @@ docker-compose up -d --build
 
 ```powershell
 $Env:Auth__DevSecret="EVENTHOUSE_LOCAL_DEV_SECRET_32_CHARS_MINIMUM!!"
-dotnet run --project EventHouse.Management.Api
+$Env:MEDIATR_LICENSE_KEY="<your-mediatr-license-key>"
+dotnet run --project src/EventHouse.Management.Api
 ```
 
 ---
@@ -163,7 +167,7 @@ dotnet ef database update --project src/EventHouse.Management.Infrastructure --s
 ## 🧪 Testing Strategy
 
 - Unit Tests → Domain logic validation
-- Integration Tests → PostgreSQL via Testcontainers
+- Integration Tests → PostgreSQL via Testcontainers (requires Docker running)
 - Fast resets → Respawn
 - Shared fixtures → optimized execution
 
@@ -174,7 +178,7 @@ dotnet ef database update --project src/EventHouse.Management.Infrastructure --s
 - 🔭 Distributed tracing → OpenTelemetry + Jaeger
 - 📈 Metrics → Prometheus + Grafana
 - 🩺 Health checks → `/health`
-- 🧾 Correlation IDs → `X-Correlation-Id`
+- 🧾 Correlation IDs → `CoreSystem.Correlation` (`X-Correlation-Id`)
 
 ---
 

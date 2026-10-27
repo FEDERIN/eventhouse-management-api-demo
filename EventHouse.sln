@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
+# Visual Studio Version 18
+VisualStudioVersion = 18.6.11723.189
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.ShareKernel", "src\EventHouse.ShareKernel\EventHouse.ShareKernel.csproj", "{F0664617-8F2E-4AA9-A919-51F190FF4037}"
 EndProject
@@ -22,6 +22,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Infrastructure.Tests", "tests\EventHouse.Management.Infrastructure.Tests\EventHouse.Management.Infrastructure.Tests.csproj", "{7EFCB89C-3FB0-45E9-9470-9E6A8169416C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Tests.Shared", "tests\EventHouse.Management.TestUtils\EventHouse.Management.Tests.Shared.csproj", "{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Architecture.Tests", "tests\EventHouse.Management.Architecture.Tests\EventHouse.Management.Architecture.Tests.csproj", "{A60ACD3D-B9B0-4ED2-A066-EBB43DDADCB4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{D107F4C8-89CC-BEA8-D3D7-CA6B7733353D}"
 	ProjectSection(SolutionItems) = preProject
@@ -89,6 +91,10 @@ Global
 		{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A60ACD3D-B9B0-4ED2-A066-EBB43DDADCB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A60ACD3D-B9B0-4ED2-A066-EBB43DDADCB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A60ACD3D-B9B0-4ED2-A066-EBB43DDADCB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A60ACD3D-B9B0-4ED2-A066-EBB43DDADCB4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -104,9 +110,9 @@ Global
 		{EFDC2BC2-72C0-4816-BC31-4D5FAB5BC485} = {024EE08A-FA7A-4F16-A7A3-CCA66170CA50}
 		{7EFCB89C-3FB0-45E9-9470-9E6A8169416C} = {024EE08A-FA7A-4F16-A7A3-CCA66170CA50}
 		{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7} = {024EE08A-FA7A-4F16-A7A3-CCA66170CA50}
+		{A60ACD3D-B9B0-4ED2-A066-EBB43DDADCB4} = {024EE08A-FA7A-4F16-A7A3-CCA66170CA50}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E847F8CD-98B6-4209-B768-33CBAD7321B2}
 	EndGlobalSection
 EndGlobal
-	

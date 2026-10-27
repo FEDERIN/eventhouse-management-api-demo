@@ -1,4 +1,5 @@
 ﻿using Core.Cache.DependencyInjection;
+using Core.Correlation;
 using Core.Idempotency.DependencyInjection;
 using Core.RateLimiting.DependencyInjection;
 using EventHouse.Management.Api.Middlewares;
@@ -63,7 +64,7 @@ public static class ApplicationBuilderExtensions
         }
 
         // 2. Correlation middleware and data infrastructure
-        app.UseMiddleware<CorrelationIdMiddleware>();
+        app.UseCoreCorrelationId();
         app.UseCoreIdempotency();
         app.UseCoreCache();
 
