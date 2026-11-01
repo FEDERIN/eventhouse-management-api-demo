@@ -7,9 +7,6 @@ on:
   pull_request:
     branches: [ main ]
 
-permissions:
-  contents: read
-
 jobs:
   build-and-test:
     name: Build, Test and Docker Validation
@@ -20,15 +17,24 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # Setup the .NET SDK version 8.0
+    # Use the SDK pinned by the repository
     - name: Setup .NET 8
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        global-json-file: global.json
+        cache: true
+        cache-dependency-path: |
+          **/packages.lock.json
 
-    # Restore NuGet packages
-    - name: Restore Dependencies
-      run: dotnet restore EventHouse.sln
+    # Central package versions and lock files must remain synchronized.
+    - name: Verify package versions and lock files
+      run: |
+        test -f Directory.Packages.props
+        if grep -R --include='*.csproj' -E '<PackageReference[^>]*Version=' src tests; then
+          echo "Package versions must be declared in Directory.Packages.props."
+          exit 1
+        fi
+        dotnet restore EventHouse.sln --locked-mode
 
     # Build the project in Release mode without re-restoring
     - name: Build Solution
@@ -43,15 +49,35 @@ jobs:
           --verbosity normal \
           --settings coverlet.runsettings \
           --collect:"XPlat Code Coverage"
-
+    
     # Generate Coverage Report
     - name: Generate Coverage Report
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
         reportgenerator -reports:"**/**/coverage.cobertura.xml" -targetdir:"coverage" -reporttypes:Html
 
-    # Upload Coverage Artifact
-    - name: Upload Coverage Artifact
+    # Enforce minimum coverage threshold
+    - name: Enforce Coverage Threshold
+      run: |
+        python - <<'PY'
+        import glob, xml.etree.ElementTree as ET
+        files = glob.glob('**/coverage.cobertura.xml', recursive=True)
+        if not files:
+            print("No coverage files found.")
+            raise SystemExit(1)
+        rates = []
+        for f in files:
+            tree = ET.parse(f)
+            root = tree.getroot()
+            rates.append(float(root.get('line-rate', 0)))
+        avg = (sum(rates) / len(rates)) * 100
+        print(f"Average line coverage: {avg:.2f}%")
+        if avg < 40:
+            print("Coverage below 40% threshold.")
+            raise SystemExit(1)
+        PY
+
+    - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report

@@ -27,22 +27,52 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHouse.Management.Archi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{D107F4C8-89CC-BEA8-D3D7-CA6B7733353D}"
 	ProjectSection(SolutionItems) = preProject
+		AGENTS.md = AGENTS.md
 		coverlet.runsettings = coverlet.runsettings
+		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
+		MEMORY.md = MEMORY.md
+		mkdocs.yml = mkdocs.yml
+		README.md = README.md
+		SECURITY.md = SECURITY.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8994C3F6-D0BF-4437-AB7A-F6D6032D6674}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{024EE08A-FA7A-4F16-A7A3-CCA66170CA50}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Directory.Build.props = tests\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BABA7D1C-59A8-4A07-A310-3ECC6D27AFC3}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{6B28FED8-81A5-48D9-9476-0F8F798F8921}"
 	ProjectSection(SolutionItems) = preProject
+		docs\Architecture.md = docs\Architecture.md
+		docs\Configuration.md = docs\Configuration.md
+		docs\Database.md = docs\Database.md
 		docs\diagram-flow.mmd = docs\diagram-flow.mmd
 		docs\diagram-flow.png = docs\diagram-flow.png
+		docs\GettingStarted.md = docs\GettingStarted.md
+		docs\index.md = docs\index.md
+		docs\Observability.md = docs\Observability.md
+		docs\Testing.md = docs\Testing.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{50DD8934-A26A-489C-93A9-7A8C61012300}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{BC200582-FE9B-407E-9016-BCEAD27F211E}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+		.github\workflows\documentation.yml = .github\workflows\documentation.yml
 	EndProjectSection
 EndProject
 Global
@@ -111,6 +141,7 @@ Global
 		{7EFCB89C-3FB0-45E9-9470-9E6A8169416C} = {024EE08A-FA7A-4F16-A7A3-CCA66170CA50}
 		{71D110D7-08D9-EE2C-7DAE-8CC016B4F8D7} = {024EE08A-FA7A-4F16-A7A3-CCA66170CA50}
 		{A60ACD3D-B9B0-4ED2-A066-EBB43DDADCB4} = {024EE08A-FA7A-4F16-A7A3-CCA66170CA50}
+		{BC200582-FE9B-407E-9016-BCEAD27F211E} = {50DD8934-A26A-489C-93A9-7A8C61012300}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E847F8CD-98B6-4209-B768-33CBAD7321B2}

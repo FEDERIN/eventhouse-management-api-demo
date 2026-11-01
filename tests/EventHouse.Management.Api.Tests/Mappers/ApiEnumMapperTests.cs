@@ -10,7 +10,7 @@ public class ApiEnumMapperTests
     public void ToApplicationRequired_WhenInvalidEnumValue_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
-        // Crear un valor inválido que no existe en el enum
+        // Create an invalid value that does not exist in the enum
         var invalidSortDirection = (SortDirection)999;
 
         // Act & Assert

@@ -28,7 +28,7 @@ public static class ServiceCollectionExtensions
             var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
             options.Filters.Add(new AuthorizeFilter(policy));
         })
-        .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+        .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter()));
 
         // 2. Cross-cutting HTTP concerns (Correlation)
         services.AddCoreCorrelation(configuration);

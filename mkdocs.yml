@@ -1,0 +1,44 @@
+site_name: EventHouse Management API
+site_description: .NET 8/9 Web API for EventHouse management
+site_author: Federin Pastor Gutierrez Ortiz
+site_url: https://federin.github.io/eventhouse-management-api/
+
+repo_name: FEDERIN/eventhouse-management-api
+repo_url: https://github.com/FEDERIN/eventhouse-management-api
+
+theme:
+  name: material
+  language: en
+
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+    - search.suggest
+
+plugins:
+  - search
+  - mermaid2
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+
+nav:
+  - Home: index.md
+  - Getting Started: GettingStarted.md
+  - Onboarding: Onboarding.md
+  - Architecture: Architecture.md
+  - Configuration: Configuration.md
+  - Database: Database.md
+  - Testing: Testing.md
+  - Observability: Observability.md
+  - API: API.md

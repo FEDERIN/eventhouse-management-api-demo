@@ -1,14 +1,73 @@
-# AGENTS.md — EventHouse Management API
+# AGENTS.md
 
-.NET 8 Web API using Clean Architecture + DDD + CQRS (MediatR), PostgreSQL 16 (EF Core), Redis, OpenTelemetry, Docker. Solution: `EventHouse.sln`.
+## 1. Engineering Standards
 
-## Layout
+Before performing any task, read `AGENTS-STANDARDS.md`.
 
-- `src/EventHouse.Management.Api` — entrypoint; also holds `docker-compose.yml`, `Dockerfile`, `otel-collector-config.yml`, `prometheus.yml`, `.env.example`
-- `src/EventHouse.Management.Application` / `Domain` / `Infrastructure` / `OpenApi`, `src/EventHouse.ShareKernel`
-- `tests/` — per-project test projects + `EventHouse.Management.TestUtils` (shared fixtures) + `EventHouse.Management.Architecture.Tests` (layering rules — keep passing when adding references)
+These standards are mandatory and apply to all development
+activities in this repository.
 
-## Commands (verified against CI: `.github/workflows/ci.yml`)
+The repository-specific instructions in this file complement
+the common standards.
+
+If a project-specific rule differs from a common standard,
+follow the explicit project-specific exception.
+
+## 2. Repository Overview
+
+EventHouse Management API is a .NET 8/9 Web API (multi-targeted)
+using Clean Architecture + DDD + CQRS (MediatR), PostgreSQL 16
+(EF Core), Redis, OpenTelemetry, Docker.
+
+- Solution: `EventHouse.sln`
+- Source: `src/`
+- Documentation: none (MkDocs not used)
+- Local run: docker-compose in `src/EventHouse.Management.Api/`
+
+Follow `AGENTS-STANDARDS.md` for common engineering rules.
+
+## 3. Repository Architecture
+
+- Clean Architecture layers: `Domain`, `Application`, `Infrastructure`,
+  `Api`, plus `OpenApi` and shared `ShareKernel`.
+- `Application` uses MediatR (CQRS); handlers live under
+  `Application/...`.
+- `Infrastructure` holds EF Core, Redis, external integrations.
+- Architecture tests enforce layering rules in
+  `tests/EventHouse.Management.Architecture.Tests`.
+- Do not introduce references that violate architecture tests.
+
+## 4. Dependencies
+
+- Package versions are centralized in `Directory.Packages.props`.
+- `Directory.Build.props` enables `RestoreLockedMode`.
+- After adding, removing or changing a package, run
+  `dotnet restore EventHouse.sln --use-lock-file --force-evaluate`
+  and commit the updated `packages.lock.json` files.
+- Per-TFM packages are pinned with conditional
+  `<ItemGroup Condition="'$(TargetFramework)' == 'netX.0'">` blocks
+  in `Directory.Packages.props`.
+- Integration tests use Testcontainers; Docker must be running.
+- CoreSystem.* packages (cache, correlation, idempotency, observability,
+  rate limiting, resilience, etc.) are external dependencies; bump their
+  central versions deliberately and verify compatibility per TFM.
+
+## 5. Framework Configuration
+
+- SDK: 9.0.320 (`global.json`, `rollForward: latestFeature`)
+- Target frameworks: `net8.0;net9.0`
+- Multi-targeting from `Directory.Build.props`.
+- Nullable Reference Types and Implicit Usings enabled.
+
+## 6. Testing
+
+- Unit tests: `tests/EventHouse.Management.*.Tests`
+- Integration tests: `Api.Tests` and `Infrastructure.Tests`
+  (Testcontainers postgres:16-alpine + Respawn).
+- Shared fixtures in `tests/EventHouse.Management.TestUtils`.
+- Run all tests: `dotnet test EventHouse.sln`.
+
+## 7. Build and Commands
 
 ```bash
 dotnet restore EventHouse.sln --locked-mode
@@ -16,28 +75,33 @@ dotnet build EventHouse.sln --configuration Release --no-restore
 dotnet test EventHouse.sln --configuration Release --no-build --settings coverlet.runsettings --collect:"XPlat Code Coverage"
 ```
 
-## Gotchas (will bite you)
+EF migrations (from repo root):
 
-- **SDK pinned**: `global.json` → .NET SDK 8.0.402. Use .NET 8, not 9.
-- **NuGet lock files are enforced**: `Directory.Build.props` sets `RestoreLockedMode=true`. Never put `Version=` on a `PackageReference` (CI greps for it and fails) — versions live only in `Directory.Packages.props`. After changing packages, regenerate locks with `generate-lock-files.bat` (or `dotnet restore EventHouse.sln --use-lock-file --force-evaluate`) and commit the updated `packages.lock.json` files.
-- **Integration tests need Docker running**: `Api.Tests` and `Infrastructure.Tests` use Testcontainers (`postgres:16-alpine`) + Respawn. `dotnet test` fails without a Docker daemon; first run pulls images.
-- **Required secrets to run locally**: `Auth__DevSecret` (≥32 chars) and `MEDIATR_LICENSE_KEY` (MediatR license). `DotNetEnv` loads `src/EventHouse.Management.Api/.env` — copy from `.env.example` there (the `.env` is git-ignored). README's `dotnet run --project EventHouse.Management.Api` also needs `Auth__DevSecret` in the environment.
-- **docker-compose is NOT at repo root**: it lives in `src/EventHouse.Management.Api/`. Run `docker compose up` from that directory.
-- **EF migrations** (from repo root):
-  ```bash
-  dotnet ef migrations add <Name> --project src/EventHouse.Management.Infrastructure --startup-project src/EventHouse.Management.Api --output-dir Persistence/Migrations
-  dotnet ef database update --project src/EventHouse.Management.Infrastructure --startup-project src/EventHouse.Management.Api
-  ```
+```bash
+dotnet ef migrations add <Name> --project src/EventHouse.Management.Infrastructure --startup-project src/EventHouse.Management.Api --output-dir Persistence/Migrations
+dotnet ef database update --project src/EventHouse.Management.Infrastructure --startup-project src/EventHouse.Management.Api
+```
 
-## Conventions
+docker-compose lives in `src/EventHouse.Management.Api/`.
 
-- Code comments, commit history, and some user-facing strings are in Spanish — match surrounding style when editing existing files.
-- EF Core uses snake_case tables/columns (`EFCore.NamingConventions`) with microsecond precision; coverage excludes migrations via `coverlet.runsettings`.
+## 8. CI/CD
 
-## Memory
+- GitHub Actions (`.github/workflows/ci.yml`).
+- Restore, build, tests with coverage.
+- `main` is protected: use feature branches and PRs.
 
-- At the start, read `MEMORY.md` to learn the current state of the project and past decisions.
-- When a task is finished, update it: current state, important decisions (with their rationale), and mistakes to avoid.
-- Keep it short (max ~50 lines): summarize or drop what no longer adds value.
-- If something becomes a permanent rule, propose moving it to `AGENTS.md` instead of keeping it in memory.
-- Never store sensitive data (keys, tokens, personal data).
+## 9. Documentation
+
+- MkDocs documentation (see `requirements.txt`).
+- Code comments, commits, PRs and user-facing strings in English.
+- EF Core uses snake_case tables/columns with microsecond precision.
+
+## 10. Memory
+
+Read `MEMORY.md` at the beginning of a task.
+Update it when significant decisions or project state change.
+Keep it concise and avoid duplicating permanent rules
+(max ~50 lines: summarize or drop what no longer adds value).
+If something becomes a permanent rule, propose moving it to
+`AGENTS.md` instead of keeping it in memory.
+Never store sensitive data (keys, tokens, personal data).
