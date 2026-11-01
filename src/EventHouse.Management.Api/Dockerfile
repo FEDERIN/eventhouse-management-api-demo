@@ -1,5 +1,5 @@
 # 1. Build Stage
-FROM mcr.microsoft.com/dotnet/sdk:9.0.x@sha256:<sdk-image-digest> AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0.0@sha256:<real-sdk-image-digest> AS build
 WORKDIR /app
 
 # Copiar archivos de proyecto usando la estructura real (sin redundancia /src/src/)
@@ -31,7 +31,7 @@ FROM build AS publish
 RUN dotnet publish "src/EventHouse.Management.Api/EventHouse.Management.Api.csproj" -c Release -f net9.0 --no-restore -o /app/publish /p:UseAppHost=false
 
 # 3. Final Runtime Stage
-FROM mcr.microsoft.com/dotnet/aspnet:9.0.x@sha256:<aspnet-image-digest> AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0.0@sha256:<real-aspnet-image-digest> AS final
 WORKDIR /app
 
 # Copiar binarios publicados
