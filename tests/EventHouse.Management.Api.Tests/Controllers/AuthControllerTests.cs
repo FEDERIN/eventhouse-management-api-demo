@@ -97,7 +97,7 @@ public sealed class AuthControllerTests
         // Arrange
         var settings = new Dictionary<string, string?>
         {
-            ["Auth:DevSecret"] = "EVENTHOUSE_LOCAL_DEV_SECRET_1234567890", // Mínimo 32 caracteres
+            ["Auth:DevSecret"] = "EVENTHOUSE_LOCAL_DEV_SECRET_1234567890", // Minimum 32 characters
             ["Auth:Issuer"] = "eventhouse.local",
             ["Auth:Audience"] = "eventhouse.management"
         };
@@ -121,7 +121,7 @@ public sealed class AuthControllerTests
         Assert.NotEmpty(response.AccessToken);
 
         var handler = new JwtSecurityTokenHandler();
-        // CRÍTICO: Evita que 'sub' se convierta en 'http://schemas...' 
+        // CRITICAL: Prevents 'sub' from being converted into 'http://schemas...' 
         // y que los tests de Claims fallen.
         handler.InboundClaimTypeMap.Clear();
         handler.OutboundClaimTypeMap.Clear();

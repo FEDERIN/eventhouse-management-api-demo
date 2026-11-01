@@ -17,6 +17,23 @@
       "eventhouse.sharekernel": {
         "type": "Project"
       }
+    },
+    "net9.0": {
+      "FluentAssertions": {
+        "type": "Direct",
+        "requested": "[8.11.0, )",
+        "resolved": "8.11.0",
+        "contentHash": "dZqOxys9uY/0vO5BAwFtDECkFNSr9vWGwHa1fwZyuM1xAMbI4wiPTUBR2nH5e6R2/bQkXegxFY1B/oU1yqNNOw=="
+      },
+      "eventhouse.management.domain": {
+        "type": "Project",
+        "dependencies": {
+          "EventHouse.ShareKernel": "[1.0.0, )"
+        }
+      },
+      "eventhouse.sharekernel": {
+        "type": "Project"
+      }
     }
   }
 }

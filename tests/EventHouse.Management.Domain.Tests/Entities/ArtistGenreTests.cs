@@ -46,7 +46,7 @@ public class ArtistGenreTests
         Assert.Equal("status", ex.ParamName);
     }
 
-    // Helper para crear una instancia válida para los tests de métodos
+    // Helper to create a valid instance for method tests
     private static ArtistGenre CreateValidArtistGenre()
     {
         return new ArtistGenre(Guid.NewGuid(), Guid.NewGuid(), ArtistGenreStatus.Active, false);

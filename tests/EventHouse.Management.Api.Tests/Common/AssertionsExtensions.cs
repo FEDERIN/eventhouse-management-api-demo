@@ -13,7 +13,7 @@ public static void ShouldHaveValidPaginationLinks<T>(this PagedResult<T> page, i
     page.Links!.Self.Should().Contain($"page={currentPage}");
     page.Links.Self.Should().Contain($"pageSize={expectedPageSize}");
 
-    // 2. Validar el enlace a la siguiente página (Next)
+    // 2. Validate the link to the next page (Next)
     if (page.TotalCount > (currentPage * expectedPageSize))
     {
         page.Links.Next.Should().NotBeNull("porque hay más elementos en la siguiente página");
@@ -24,7 +24,7 @@ public static void ShouldHaveValidPaginationLinks<T>(this PagedResult<T> page, i
         page.Links.Next.Should().BeNull("porque estamos en la última página");
     }
 
-    // 3. Validar el enlace a la página anterior (Previous)
+    // 3. Validate the link to the previous page (Previous)
     if (currentPage > 1)
     {
         page.Links.Previous.Should().NotBeNull("porque existe una página anterior");

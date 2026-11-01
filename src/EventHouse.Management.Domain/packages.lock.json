@@ -5,6 +5,11 @@
       "eventhouse.sharekernel": {
         "type": "Project"
       }
+    },
+    "net9.0": {
+      "eventhouse.sharekernel": {
+        "type": "Project"
+      }
     }
   }
 }

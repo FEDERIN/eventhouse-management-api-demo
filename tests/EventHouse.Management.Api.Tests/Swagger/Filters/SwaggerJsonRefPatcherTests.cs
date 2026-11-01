@@ -219,7 +219,7 @@ public sealed class SwaggerJsonRefPatcherTests
         var once = SwaggerJsonRefPatcher.Patch(input);
         var twice = SwaggerJsonRefPatcher.Patch(once);
 
-        // Comparación estructural (no string) por si cambia el orden de propiedades
+        // Structural comparison (not string) in case property order changes
         var n1 = JsonNode.Parse(once)!.ToJsonString(new JsonSerializerOptions { WriteIndented = false });
         var n2 = JsonNode.Parse(twice)!.ToJsonString(new JsonSerializerOptions { WriteIndented = false });
 

@@ -49,7 +49,7 @@ internal class EventVenueCalendarRepository(ManagementDbContext context)
         }
         catch
         {
-            await transaction.RollbackAsync(ct); // ¡Aquí entrará tu test!
+            await transaction.RollbackAsync(ct); // Test hook point
             throw;
         }
     }

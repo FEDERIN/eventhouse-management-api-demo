@@ -229,7 +229,7 @@ public sealed class EventVenueCalendarsControllerTests(CustomWebApplicationFacto
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Lógica dinámica de validación según el campo
+        // Dynamic validation logic based on the field
         var items = pagedResult.Items;
 
         switch (sortColumn)

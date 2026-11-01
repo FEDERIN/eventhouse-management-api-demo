@@ -1,0 +1,4 @@
+mkdocs>=1.6
+mkdocs-material>=9.6
+pymdown-extensions>=10.14
+mkdocs-mermaid2-plugin>=1.2

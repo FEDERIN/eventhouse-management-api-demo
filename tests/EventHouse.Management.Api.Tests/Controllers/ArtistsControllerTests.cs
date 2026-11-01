@@ -204,7 +204,7 @@ public sealed class ArtistsControllerTests(CustomWebApplicationFactory factory)
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // --- Round-trip: Verificación real ---
+        // --- Round-trip: Real verification ---
         var updatedArtist = await Client.GetFromJsonAsync<ArtistDetail>($"{BaseUrlArtists}/{artist.Id}", JsonTestOptions.Default, TestContext.Current.CancellationToken);
         
         updatedArtist!.Genres.Should().ContainSingle(g => g.GenreId == genre.Id && g.IsPrimary == true);

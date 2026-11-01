@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\EventHouse.Management.Application\EventHouse.Management.Application.csproj" />
@@ -36,11 +36,5 @@
 		<_Parameter1>EventHouse.Management.Infrastructure.Tests</_Parameter1>
 	</AssemblyAttribute>
   </ItemGroup>
-  
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
+	
 </Project>
